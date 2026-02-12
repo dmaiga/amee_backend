@@ -1,0 +1,34 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+cat > .gitignore << EOF
+# Environnement
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Base de données
+*.sqlite3
+*.db
+
+# IDE
+.vscode/
+.idea/
+
+# Django
+media/
+staticfiles/
+
+# uv
+
+EOF
