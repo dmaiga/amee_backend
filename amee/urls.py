@@ -21,9 +21,17 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
+from accounts.views import RegisterView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
     path('api/auth/login/', TokenObtainPairView.as_view()),
     path('api/auth/refresh/', TokenRefreshView.as_view()),
-    path('api/', include('accounts.urls')),
+    path('api/auth/register/', RegisterView.as_view(), name='register'),
+
+    path('api/accounts/', include('accounts.urls')),
+    path('api/memberships/', include('memberships.urls')),
+    path('api/roster/', include('roster.urls')),
+
 ]
