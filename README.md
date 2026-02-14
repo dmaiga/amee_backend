@@ -1,37 +1,64 @@
-# Projet Amee
+# AMEE Platform
 
-Bienvenue dans le projet Amee. Ce projet est une application Django qui fournit des fonctionnalités d'authentification et de gestion des utilisateurs.
+Plateforme backend de gestion du réseau d’experts AMEE.
 
-## Fonctionnalités
+L’application permet de gérer :
 
-- Authentification avec JWT (JSON Web Token)
-- Enregistrement des utilisateurs
-- Points de terminaison API pour récupérer les informations utilisateur
+- les adhésions membres
+- la validation des experts (Roster)
+- la publication de besoins clients
+- la mise en relation client–consultant
+- le suivi des collaborations
+
+AMEE agit comme un tiers de confiance facilitant les mises en relation
+sans intervenir dans la gestion contractuelle des missions.
+
+---
+
+## Stack Technique
+
+- Django
+- Django REST Framework
+- JWT Authentication
+- PostgreSQL / SQLite (dev)
+- drf-spectacular (API Docs)
+- pytest (tests)
+
+---
+
+## Architecture
+
+### Apps principales
+
+- **accounts** : utilisateurs, rôles et authentification
+- **memberships** : gestion des adhésions AMEE
+- **roster** : validation des consultants
+- **missions** : besoins exprimés par les clients
+- **interactions** : mise en relation et suivi
+
+---
+
+## Workflow
+
+Client → Mission → ContactRequest → Consultant  
+→ Collaboration confirmée → Feedback (v0.0.2)
+
+Voir : `docs/workflow.md`
+
+---
 
 ## Installation
 
-1. Clonez ce dépôt :
-   ```bash
-   git clone <url-du-repo>
-   ```
-2. Installez les dépendances :
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Appliquez les migrations :
-   ```bash
-   python manage.py migrate
-   ```
-4. Lancez le serveur de développement :
-   ```bash
-   python manage.py runserver
-   ```
+```bash
+uv sync
+uv run python manage.py migrate
+uv run python manage.py runserver
 
-## Utilisation
 
-- Accédez à l'interface d'administration : `/admin/`
-- Points de terminaison API :
-  - `/api/auth/login/` : Connexion utilisateur
-  - `/api/auth/refresh/` : Rafraîchir le token JWT
-  - `/api/me/` : Récupérer les informations de l'utilisateur connecté
-  - `/api/register/` : Enregistrer un nouvel utilisateur
+## Documentation API
+
+Swagger :
+/api/docs/
+
+Schema OpenAPI :
+/api/schema/

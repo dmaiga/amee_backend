@@ -1,0 +1,75 @@
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+
+
+class ContactRequest(models.Model):
+
+    STATUT_CHOICES = (
+        ('ENVOYE', 'Contact partagé'),
+        ('MISSION_CONFIRME', 'Mission confirmée'),
+        ('SANS_SUITE', 'Sans suite'),
+        ('REFUSE', 'Refus du consultant'),
+    )
+
+    client = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='demandes_clients'
+    )
+
+    consultant = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='demandes_consultant'
+    )
+
+    mission = models.ForeignKey(
+        'missions.Mission',
+        on_delete=models.CASCADE,
+        related_name='contacts'
+    )
+
+    est_collaboration_validee = models.BooleanField(
+        default=False,
+        help_text="Indique qu'une collaboration réelle a été confirmée"
+    )
+
+
+
+    message = models.TextField(blank=True, null=True)
+
+    duree_estimee_jours = models.PositiveIntegerField(
+        null=True,
+        blank=True
+    )
+
+    statut = models.CharField(
+        max_length=30,
+        choices=STATUT_CHOICES,
+        default='ENVOYE'
+    )
+
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    date_suivi_prevu = models.DateTimeField(null=True, blank=True)
+
+    suivi_envoye = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.client} → {self.consultant} ({self.statut})"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['mission', 'consultant'],
+                name='unique_contact_per_mission_consultant'
+            )
+        ]
+        
+    def save(self, *args, **kwargs):
+
+        if self.statut == 'MISSION_CONFIRME':
+            self.est_collaboration_validee = True
+
+        super().save(*args, **kwargs)

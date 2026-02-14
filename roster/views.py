@@ -93,6 +93,7 @@ class ListeConsultantsPublicView(ListAPIView):
     def get_queryset(self):
         return ConsultantProfile.objects.filter(
             statut='VALIDE',
+            est_disponible=True,
             user__role='CONSULTANT'
         )
 

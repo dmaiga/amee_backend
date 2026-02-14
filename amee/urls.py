@@ -22,10 +22,20 @@ from rest_framework_simplejwt.views import (
 )
 
 from accounts.views import RegisterView
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView
+)
 
+ 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
+        
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema')),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema')),
+
     path('api/auth/login/', TokenObtainPairView.as_view()),
     path('api/auth/refresh/', TokenRefreshView.as_view()),
     path('api/auth/register/', RegisterView.as_view(), name='register'),
@@ -33,5 +43,7 @@ urlpatterns = [
     path('api/accounts/', include('accounts.urls')),
     path('api/memberships/', include('memberships.urls')),
     path('api/roster/', include('roster.urls')),
+    path('api/missions/', include('missions.urls')),
+    path('api/interactions/', include('interactions.urls')),
 
 ]

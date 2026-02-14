@@ -40,6 +40,7 @@ class ConsultantProfile(models.Model):
 
     cree_le = models.DateTimeField(auto_now_add=True)
     motif_refus = models.TextField(null=True, blank=True)
+    est_disponible = models.BooleanField(default=True)
 
     def valider(self, validateur):
         self.statut = 'VALIDE'
