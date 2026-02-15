@@ -28,6 +28,7 @@ __pycache__/
 # Django
 media/
 staticfiles/
+migrations/
 
 # uv
 
