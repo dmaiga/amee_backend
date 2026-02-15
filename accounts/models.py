@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 import uuid
+from django.utils.text import slugify
+
 
 
 # =====================================================
@@ -41,13 +43,19 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
 
-    # ❌ suppression réelle du username Django
-    username = None
+    # username conservé mais auto-généré
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        blank=True
+    )
 
     ROLE_CHOICES = (
+        
         ('SUPERADMIN', 'Administrateur Système'),
         ('BUREAU', 'Membre du Bureau / Conseil'),
         ('COMPTA', 'Comptabilité'),
+
         ('SECRETARIAT', 'Secrétariat Administratif'),
         ('MEMBER', 'Membre Adhérent'),
         ('CONSULTANT', 'Expert Roster'),
@@ -82,6 +90,27 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
     objects = UserManager()
+
+    # ============================
+    # AUTO USERNAME GENERATION
+    # ============================
+    def generate_username(self):
+        base_username = slugify(f"{self.first_name}{self.last_name}") or "user"
+        username = base_username
+        counter = 1
+
+        while User.objects.filter(username=username).exclude(pk=self.pk).exists():
+            username = f"{base_username}{counter}"
+            counter += 1
+
+        return username
+
+    def save(self, *args, **kwargs):
+        # Génère username seulement s'il est vide
+        if not self.username:
+            self.username = self.generate_username()
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.email} - {self.get_role_display()}"

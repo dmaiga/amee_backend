@@ -8,6 +8,7 @@ class ContactRequest(models.Model):
     STATUT_CHOICES = (
         ('ENVOYE', 'Contact partagé'),
         ('MISSION_CONFIRME', 'Mission confirmée'),
+        ('MISSION_TERMINEE', 'Mission terminée'),
         ('SANS_SUITE', 'Sans suite'),
         ('REFUSE', 'Refus du consultant'),
     )
@@ -35,8 +36,6 @@ class ContactRequest(models.Model):
         help_text="Indique qu'une collaboration réelle a été confirmée"
     )
 
-
-
     message = models.TextField(blank=True, null=True)
 
     duree_estimee_jours = models.PositiveIntegerField(
@@ -53,8 +52,10 @@ class ContactRequest(models.Model):
     cree_le = models.DateTimeField(auto_now_add=True)
 
     date_suivi_prevu = models.DateTimeField(null=True, blank=True)
-
     suivi_envoye = models.BooleanField(default=False)
+
+    suivi_effectue = models.BooleanField(default=False)
+    date_suivi_reel = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.client} → {self.consultant} ({self.statut})"

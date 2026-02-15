@@ -3,6 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from datetime import timedelta
 
+from roster.permissions import EstBureauOuSuperAdmin
+
 from .models import ContactRequest
 from .serializers import ContactRequestSerializer
 from missions.models import Mission
@@ -19,6 +21,13 @@ from django.shortcuts import get_object_or_404
 
 from .models import ContactRequest
 from .serializers import UpdateContactStatusSerializer
+
+from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
+from .models import ContactRequest
+from .serializers import ContactRequestReadSerializer
+from rest_framework.exceptions import PermissionDenied, ValidationError
+
 
 
 class RequestContactView(CreateAPIView):
@@ -66,11 +75,6 @@ class RequestContactView(CreateAPIView):
             )
 
 
-from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated
-from .models import ContactRequest
-from .serializers import ContactRequestReadSerializer
-
 
 class ConsultantInteractionsView(ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -93,7 +97,6 @@ class ClientInteractionsView(ListAPIView):
         ).select_related(
             'mission', 'consultant'
         ).order_by('-cree_le')
-
 
 class UpdateContactStatusView(APIView):
     permission_classes = [IsAuthenticated]
@@ -123,4 +126,46 @@ class UpdateContactStatusView(APIView):
         return Response({
             "detail": "Statut mis à jour avec succès.",
             "statut": contact.statut
+        })
+
+
+class TerminerMissionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+
+        contact = get_object_or_404(ContactRequest, pk=pk)
+
+        if contact.consultant != request.user:
+            raise PermissionDenied("Action non autorisée.")
+
+        if contact.statut != "MISSION_CONFIRME":
+            raise ValidationError(
+                "La mission doit être confirmée avant d'être terminée."
+            )
+
+        contact.statut = "MISSION_TERMINEE"
+        contact.save()
+        
+        mission = contact.mission
+        mission.statut = "FERMEE"
+        mission.save()
+
+        return Response({
+            "detail": "Mission marquée comme terminée."
+        })
+
+class SuiviMissionView(APIView):
+    permission_classes = [EstBureauOuSuperAdmin]
+
+    def patch(self, request, pk):
+
+        contact = get_object_or_404(ContactRequest, pk=pk)
+
+        contact.suivi_effectue = True
+        contact.date_suivi_reel = timezone.now()
+        contact.save()
+
+        return Response({
+            "detail": "Suivi terrain enregistré."
         })

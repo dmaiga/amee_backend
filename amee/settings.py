@@ -28,6 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 CORS_ALLOW_ALL_ORIGINS = True 
 from datetime import timedelta
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -63,6 +64,7 @@ INSTALLED_APPS = [
     'memberships',
     'roster',
     'interactions',
+
     'missions',
 
 ]

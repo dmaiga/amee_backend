@@ -3,6 +3,8 @@ from .views import (
     RequestContactView,
     ConsultantInteractionsView,
     ClientInteractionsView,
+    SuiviMissionView,
+    TerminerMissionView,
     UpdateContactStatusView
 )
 
@@ -14,5 +16,15 @@ urlpatterns = [
         '<int:pk>/update-status/',
         UpdateContactStatusView.as_view()
     ),
+    
+    path(
+        "<int:pk>/terminer-mission/",
+        TerminerMissionView.as_view()
+    ),
+    path(
+    "<int:pk>/suivi/",
+        SuiviMissionView.as_view()
+    ),
+
     
 ]

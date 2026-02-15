@@ -55,3 +55,6 @@ class UpdateContactStatusSerializer(serializers.Serializer):
             'SANS_SUITE'
         ]
     )
+
+class TerminerMissionSerializer(serializers.Serializer):
+    confirmer = serializers.BooleanField()
