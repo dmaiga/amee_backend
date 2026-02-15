@@ -3,6 +3,8 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 import uuid
 from django.utils.text import slugify
 
+from quality_control.models import Feedback
+
 
 
 # =====================================================
@@ -43,12 +45,6 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
 
-    # username conservé mais auto-généré
-    username = models.CharField(
-        max_length=150,
-        unique=True,
-        blank=True
-    )
 
     ROLE_CHOICES = (
         
@@ -60,6 +56,26 @@ class User(AbstractUser):
         ('MEMBER', 'Membre Adhérent'),
         ('CONSULTANT', 'Expert Roster'),
         ('CLIENT', 'Institution / Recruteur'),
+    )
+
+    STATUT_QUALITE = (
+        ("NORMAL", "Normal"),
+        ("SURVEILLANCE", "Sous surveillance"),
+        ("SUSPENDU", "Suspendu"),
+        ("BANNI", "Banni"),
+    )
+    
+    statut_qualite = models.CharField(
+        max_length=20,
+        choices=STATUT_QUALITE,
+        default="NORMAL"
+    )
+    
+    # username conservé mais auto-généré
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        blank=True
     )
 
     email = models.EmailField(unique=True, max_length=255)
@@ -114,3 +130,17 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.email} - {self.get_role_display()}"
+
+    @property
+    def est_recommande_amee(self):
+    
+        if self.role != "CONSULTANT":
+            return False
+    
+        feedbacks = Feedback.objects.filter(
+            contact_request__consultant=self,
+            note__gte=4
+        )
+    
+        return feedbacks.count() >= 5
+    

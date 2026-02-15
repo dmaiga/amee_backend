@@ -64,8 +64,8 @@ INSTALLED_APPS = [
     'memberships',
     'roster',
     'interactions',
-
     'missions',
+    'quality_control',
 
 ]
 

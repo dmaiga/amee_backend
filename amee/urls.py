@@ -45,5 +45,6 @@ urlpatterns = [
     path('api/roster/', include('roster.urls')),
     path('api/missions/', include('missions.urls')),
     path('api/interactions/', include('interactions.urls')),
+    path("api/quality/", include("quality_control.urls")),
 
 ]
