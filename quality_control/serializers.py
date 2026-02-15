@@ -11,6 +11,9 @@ class FeedbackSerializer(serializers.ModelSerializer):
             "contact_request",
             "note",
             "commentaire",
+            "incident_signale",
+            "description_incident",
             "cree_le",
         ]
+        
         read_only_fields = ("cree_le",)

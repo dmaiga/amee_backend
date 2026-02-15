@@ -94,9 +94,9 @@ class ListeConsultantsPublicView(ListAPIView):
         return ConsultantProfile.objects.filter(
             statut='VALIDE',
             est_disponible=True,
-            user__role='CONSULTANT'
+            user__role='CONSULTANT',
+            user__statut_qualite__in=["NORMAL", "SURVEILLANCE"],
         )
-
 
 
 class DetailConsultantPublicView(RetrieveAPIView):
@@ -107,5 +107,6 @@ class DetailConsultantPublicView(RetrieveAPIView):
     def get_queryset(self):
         return ConsultantProfile.objects.filter(
             statut='VALIDE',
-            user__role='CONSULTANT'
+            user__role='CONSULTANT',
+            user__statut_qualite__in=["NORMAL", "SURVEILLANCE"],
         )

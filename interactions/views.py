@@ -55,6 +55,12 @@ class RequestContactView(CreateAPIView):
         if not profil.est_disponible:
             raise ValidationError("Consultant actuellement indisponible.")
 
+
+        if consultant.statut_qualite in ["SUSPENDU", "BANNI"]:
+            raise ValidationError(
+                "Ce consultant n'est actuellement pas disponible pour des missions."
+            )
+
         duree = serializer.validated_data.get(
             'duree_estimee_jours',
             mission.duree_estimee_jours

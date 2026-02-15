@@ -29,6 +29,8 @@ class ConsultantPublicSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    recommande_amee = serializers.SerializerMethodField()
+
     class Meta:
         model = ConsultantProfile
         fields = [
@@ -36,8 +38,12 @@ class ConsultantPublicSerializer(serializers.ModelSerializer):
             'id_membre',
             'domaine_expertise',
             'annees_experience',
-            'resume_profil'
+            'resume_profil',
+            'recommande_amee',
         ]
 
     def get_nom_complet(self, obj):
         return f"{obj.user.first_name} {obj.user.last_name}"
+
+    def get_recommande_amee(self, obj):
+        return obj.user.est_recommande_amee

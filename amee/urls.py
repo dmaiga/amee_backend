@@ -46,5 +46,6 @@ urlpatterns = [
     path('api/missions/', include('missions.urls')),
     path('api/interactions/', include('interactions.urls')),
     path("api/quality/", include("quality_control.urls")),
+    path("api/cms/", include("cms.urls")),
 
 ]

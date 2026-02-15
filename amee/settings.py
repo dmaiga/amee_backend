@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'interactions',
     'missions',
     'quality_control',
+    'cms',
 
 ]
 
