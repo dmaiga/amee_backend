@@ -41,16 +41,27 @@ class ConsultantProfile(models.Model):
     cree_le = models.DateTimeField(auto_now_add=True)
     motif_refus = models.TextField(null=True, blank=True)
     est_disponible = models.BooleanField(default=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=["statut", "est_disponible"]),
+        ]
+
 
     def valider(self, validateur):
+
+        if not hasattr(self.user, "adhesion") or not self.user.adhesion.est_actif:
+            raise ValueError("Impossible de valider un consultant non à jour.")
+
         self.statut = 'VALIDE'
         self.valide_par = validateur
         self.date_validation = timezone.now()
         self.save()
 
-        # Promotion automatique MEMBER -> CONSULTANT
+        # Promotion automatique
         self.user.role = 'CONSULTANT'
-        self.user.save()
+        self.user.save(update_fields=["role"])
+
     
     def refuser(self, validateur, motif=None):
 
@@ -62,3 +73,23 @@ class ConsultantProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.statut}"
+
+    @property
+    def est_actif_roster(self):
+        """
+        Actif seulement si :
+        - profil validé
+        - disponible
+        - membership actif
+        """
+
+        if self.statut != "VALIDE":
+            return False
+
+        if not self.est_disponible:
+            return False
+
+        if not hasattr(self.user, "adhesion"):
+            return False
+
+        return self.user.adhesion.est_actif

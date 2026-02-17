@@ -4,10 +4,25 @@ from memberships.models import Membership
  
 @admin.register(Membership)
 class MembershipAdmin(admin.ModelAdmin):
-    list_display = ('user', 'statut', 'est_actif', 'date_expiration')
-    actions = ['valider_adhesion']
 
-    @admin.action(description="Activer l'adhésion (Paiement reçu)")
-    def valider_adhesion(self, request, queryset):
-        for adhesion in queryset:
-            adhesion.activer(valide_par=request.user)
+    list_display = (
+        'user',
+        
+        'est_actif',
+        'date_activation',
+        'date_expiration',
+    )
+
+    readonly_fields = (
+        'user',
+        'date_activation',
+        'date_expiration',
+        'valide_par',
+        'cree_le',
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

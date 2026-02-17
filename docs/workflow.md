@@ -91,6 +91,40 @@ Après confirmation :
 
 ---
 
+## 8. Contrôle Qualité
+
+Après la fin d'une mission, un client peut fournir un feedback :
+
+- Note (1 à 5)
+- Commentaire
+- Signalement d'incident (optionnel)
+
+Si un incident est signalé :
+- Un IncidentReview est créé pour analyse.
+- Un Signalement peut être généré avec des niveaux de gravité.
+
+Effets possibles :
+- Consultant sous surveillance
+- Suspension temporaire
+- Examen par le conseil AMEE
+
+---
+
+## 9. Gestion de Contenu (CMS)
+
+La plateforme permet de publier :
+
+- Articles (actualités, événements, opportunités, etc.)
+- Ressources (guides, rapports, études de cas)
+- Opportunités (emplois, appels d'offres, partenariats)
+
+Chaque contenu peut être :
+- Publié immédiatement ou programmé
+- Réservé aux membres AMEE
+- Accompagné de fichiers joints ou liens externes
+
+---
+
 ## Principe Fondamental
 
 AMEE :

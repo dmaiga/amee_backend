@@ -18,9 +18,8 @@ class AdhesionSerializer(serializers.ModelSerializer):
         fields = [
             'email',
             'id_membre',
-            'statut',
-            'montant_paye',
-            'date_paiement',
+            
+            'date_activation',
             'date_expiration',
             'est_actif'
         ]

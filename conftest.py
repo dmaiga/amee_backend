@@ -1,30 +1,71 @@
 import pytest
-from rest_framework.test import APIClient
+from datetime import date
 from django.contrib.auth import get_user_model
+from rest_framework.test import APIClient
+from tresorerie.models import Transaction
 
 User = get_user_model()
 
 
+# -----------------------------
+# API CLIENT
+# -----------------------------
 @pytest.fixture
-def auth_client(db):
+def api_client():
+    return APIClient()
+
+
+# -----------------------------
+# CLIENT AUTHENTIFIÉ
+# -----------------------------
+@pytest.fixture
+def auth_client(api_client):
 
     user = User.objects.create_user(
         email="client@test.com",
-        password="pass123"
+        password="pass123",
+        role="CLIENT"
     )
 
-    client = APIClient()
+    api_client.force_authenticate(user=user)
+    return api_client
 
-    response = client.post(
-        "/api/auth/login/",
-        {
-            "email": "client@test.com",
-            "password": "pass123"
-        }
+
+# -----------------------------
+# MEMBRE ACTIF (piloté trésorerie)
+# -----------------------------
+@pytest.fixture
+def membre_actif(db):
+
+    email = "member@test.com"
+
+    # ADHESION (événement comptable)
+    adhesion = Transaction.objects.create(
+        type_transaction="ENTREE",
+        categorie="ADHESION",
+        email_payeur=email,
+        montant=5000,
+        date_transaction=date.today(),
+        statut="BROUILLON",
     )
 
-    client.credentials(
-        HTTP_AUTHORIZATION=f"Bearer {response.data['access']}"
+    adhesion.statut = "VALIDEE"
+    adhesion.save()
+
+    user = adhesion.membre
+
+    # COTISATION (événement comptable)
+    cotisation = Transaction.objects.create(
+        type_transaction="ENTREE",
+        categorie="COTISATION",
+        membre=user,
+        montant=10000,
+        date_transaction=date.today(),
+        statut="BROUILLON",
     )
 
-    return client
+    cotisation.statut = "VALIDEE"
+    cotisation.save()
+
+    user.refresh_from_db()
+    return user

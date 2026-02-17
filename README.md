@@ -35,6 +35,8 @@ sans intervenir dans la gestion contractuelle des missions.
 - **roster** : validation des consultants
 - **missions** : besoins exprimés par les clients
 - **interactions** : mise en relation et suivi
+- **quality_control** : gestion des feedbacks et incidents
+- **cms** : gestion des contenus (articles, ressources, opportunités)
 
 ---
 

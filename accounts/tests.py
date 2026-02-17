@@ -1,3 +1,4 @@
+from urllib import response
 import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
@@ -27,3 +28,5 @@ def test_login_jwt():
     assert response.status_code == 200
     assert "access" in response.data
     assert "refresh" in response.data 
+    print(response.status_code)
+    print(response.data)

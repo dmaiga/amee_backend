@@ -1,3 +1,4 @@
+from time import timezone
 from django.shortcuts import render
 
 # Create your views here.
@@ -75,6 +76,16 @@ class MonProfilRosterView(APIView):
                 "a_un_profil": False
             })
 
+        # auto désactivation lazy
+        if (
+            profil.statut == "VALIDE"
+            and hasattr(request.user, "adhesion")
+            and not request.user.adhesion.est_actif
+            and profil.est_disponible
+        ):
+            profil.est_disponible = False
+            profil.save(update_fields=["est_disponible"])
+
         serializer = ConsultantSerializer(profil)
 
         return Response({
@@ -84,8 +95,6 @@ class MonProfilRosterView(APIView):
             "profil": serializer.data
         })
 
-
-
 class ListeConsultantsPublicView(ListAPIView):
     permission_classes = [AllowAny]
     serializer_class = ConsultantPublicSerializer
@@ -94,7 +103,7 @@ class ListeConsultantsPublicView(ListAPIView):
         return ConsultantProfile.objects.filter(
             statut='VALIDE',
             est_disponible=True,
-            user__role='CONSULTANT',
+            user__adhesion__date_expiration__gte=timezone.now().date(),
             user__statut_qualite__in=["NORMAL", "SURVEILLANCE"],
         )
 
@@ -107,6 +116,9 @@ class DetailConsultantPublicView(RetrieveAPIView):
     def get_queryset(self):
         return ConsultantProfile.objects.filter(
             statut='VALIDE',
+            est_disponible=True,
+            user__adhesion__date_expiration__gte=timezone.now().date(),
             user__role='CONSULTANT',
             user__statut_qualite__in=["NORMAL", "SURVEILLANCE"],
         )
+    
