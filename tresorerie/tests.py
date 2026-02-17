@@ -1,3 +1,4 @@
+#tresorerie/tests.py
 import pytest
 from datetime import date
 from django.contrib.auth import get_user_model
@@ -23,7 +24,7 @@ def test_adhesion_creates_member():
     t.save()
 
     user = t.membre
-
+    user.refresh_from_db() 
     assert user is not None
     assert user.id_membre_association is not None
 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ContactRequest
+from interactions.models import ContactRequest
 
 
 @admin.register(ContactRequest)

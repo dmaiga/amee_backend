@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Feedback, Signalement,IncidentReview
+from quality_control.models import Feedback, Signalement,IncidentReview
 from django.utils.html import format_html
 
 

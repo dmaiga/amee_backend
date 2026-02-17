@@ -1,10 +1,10 @@
-# Workflow Fonctionnel — Plateforme AMEE
+# Workflow Fonctionnel - Plateforme AMEE
 
 Ce document décrit le fonctionnement métier principal de la plateforme AMEE.
 
-L’objectif de la plateforme est de faciliter la mise en relation entre
+L'objectif de la plateforme est de faciliter la mise en relation entre
 des institutions (clients) et des experts validés du réseau AMEE,
-sans intervenir dans l’exécution contractuelle des missions.
+sans intervenir dans l'exécution contractuelle des missions.
 
 ---
 
@@ -13,39 +13,57 @@ sans intervenir dans l’exécution contractuelle des missions.
 Un utilisateur crée un compte sur la plateforme.
 
 Selon son usage, il devient :
-- CLIENT (institution / recruteur)
-- MEMBER (adhérent AMEE)
-- CONSULTANT (expert validé)
+- `CLIENT` (institution / recruteur)
+- `MEMBER` (adhérent AMEE)
+- `CONSULTANT` (expert validé)
 
 ---
 
-## 2. Adhésion (Membership)
+## 2. Adhésion (pilotée par la trésorerie)
 
-Un utilisateur devient membre officiel après validation de son adhésion.
+L'adhésion est un événement comptable porté par une `Transaction` :
+- `type_transaction=ENTREE`
+- `categorie=ADHESION`
+- `statut=BROUILLON` puis validation en `VALIDEE`
 
-Effets :
-- attribution d’un identifiant membre AMEE
-- accès aux fonctionnalités avancées
-- possibilité de postuler au roster.
+Au passage `BROUILLON -> VALIDEE`, le moteur métier :
+- crée (ou retrouve) l'utilisateur via `email_payeur`
+- crée la fiche `Membership` si elle n'existe pas
+- génère un identifiant membre `MEM-YYYY-XXX`
+- rattache la transaction au membre
 
 ---
 
-## 3. Enrôlement Roster (Consultant)
+## 3. Cotisation (activation / renouvellement)
+
+La cotisation est également une `Transaction` (`categorie=COTISATION`).
+
+Au passage `BROUILLON -> VALIDEE` :
+- l'adhésion est activée si elle était inactive
+- la date d'expiration est prolongée de 365 jours
+- si une adhésion est déjà active, le renouvellement part de la date d'expiration courante
+
+Cas couvert par le moteur :
+- une cotisation peut être validée avant l'adhésion
+- lors de la validation de l'adhésion, la cotisation déjà validée est appliquée
+
+---
+
+## 4. Enrôlement Roster (Consultant)
 
 Le membre soumet son profil expert.
 
 Le Bureau AMEE :
-- valide ou refuse la candidature.
+- valide ou refuse la candidature
 
 Si validé :
-→ l’utilisateur devient CONSULTANT visible publiquement.
+- l'utilisateur devient `CONSULTANT` visible publiquement
 
 ---
 
-## 4. Création d’une Mission (Client)
+## 5. Création d'une Mission (Client)
 
 Un client crée un besoin :
-
 - titre
 - description
 - domaine
@@ -57,23 +75,22 @@ pas un contrat.
 
 ---
 
-## 5. Mise en relation
+## 6. Mise en relation
 
 Le client sélectionne un consultant disponible.
 
 La plateforme :
-- enregistre une ContactRequest
+- enregistre une `ContactRequest`
 - partage les coordonnées entre les parties
-- démarre le suivi automatique.
+- démarre le suivi automatique
 
 AMEE agit uniquement comme facilitateur.
 
 ---
 
-## 6. Réponse du Consultant
+## 7. Réponse du Consultant
 
 Depuis son espace personnel, le consultant indique :
-
 - Mission confirmée
 - Refus
 - Sans suite
@@ -82,46 +99,43 @@ Une mission confirmée devient une collaboration validée.
 
 ---
 
-## 7. Suivi et Feedback (à venir)
+## 8. Suivi et Feedback
 
 Après confirmation :
-
-- le système envoie une demande d’évaluation au client
-- les feedbacks alimentent la qualité du réseau.
+- le système envoie une demande d'évaluation au client
+- les feedbacks alimentent la qualité du réseau
 
 ---
 
-## 8. Contrôle Qualité
+## 9. Contrôle Qualité
 
 Après la fin d'une mission, un client peut fournir un feedback :
-
 - Note (1 à 5)
 - Commentaire
 - Signalement d'incident (optionnel)
 
 Si un incident est signalé :
-- Un IncidentReview est créé pour analyse.
-- Un Signalement peut être généré avec des niveaux de gravité.
+- un `IncidentReview` est créé pour analyse
+- un signalement peut être généré avec des niveaux de gravité
 
 Effets possibles :
-- Consultant sous surveillance
-- Suspension temporaire
-- Examen par le conseil AMEE
+- consultant sous surveillance
+- suspension temporaire
+- examen par le conseil AMEE
 
 ---
 
-## 9. Gestion de Contenu (CMS)
+## 10. Gestion de Contenu (CMS)
 
 La plateforme permet de publier :
-
-- Articles (actualités, événements, opportunités, etc.)
-- Ressources (guides, rapports, études de cas)
-- Opportunités (emplois, appels d'offres, partenariats)
+- articles (actualités, événements, opportunités, etc.)
+- ressources (guides, rapports, études de cas)
+- opportunités (emplois, appels d'offres, partenariats)
 
 Chaque contenu peut être :
-- Publié immédiatement ou programmé
-- Réservé aux membres AMEE
-- Accompagné de fichiers joints ou liens externes
+- publié immédiatement ou programmé
+- réservé aux membres AMEE
+- accompagné de fichiers joints ou liens externes
 
 ---
 
@@ -130,4 +144,4 @@ Chaque contenu peut être :
 AMEE :
 - facilite la mise en relation
 - assure la crédibilité du réseau
-- ne gère pas les contrats ni l’exécution des missions.
+- ne gère pas les contrats ni l'exécution des missions

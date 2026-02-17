@@ -1,8 +1,11 @@
+# conftest.py
 import pytest
 from datetime import date
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from tresorerie.models import Transaction
+from missions.models import Mission
+from interactions.models import ContactRequest
 
 User = get_user_model()
 
@@ -69,3 +72,34 @@ def membre_actif(db):
 
     user.refresh_from_db()
     return user
+
+# -----------------------------
+# COLLABORATION (piloté interactions)
+# -----------------------------
+
+@pytest.fixture
+def collaboration(api_client, membre_actif):
+
+    client = User.objects.create_user(
+        email="client2@test.com",
+        password="x",
+        role="CLIENT"
+    )
+
+    api_client.force_authenticate(user=client)
+
+    mission = Mission.objects.create(
+        titre="Mission",
+        description="desc",
+        domaine="env",
+        client=client
+    )
+
+    contact = ContactRequest.objects.create(
+        client=client,
+        consultant=membre_actif,
+        mission=mission,
+        statut="MISSION_TERMINEE"
+    )
+
+    return contact, api_client

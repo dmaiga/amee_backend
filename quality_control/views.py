@@ -5,8 +5,8 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404
 
 from interactions.models import ContactRequest
-from .models import Feedback
-from .serializers import FeedbackSerializer
+from quality_control.models import Feedback
+from quality_control.serializers import FeedbackSerializer
 
 class CreateFeedbackView(APIView):
     permission_classes = [IsAuthenticated]
@@ -33,12 +33,15 @@ class CreateFeedbackView(APIView):
                 "Un feedback existe déjà pour cette mission."
             )
 
-        serializer = FeedbackSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        serializer.save(
-            client=request.user,
-            contact_request=contact
+        serializer = FeedbackSerializer(
+            data=request.data,
+            context={"request": request}
         )
+        
+        serializer.is_valid(raise_exception=True)
+        
+        serializer.save(contact_request=contact)
+        
+
 
         return Response(serializer.data, status=201)

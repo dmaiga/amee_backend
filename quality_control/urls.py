@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CreateFeedbackView
+from quality_control.views import CreateFeedbackView
 
 urlpatterns = [
     path(

@@ -4,12 +4,13 @@ from rest_framework.generics import (
     RetrieveAPIView
 )
 from rest_framework.permissions import IsAuthenticated
-from .models import Mission
-from .serializers import MissionSerializer
+from missions.models import Mission
+from missions.permissions import IsClient
+from missions.serializers import MissionSerializer
 
 
 class MissionCreateView(CreateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsClient]
     serializer_class = MissionSerializer
 
     def perform_create(self, serializer):

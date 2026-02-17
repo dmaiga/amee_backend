@@ -1,3 +1,4 @@
+#test/test_workflow_e2e.py
 import pytest
 from rest_framework.test import APIClient
 from test.factories import payer_adhesion, payer_cotisation

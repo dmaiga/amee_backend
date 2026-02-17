@@ -1,32 +1,22 @@
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView,ListAPIView
 from rest_framework.permissions import IsAuthenticated
-from django.utils import timezone
-from datetime import timedelta
-
-from roster.permissions import EstBureauOuSuperAdmin
-
-from .models import ContactRequest
-from .serializers import ContactRequestSerializer
-from missions.models import Mission
-
-from roster.models import ConsultantProfile
-from rest_framework.exceptions import ValidationError
-from django.db import IntegrityError
-
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, ValidationError
+
+from django.utils import timezone
+from datetime import timedelta
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 
-from .models import ContactRequest
-from .serializers import UpdateContactStatusSerializer
+from interactions.models import ContactRequest
+from interactions.serializers import ContactRequestReadSerializer, ContactRequestSerializer,UpdateContactStatusSerializer
 
-from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated
-from .models import ContactRequest
-from .serializers import ContactRequestReadSerializer
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from roster.permissions import EstBureauOuSuperAdmin
+from roster.models import ConsultantProfile
+
+from missions.models import Mission
+
 
 
 

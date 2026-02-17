@@ -20,6 +20,7 @@ class Transaction(models.Model):
 
         ("DON", "Don"),
         ("SUBVENTION", "Subvention"),
+
         ("EVENEMENT", "Organisation événement"),
         ("FORMATION", "Formation"),
         ("ACHAT", "Acquisition matériel"),
@@ -41,6 +42,15 @@ class Transaction(models.Model):
     description = models.TextField(blank=True)
     date_transaction = models.DateField()
 
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="transactions"
+    )
+    
+
     membre = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -49,7 +59,7 @@ class Transaction(models.Model):
         blank=True
     )
 
-    # ⭐ NOUVEAU
+
     email_payeur = models.EmailField(
         null=True,
         blank=True,

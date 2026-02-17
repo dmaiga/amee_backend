@@ -87,6 +87,15 @@ class User(AbstractUser):
         null=True,
         blank=True
     )
+    
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="membres"
+    )
+
 
     external_id = models.UUIDField(
         default=uuid.uuid4,

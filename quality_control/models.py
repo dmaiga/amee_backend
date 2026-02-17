@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
     
 class IncidentReview(models.Model):
@@ -91,10 +92,10 @@ class Feedback(models.Model):
         is_new = self.pk is None
 
         if self.contact_request.client != self.client:
-            raise ValueError("Ce client ne correspond pas à la mission.")
+            raise ValidationError("Ce client ne correspond pas à la mission.")
 
         if self.contact_request.statut != "MISSION_TERMINEE":
-            raise ValueError("Feedback autorisé uniquement après mission terminée.")
+            raise ValidationError("Feedback autorisé uniquement après mission terminée.")
 
         super().save(*args, **kwargs)
 
