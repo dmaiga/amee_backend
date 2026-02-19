@@ -48,4 +48,6 @@ urlpatterns = [
     path("api/quality/", include("quality_control.urls")),
     path("api/cms/", include("cms.urls")),
 
+    path("backoffice/", include("backoffice.urls")),
+
 ]

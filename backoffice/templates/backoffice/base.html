@@ -1,0 +1,122 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr" data-theme="forest">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AMEE Backoffice</title>
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- DaisyUI -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
+          rel="stylesheet" />
+</head>
+
+<body class="bg-base-200">
+
+<div class="drawer lg:drawer-open">
+
+    <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+
+    <!-- ================= CONTENT ================= -->
+    <div class="drawer-content flex flex-col">
+
+        <!-- NAVBAR -->
+        <div class="navbar bg-base-100 border-b border-base-300">
+
+            <div class="flex-none lg:hidden">
+                <label for="drawer-toggle" class="btn btn-ghost btn-square">
+                    ☰
+                </label>
+            </div>
+
+            <div class="flex-1 font-semibold tracking-wide">
+             AMEE — Backoffice
+            </div>
+
+            <div class="flex-none gap-3 mr-4">
+
+                <span class="badge badge-success badge-outline">
+                    {{ request.user.get_role_display }}
+                </span>
+
+                <span class="opacity-80 text-sm">
+                    {{ request.user.email }}
+                </span>
+
+            </div>
+        </div>
+
+        <!-- PAGE -->
+        <main class="p-6">
+            {% block content %}{% endblock %}
+        </main>
+
+    </div>
+
+    <!-- ================= SIDEBAR ================= -->
+    <div class="drawer-side">
+        <label for="drawer-toggle" class="drawer-overlay"></label>
+
+        <aside class="w-72 min-h-full bg-base-100 border-r border-base-300">
+
+            <div class="p-5 text-lg font-semibold border-b border-base-300">
+                Navigation AMEE
+            </div>
+
+            <ul class="menu p-4 space-y-1">
+
+                <li>
+                    <a href="{% url 'bo_dashboard' %}">
+                        📊 Dashboard
+                    </a>
+                </li>
+
+                <li class="menu-title mt-4">
+                    <span>Finance</span>
+                </li>
+
+                <li>
+                    <a href="{% url 'bo_enregistrer_paiement' %}">
+                        💰 Enregistrer paiement
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{% url 'bo_transactions' %}">
+                        📒 Transactions
+                    </a>
+                </li>
+
+                <li class="menu-title mt-4">
+                    <span>Réseau</span>
+                </li>
+
+                <li><a href="{% url 'bo_membres' %}">👥 Membres</a></li>
+
+                <li><a href="{% url 'bo_roster' %}">🧾 Roster</a></li>
+                <li><a href="{% url 'bo_missions' %}">🤝 Missions</a></li>
+
+                <li class="menu-title mt-4">
+                    <span>Qualité</span>
+                </li>
+
+                <li><a href="#">⚠️ Incidents</a></li>
+
+                <li class="menu-title mt-4">
+                    <span>Contenu</span>
+                </li>
+
+                <li><a href="#">📰 CMS</a></li>
+
+            </ul>
+
+        </aside>
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,124 @@
+{% extends "backoffice/base.html" %}
+
+{% block content %}
+
+<h1 class="text-2xl font-semibold mb-6">
+👤 Fiche membre
+</h1>
+
+<div class="grid lg:grid-cols-2 gap-6">
+
+    <!-- IDENTITE -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title">Identité</h2>
+
+            <p><b>Email :</b> {{ membre.email }}</p>
+            <p><b>ID AMEE :</b> {{ membre.id_membre_association }}</p>
+            <p><b>Rôle :</b> {{ membre.get_role_display }}</p>
+        </div>
+    </div>
+
+    <!-- ADHESION -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title">Adhésion</h2>
+
+            {% if membership and membership.est_actif %}
+                <span class="badge badge-success mb-2">
+                    Actif
+                </span>
+            {% else %}
+                <span class="badge badge-warning mb-2">
+                    Inactif
+                </span>
+            {% endif %}
+
+            <p>
+                <b>Activation :</b>
+                {{ membership.date_activation|default:"-" }}
+            </p>
+
+            <p>
+                <b>Expiration :</b>
+                {{ membership.date_expiration|default:"-" }}
+            </p>
+        </div>
+    </div>
+
+</div>
+<div class="card bg-base-100 shadow mt-6">
+    <div class="card-body">
+
+        <h2 class="card-title">
+            🧾 Statut Consultant (Roster)
+        </h2>
+
+        {% if roster_profile %}
+
+            {% if roster_profile.statut == "VALIDE" %}
+                <span class="badge badge-success">
+                    Consultant validé
+                </span>
+
+            {% elif roster_profile.statut == "EN_ATTENTE" %}
+                <span class="badge badge-warning">
+                    Dossier en attente
+                </span>
+
+            {% elif roster_profile.statut == "REFUSE" %}
+                <span class="badge badge-error">
+                    Refusé
+                </span>
+            {% endif %}
+
+            <p class="mt-3">
+                Domaine :
+                <b>{{ roster_profile.domaine_expertise }}</b>
+            </p>
+
+            <p>
+                Expérience :
+                {{ roster_profile.annees_experience }} ans
+            </p>
+
+        {% else %}
+            <span class="badge badge-ghost">
+                Aucun dossier soumis
+            </span>
+        {% endif %}
+
+    </div>
+</div>
+
+<!-- TRANSACTION -->
+<div class="card bg-base-100 shadow mt-6">
+    <div class="card-body">
+
+        <h2 class="card-title">
+            💰 Dernière opération
+        </h2>
+
+        {% if derniere_transaction %}
+            <p>
+                <b>Type :</b>
+                {{ derniere_transaction.categorie }}
+            </p>
+
+            <p>
+                <b>Montant :</b>
+                {{ derniere_transaction.montant }} FCFA
+            </p>
+
+            <p>
+                <b>Enregistré par :</b>
+                {{ derniere_transaction.cree_par.email }}
+            </p>
+        {% else %}
+            <p>Aucune transaction.</p>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

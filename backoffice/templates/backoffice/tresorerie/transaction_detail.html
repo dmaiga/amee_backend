@@ -1,0 +1,38 @@
+{% extends "backoffice/base.html" %}
+
+{% block content %}
+
+<h1 class="text-2xl font-semibold mb-6">
+📄 Transaction #{{ transaction.id }}
+</h1>
+
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+
+<p><b>Type :</b> {{ transaction.type_transaction }}</p>
+<p><b>Catégorie :</b> {{ transaction.categorie }}</p>
+<p><b>Montant :</b> {{ transaction.montant }} FCFA</p>
+<p><b>Date :</b> {{ transaction.date_transaction }}</p>
+
+<hr>
+
+{% if transaction.type_transaction == "ENTREE" %}
+<p><b>Payeur :</b>
+{{ transaction.membre.email|default:transaction.email_payeur }}
+</p>
+{% else %}
+<p><b>Justification :</b>
+{{ transaction.description }}
+</p>
+{% endif %}
+
+<p><b>Enregistré par :</b>
+{{ transaction.cree_par.email }}
+</p>
+
+<p><b>Statut :</b> {{ transaction.statut }}</p>
+
+</div>
+</div>
+
+{% endblock %}

@@ -1,3 +1,4 @@
+# interactions/tests.py
 import pytest
 from django.utils import timezone
 from datetime import timedelta

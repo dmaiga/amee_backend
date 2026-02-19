@@ -1,0 +1,61 @@
+{% extends "backoffice/base.html" %}
+
+{% block content %}
+
+<h1 class="text-2xl font-semibold mb-6">
+📄 Mission #{{ mission.id }}
+</h1>
+
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+
+<p><b>Client :</b> {{ mission.client.email }}</p>
+<p><b>Titre :</b> {{ mission.titre }}</p>
+<p><b>Domaine :</b> {{ mission.domaine }}</p>
+
+<hr>
+
+<p>{{ mission.description }}</p>
+
+</div>
+</div>
+
+
+<h2 class="text-xl font-semibold mt-8 mb-4">
+👨‍💼 Mises en relation
+</h2>
+
+<table class="table table-zebra">
+
+<thead>
+<tr>
+    <th>Consultant</th>
+    <th>Statut</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for contact in contacts %}
+<tr>
+    <td>{{ contact.consultant.email }}</td>
+
+    <td>
+        <span class="badge">
+            {{ contact.statut }}
+        </span>
+    </td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="2" class="text-center opacity-60">
+Aucune relation.
+</td>
+</tr>
+{% endfor %}
+
+</tbody>
+
+</table>
+
+{% endblock %}

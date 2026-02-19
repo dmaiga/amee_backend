@@ -6,7 +6,6 @@ from rest_framework.test import APIClient
 
 User = get_user_model()
 
-
 @pytest.mark.django_db
 def test_login_jwt():
 

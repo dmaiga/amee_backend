@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     'cms',
     'tresorerie',
     'organizations',
+    'backoffice',
 
 ]
 

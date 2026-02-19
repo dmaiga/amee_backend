@@ -1,0 +1,61 @@
+{% extends "backoffice/base.html" %}
+
+{% block content %}
+
+<h1 class="text-2xl font-semibold mb-8">
+📊 Tableau de bord AMEE
+</h1>
+
+<div class="grid lg:grid-cols-3 gap-6">
+
+<!-- MEMBRES -->
+<div class="stat bg-base-100 shadow">
+<div class="stat-title">Membres actifs</div>
+<div class="stat-value text-success">
+{{ membres_actifs }}
+</div>
+</div>
+
+<!-- CONSULTANTS -->
+<div class="stat bg-base-100 shadow">
+<div class="stat-title">Consultants validés</div>
+<div class="stat-value">
+{{ consultants }}
+</div>
+</div>
+
+<!-- ROSTER -->
+<div class="stat bg-base-100 shadow">
+<div class="stat-title">Dossiers en attente</div>
+<div class="stat-value text-warning">
+{{ roster_attente }}
+</div>
+</div>
+
+<!-- MISSIONS -->
+<div class="stat bg-base-100 shadow">
+<div class="stat-title">Missions ouvertes</div>
+<div class="stat-value">
+{{ missions_ouvertes }}
+</div>
+</div>
+
+<!-- SOLDE -->
+<div class="stat bg-base-100 shadow">
+<div class="stat-title">Solde AMEE</div>
+<div class="stat-value text-success">
+{{ solde }} FCFA
+</div>
+</div>
+
+<!-- PAIEMENTS -->
+<div class="stat bg-base-100 shadow">
+<div class="stat-title">Paiements ce mois</div>
+<div class="stat-value">
+{{ paiements_mois }}
+</div>
+</div>
+
+</div>
+
+{% endblock %}

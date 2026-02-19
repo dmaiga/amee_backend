@@ -1,0 +1,153 @@
+{% extends "backoffice/base.html" %}
+
+{% block content %}
+
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-800">📒 Trésorerie</h1>
+        <p class="text-sm text-gray-500">Suivi des flux financiers et validation des adhésions</p>
+    </div>
+    
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'bo_depense' %}" class="btn btn-outline btn-error">
+            💸 Nouvelle dépense
+        </a>
+        <a href="{% url 'bo_enregistrer_paiement' %}" class="btn btn-success">
+            ➕ Nouveau paiement (Entrée)
+        </a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="stats shadow bg-base-100">
+        <div class="stat">
+            <div class="stat-figure text-success">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+            </div>
+            <div class="stat-title uppercase text-xs font-bold">Total Entrées</div>
+            <div class="stat-value text-success text-2xl">{{ entrees }} <span class="text-sm">FCFA</span></div>
+            <div class="stat-desc font-medium">Cotisations et adhésions</div>
+        </div>
+    </div>
+
+    <div class="stats shadow bg-base-100">
+        <div class="stat">
+            <div class="stat-figure text-error">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg>
+            </div>
+            <div class="stat-title uppercase text-xs font-bold">Total Sorties</div>
+            <div class="stat-value text-error text-2xl">{{ sorties }} <span class="text-sm">FCFA</span></div>
+            <div class="stat-desc font-medium">Charges et frais fixes</div>
+        </div>
+    </div>
+
+    <div class="stats shadow bg-primary text-primary-content">
+        <div class="stat">
+            <div class="stat-title uppercase text-xs font-bold text-primary-content opacity-80">Solde Disponible</div>
+            <div class="stat-value text-2xl">{{ solde }} <span class="text-sm font-normal">FCFA</span></div>
+            <div class="stat-desc text-primary-content opacity-80 font-medium italic">Trésorerie nette AMEE</div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-base-100 p-4 rounded-xl shadow-sm mb-6 flex flex-wrap items-center justify-between gap-4">
+    <form method="get" class="flex items-center gap-3">
+        <div class="form-control">
+            <select name="type" class="select select-bordered select-sm focus:select-primary">
+                <option value="">Tous les types</option>
+                <option value="ENTREE" {% if selected_type == "ENTREE" %}selected{% endif %}>🟢 Entrées</option>
+                <option value="SORTIE" {% if selected_type == "SORTIE" %}selected{% endif %}>🔴 Sorties</option>
+            </select>
+        </div>
+        <button class="btn btn-sm btn-primary px-6">Filtrer</button>
+        {% if selected_type %}
+            <a href="{% url 'bo_transactions' %}" class="btn btn-sm btn-ghost btn-circle" title="Réinitialiser">✕</a>
+        {% endif %}
+    </form>
+    
+    <div class="text-xs font-semibold opacity-50 uppercase">
+        {{ transactions|length }} transaction(s) trouvée(s)
+    </div>
+</div>
+
+<div class="card bg-base-100 shadow-xl">
+    <div class="overflow-x-auto">
+        <table class="table table-md table-zebra">
+            <thead class="bg-base-200">
+                <tr>
+                    <th class="rounded-tl-lg text-gray-600">Date</th>
+                    <th class="text-gray-600">Catégorie</th>
+                    <th class="text-gray-600">Origine / Justification</th>
+
+                    <th class="text-gray-600">Montant</th>
+                    <th class="text-gray-600">Statut</th>
+                    <th class="rounded-tr-lg text-gray-600 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr class="hover">
+                    <td class="text-sm font-medium">{{ t.date_transaction|date:"d/m/Y" }}</td>
+                    <td>
+                        <div class="flex flex-col">
+                            <span class="font-bold text-xs uppercase">{{ t.categorie }}</span>
+                            <span class="text-[10px] opacity-50">{{ t.get_type_transaction_display }}</span>
+                        </div>
+                    </td>
+                    <td class="text-sm">
+{% if t.type_transaction == "ENTREE" %}
+
+    {% if t.membre %}
+        {{ t.membre.email }}
+    {% else %}
+        {{ t.email_payeur }}
+    {% endif %}
+
+{% else %}
+
+    <span class="opacity-80">
+        {{ t.description|default:"Dépense interne AMEE" }}
+    </span>
+
+{% endif %}
+                    </td>
+                    <td class="font-mono font-bold {% if t.type_transaction == 'ENTREE' %}text-success{% else %}text-error{% endif %}">
+                        {% if t.type_transaction == 'ENTREE' %}+{% else %}-{% endif %}{{ t.montant }}
+                    </td>
+                    <td>
+                        {% if t.statut == "VALIDEE" %}
+                            <div class="badge badge-success badge-sm gap-1 py-3 px-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-3 h-3 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                Validée
+                            </div>
+                        {% elif t.statut == "BROUILLON" %}
+                            <div class="badge badge-warning badge-sm gap-1 py-3 px-3 italic">En attente</div>
+                        {% else %}
+                            <div class="badge badge-ghost badge-sm gap-1 py-3 px-3 opacity-50">Annulée</div>
+                        {% endif %}
+                    </td>
+                    <td class="text-right">
+                        <a href="{% url 'bo_transaction_detail' t.id %}"
+                         class="link link-success">
+                            Détails
+                        </a>
+
+
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="py-20 text-center">
+                        <div class="flex flex-col items-center opacity-30">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            <span class="text-lg font-bold">Aucune donnée financière</span>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

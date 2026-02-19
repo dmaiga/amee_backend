@@ -1,0 +1,50 @@
+{% extends "backoffice/base.html" %}
+
+{% block content %}
+
+<h1 class="text-2xl font-semibold mb-6">
+    👤 Dossier Consultant
+</h1>
+
+<div class="card bg-base-100 shadow">
+    <div class="card-body">
+
+        <p><b>Membre :</b> {{ profil.user.id_membre_association }}</p>
+        <p><b>Email :</b> {{ profil.user.email }}</p>
+
+        <hr>
+
+        <p><b>Domaine :</b> {{ profil.domaine_expertise }}</p>
+        <p><b>Expérience :</b> {{ profil.annees_experience }} ans</p>
+
+        <p class="mt-4">
+            <b>Résumé :</b><br>
+            {{ profil.resume_profil }}
+        </p>
+
+        {% if request.user.role == "SECRETARIAT" or request.user.role == "BUREAU" or request.user.role == "SUPERADMIN" %}
+
+        <hr class="my-6">
+
+        <form method="post" action="{% url 'bo_roster_decision' profil.id %}" class="flex gap-3">
+            {% csrf_token %}
+
+            {% if profil.statut == "EN_ATTENTE" %}
+                <button name="action" value="valider" class="btn btn-success">
+                    ✅ Valider Consultant
+                </button>
+
+                <button name="action" value="refuser" class="btn btn-error">
+                    ❌ Refuser
+                </button>
+            {% else %}
+                <span class="badge badge-outline">
+                    Décision déjà prise (Statut : {{ profil.get_statut_display }})
+                </span>
+            {% endif %}
+        </form>
+
+        {% endif %} </div>
+</div>
+
+{% endblock %}

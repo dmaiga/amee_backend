@@ -43,3 +43,14 @@ class Membership(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - actif:{self.est_actif}"
+
+    @property
+    def valide_par(self):
+    
+        transaction = self.user.transactions.filter(
+            statut="VALIDEE",
+            categorie="COTISATION"
+        ).order_by("-date_transaction").first()
+    
+        return transaction.cree_par if transaction else None
+    

@@ -1,0 +1,92 @@
+{% extends "backoffice/base.html" %}
+
+{% block content %}
+
+<h1 class="text-2xl font-semibold mb-6">
+🧾 Validation Consultants (Roster)
+</h1>
+
+<!-- FILTRE -->
+<form method="get" class="mb-6 flex gap-3">
+
+    <select name="statut" class="select select-bordered">
+
+        <option value="">Tous</option>
+
+        {% for value,label in statuts %}
+            <option value="{{ value }}"
+                {% if selected_statut == value %}selected{% endif %}>
+                {{ label }}
+            </option>
+        {% endfor %}
+
+    </select>
+
+    <button class="btn btn-success">Filtrer</button>
+
+</form>
+
+
+<div class="overflow-x-auto">
+
+<table class="table table-zebra">
+
+    <thead>
+        <tr>
+            <th>Membre</th>
+            <th>Domaine</th>
+            <th>Expérience</th>
+            <th>Statut</th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+    {% for profil in profils %}
+        <tr>
+
+            <td>
+                <b>{{ profil.user.id_membre_association }}</b><br>
+                <span class="opacity-70 text-sm">
+                    {{ profil.user.email }}
+                </span>
+            </td>
+
+            <td>{{ profil.domaine_expertise }}</td>
+
+            <td>{{ profil.annees_experience }} ans</td>
+
+            <td>
+                {% if profil.statut == "VALIDE" %}
+                    <span class="badge badge-success">Validé</span>
+                {% elif profil.statut == "EN_ATTENTE" %}
+                    <span class="badge badge-warning">En attente</span>
+                {% else %}
+                    <span class="badge badge-error">Refusé</span>
+                {% endif %}
+            </td>
+
+            <td>
+                <a href="{% url 'bo_roster_detail' profil.id %}"
+                   class="btn btn-sm btn-outline">
+                   Voir dossier
+                </a>
+            </td>
+
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="5" class="text-center opacity-60">
+                Aucun dossier.
+            </td>
+        </tr>
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

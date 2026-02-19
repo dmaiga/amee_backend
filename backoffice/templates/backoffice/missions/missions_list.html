@@ -1,0 +1,71 @@
+{% extends "backoffice/base.html" %}
+
+{% block content %}
+
+<h1 class="text-2xl font-semibold mb-6">
+🤝 Missions clients
+</h1>
+
+<div class="overflow-x-auto">
+
+<table class="table table-zebra">
+
+<thead>
+<tr>
+    <th>ID</th>
+    <th>Client</th>
+    <th>Titre</th>
+    <th>Domaine</th>
+    <th>Statut</th>
+    <th></th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for mission in missions %}
+<tr>
+
+    <td>#{{ mission.id }}</td>
+
+    <td>{{ mission.client.email }}</td>
+
+    <td>{{ mission.titre }}</td>
+
+    <td>{{ mission.domaine }}</td>
+
+    <td>
+        {% if mission.statut == "OUVERTE" %}
+            <span class="badge badge-warning">Ouverte</span>
+
+        {% elif mission.statut == "EN_COURS" %}
+            <span class="badge badge-info">En cours</span>
+
+        {% elif mission.statut == "FERMEE" %}
+            <span class="badge badge-success">Terminée</span>
+        {% endif %}
+    </td>
+
+    <td>
+        <a href="{% url 'bo_mission_detail' mission.id %}"
+           class="btn btn-sm btn-outline">
+            Voir
+        </a>
+    </td>
+
+</tr>
+{% empty %}
+<tr>
+<td colspan="6" class="text-center opacity-60">
+Aucune mission.
+</td>
+</tr>
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,210 @@
+{% extends "backoffice/base.html" %}
+
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold">
+        👥 Membres & Profils AMEE
+    </h1>
+</div>
+
+
+<!-- ========================= -->
+<!-- FILTRE ROLE -->
+<!-- ========================= -->
+<form method="get" class="mb-6 flex gap-3 items-center">
+
+    <select name="role" class="select select-bordered">
+
+        <option value="">Tous les profils</option>
+
+        {% for value,label in roles %}
+            <option value="{{ value }}"
+                {% if selected_role == value %}selected{% endif %}>
+                {{ label }}
+            </option>
+        {% endfor %}
+
+    </select>
+
+    <button class="btn btn-success">
+        Filtrer
+    </button>
+
+    <a href="{% url 'bo_membres' %}" class="btn btn-ghost">
+        Réinitialiser
+    </a>
+
+</form>
+
+
+<!-- ========================= -->
+<!-- TABLEAU MEMBRES -->
+<!-- ========================= -->
+<div class="overflow-x-auto">
+
+<table class="table table-zebra">
+
+    <thead>
+        <tr>
+            <th>ID AMEE</th>
+            <th>Email</th>
+            <th>Profil</th>
+            <th>Statut adhésion</th>
+            <th>Expiration</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+    {% for user in membres %}
+
+        <tr class="hover">
+
+            <!-- ID MEMBRE -->
+            <td>
+                {% if user.id_membre_association %}
+                    <a href="{% url 'bo_membre_detail' user.id %}"
+                       class="link link-success font-semibold">
+                        {{ user.id_membre_association }}
+                    </a>
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            <!-- EMAIL -->
+            <td>{{ user.email }}</td>
+
+
+            <!-- ROLE -->
+            <td>
+
+                {% if user.role == "CONSULTANT" %}
+                    <span class="badge badge-success">Consultant</span>
+
+                {% elif user.role == "MEMBER" %}
+                    <span class="badge badge-info">Membre</span>
+
+                {% elif user.role == "BUREAU" %}
+                    <span class="badge badge-warning">Bureau</span>
+
+                {% elif user.role == "SECRETARIAT" %}
+                    <span class="badge badge-secondary">Secrétariat</span>
+
+                {% elif user.role == "CLIENT" %}
+                    <span class="badge badge-ghost">Client</span>
+
+                {% elif user.role == "SUPERADMIN" %}
+                    <span class="badge badge-error">Admin</span>
+
+                {% else %}
+                    <span class="badge">Autre</span>
+                {% endif %}
+
+            </td>
+
+
+            <!-- STATUT ADHESION -->
+            <td>
+
+                {% if user.adhesion and user.adhesion.est_actif %}
+                    <span class="badge badge-success">
+                        🟢 Actif
+                    </span>
+                {% elif user.id_membre_association %}
+                    <span class="badge badge-warning">
+                        ⏳ Inactif
+                    </span>
+                {% else %}
+                    <span class="badge badge-ghost">
+                        —
+                    </span>
+                {% endif %}
+
+            </td>
+
+
+            <!-- EXPIRATION -->
+            <td>
+                {% if user.adhesion and user.adhesion.date_expiration %}
+                    {{ user.adhesion.date_expiration }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+        </tr>
+
+    {% empty %}
+
+        <tr>
+            <td colspan="5" class="text-center opacity-60">
+                Aucun utilisateur trouvé.
+            </td>
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+</div>
+<hr class="my-10">
+
+<h2 class="text-xl font-semibold mb-4">
+🏢 Clients (non membres AMEE)
+</h2>
+
+<div class="overflow-x-auto">
+
+<table class="table table-zebra">
+
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Type</th>
+            <th>Statut compte</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+    {% for user in clients %}
+
+        <tr>
+            <td>{{ user.email }}</td>
+
+            <td>
+                <span class="badge badge-ghost">
+                    Client plateforme
+                </span>
+            </td>
+
+            <td>
+                {% if user.is_active_account %}
+                    <span class="badge badge-success">Actif</span>
+                {% else %}
+                    <span class="badge badge-error">Inactif</span>
+                {% endif %}
+            </td>
+        </tr>
+
+    {% empty %}
+
+        <tr>
+            <td colspan="3" class="text-center opacity-60">
+                Aucun client enregistré.
+            </td>
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

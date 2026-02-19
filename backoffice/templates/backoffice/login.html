@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AMEE Backoffice</title>
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- DaisyUI CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
+          rel="stylesheet" />
+</head>
+
+<body class="bg-base-200 min-h-screen flex items-center justify-center">
+
+<div class="card w-96 bg-base-100 shadow-xl">
+
+    <div class="card-body">
+        <h2 class="card-title justify-center">
+             AMEE Backoffice
+        </h2>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <label class="label">Email</label>
+            <input type="email"
+                   name="email"
+                   class="input input-bordered w-full"
+                   required>
+
+            <label class="label mt-3">Mot de passe</label>
+            <input type="password"
+                   name="password"
+                   class="input input-bordered w-full"
+                   required>
+
+            <button class="btn btn-primary w-full mt-6">
+                Se connecter
+            </button>
+        </form>
+
+        {% if error %}
+            <div class="alert alert-error mt-4">
+                {{ error }}
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+</body>
+</html>

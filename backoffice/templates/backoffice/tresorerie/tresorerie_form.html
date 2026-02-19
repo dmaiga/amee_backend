@@ -1,0 +1,114 @@
+{% extends "backoffice/base.html" %}
+
+{% block content %}
+
+<div class="max-w-2xl">
+
+    <h1 class="text-2xl font-semibold mb-6">
+        💰 Enregistrer un paiement
+    </h1>
+
+    <form method="post" class="card bg-base-100 shadow">
+
+        <div class="card-body space-y-4">
+            {% csrf_token %}
+
+            <!-- EMAIL PAYEUR -->
+            <div>
+                <label class="label">Email payeur</label>
+                <input type="email"
+                       name="email_payeur"
+                       class="input input-bordered w-full"
+                       placeholder="membre@email.com">
+            </div>
+
+            <!-- MONTANT -->
+            <div>
+                <label class="label">Montant (FCFA)</label>
+                <input type="number"
+                       name="montant"
+                       required
+                       class="input input-bordered w-full">
+            </div>
+
+            <!-- CATEGORIE -->
+<div>
+    <label class="label">Opération</label>
+
+    <select name="operation"
+            class="select select-bordered w-full">
+
+        <option value="FULL">Nouvelle adhésion complète</option>
+        <option value="COTISATION">Renouvellement cotisation</option>
+        <option value="ADHESION">Adhésion seule</option>
+
+    </select>
+</div>
+
+            <!-- DESCRIPTION -->
+            <div>
+                <label class="label">Description</label>
+                <textarea name="description"
+                          class="textarea textarea-bordered w-full"
+                          placeholder="Note comptable (optionnel)"></textarea>
+            </div>
+
+            <!-- SUBMIT -->
+            <div class="pt-4">
+                <button class="btn btn-success w-full">
+                    ✅ Enregistrer et valider
+                </button>
+            </div>
+
+        </div>
+
+    </form>
+
+{% if result %}
+
+<div class="card bg-success text-success-content mt-8">
+    <div class="card-body">
+
+        <h2 class="card-title">
+            ✅ Opération réussie
+        </h2>
+
+        <p>
+            Enregistré par :
+            <strong>{{ result.cree_par.email }}</strong>
+        </p>
+
+        <hr class="opacity-30">
+
+        <p>
+            Membre :
+            <strong>
+                {{ result.user.id_membre_association }}
+            </strong>
+            ({{ result.user.email }})
+        </p>
+
+        {% if result.membership and result.membership.est_actif %}
+            <p class="font-semibold">
+                🌿 Membership ACTIF
+            </p>
+
+            <p>
+                Expire le :
+                {{ result.membership.date_expiration }}
+            </p>
+        {% else %}
+            <p class="text-warning font-semibold">
+                ⏳ Cotisation requise pour activation
+            </p>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endif %}
+
+
+</div>
+
+{% endblock %}

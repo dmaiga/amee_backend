@@ -1,0 +1,51 @@
+{% extends "backoffice/base.html" %}
+
+{% block content %}
+
+<h1 class="text-2xl font-semibold mb-6">
+💸 Enregistrer une dépense
+</h1>
+
+<div class="max-w-xl">
+
+<form method="post" class="card bg-base-100 shadow">
+<div class="card-body">
+
+{% csrf_token %}
+
+<label class="label">Catégorie</label>
+<select name="categorie" class="select select-bordered">
+
+    <option value="FONCTIONNEMENT">Frais fonctionnement</option>
+    <option value="ACHAT">Achat matériel</option>
+    <option value="FORMATION">Formation</option>
+    <option value="EVENEMENT">Organisation événement</option>
+
+</select>
+
+<label class="label mt-3">Montant (FCFA)</label>
+<input type="number"
+       name="montant"
+       required
+       class="input input-bordered">
+
+<label class="label mt-3">Description</label>
+<textarea name="description"
+          class="textarea textarea-bordered"></textarea>
+
+<button class="btn btn-error mt-6">
+    Enregistrer dépense
+</button>
+
+</div>
+</form>
+
+{% if success %}
+<div class="alert alert-success mt-6">
+    {{ success }}
+</div>
+{% endif %}
+
+</div>
+
+{% endblock %}
