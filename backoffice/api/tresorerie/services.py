@@ -3,6 +3,8 @@
 from django.utils import timezone
 from django.db import transaction as db_transaction
 from tresorerie.models import Transaction
+# backoffice/api/tresorerie/services.py
+from django.db.models import Sum
 
 
 class TresorerieService:
@@ -38,3 +40,17 @@ class TresorerieService:
         transaction.save()
 
         return transaction
+
+    @staticmethod 
+    def get_solde():
+        entrees = Transaction.objects.filter(
+            type_transaction="ENTREE", 
+            statut="VALIDEE"
+        ).aggregate(Sum('montant'))['montant__sum'] or 0
+        
+        sorties = Transaction.objects.filter(
+            type_transaction="SORTIE", 
+            statut="VALIDEE"
+        ).aggregate(Sum('montant'))['montant__sum'] or 0
+        
+        return entrees - sorties

@@ -17,7 +17,8 @@
     <th>Titre</th>
     <th>Domaine</th>
     <th>Statut</th>
-    <th></th>
+    <th>Incident</th>
+    <th>Action</th>
 </tr>
 </thead>
 
@@ -45,7 +46,15 @@
             <span class="badge badge-success">Terminée</span>
         {% endif %}
     </td>
-
+<td>
+{% if mission.incidents > 0 %}
+<span class="badge badge-error">
+    ⚠ {{ mission.incidents }}
+</span>
+{% else %}
+    NO
+{% endif %}
+</td>
     <td>
         <a href="{% url 'bo_mission_detail' mission.id %}"
            class="btn btn-sm btn-outline">

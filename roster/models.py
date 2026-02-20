@@ -72,7 +72,7 @@ class ConsultantProfile(models.Model):
         self.save()
 
     def __str__(self):
-        return f"{self.user.email} - {self.statut}"
+        return f"#{self.id}  - {self.user.email} - {self.statut}"
 
     @property
     def est_actif_roster(self):

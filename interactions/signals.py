@@ -28,3 +28,19 @@ Vous pouvez désormais échanger directement.
         from_email="noreply@amee.org",
         recipient_list=[client.email, consultant.email],
     )
+
+@receiver(post_save, sender=ContactRequest)
+def demander_feedback(sender, instance, **kwargs):
+
+    if instance.statut != "MISSION_TERMINEE":
+        return
+
+    if hasattr(instance, "feedback"):
+        return
+
+    send_mail(
+        subject="Merci d'évaluer votre mission",
+        message=f"Lien feedback : /feedback/{instance.id}/",
+        recipient_list=[instance.client.email],
+        from_email="noreply@amee.org"
+    )

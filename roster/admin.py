@@ -5,6 +5,8 @@ from roster.models import ConsultantProfile
 class ConsultantProfileAdmin(admin.ModelAdmin):
 
     list_display = (
+        "id",               
+        "get_user_id",
         'user',
         'statut',
         'domaine_expertise',
@@ -15,6 +17,13 @@ class ConsultantProfileAdmin(admin.ModelAdmin):
     list_filter = ('statut',)
 
     actions = ['valider_candidature', 'rejeter_candidature']
+
+    # -----------------------------
+    # Affichage User ID
+    # -----------------------------
+    @admin.display(description="User ID")
+    def get_user_id(self, obj):
+        return obj.user.id
 
     @admin.action(description="Valider la candidature (BUREAU)")
     def valider_candidature(self, request, queryset):

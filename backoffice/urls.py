@@ -1,9 +1,10 @@
 from django.urls import path, include
 from .web_views import (
-    backoffice_login, dashboard, membres_list, missions_list, 
+    backoffice_login, dashboard, demander_feedback, feedback_detail, feedback_detail, membres_list, missions_list, 
     roster_detail, roster_list, tresorerie_paiement, 
     membre_detail, roster_decision,mission_detail,
-    transactions_list,transaction_detail,tresorerie_depense
+    transactions_list,transaction_detail,
+    tresorerie_depense,incidents_list,
 
 )
 
@@ -32,6 +33,9 @@ urlpatterns = [
     # --- MISSIONS & COLLABORATIONS ---
     path("missions/", missions_list, name="bo_missions"),
     path("missions/<int:mission_id>/", mission_detail, name="bo_mission_detail"),
-
+    path("contacts/<int:contact_id>/demander-feedback/",demander_feedback,name="bo_demander_feedback"),
+    # ---  ---
+    path("qualite/incidents/",incidents_list,name="bo_incidents"),
+    path("qualite/feedback/<int:feedback_id>/",feedback_detail,name="bo_feedback_detail"),
 
 ]

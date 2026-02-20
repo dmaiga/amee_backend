@@ -74,3 +74,19 @@ class ContactRequest(models.Model):
             self.est_collaboration_validee = True
 
         super().save(*args, **kwargs)
+
+    @property
+    def etat_feedback(self):
+    
+        if self.statut != "MISSION_TERMINEE":
+            return None
+    
+        if not hasattr(self, "feedback"):
+            return "ATTENTE_FEEDBACK"
+    
+        if self.feedback.incident_signale:
+            return "INCIDENT"
+    
+        return "OK"
+    
+        

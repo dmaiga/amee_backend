@@ -1,0 +1,68 @@
+{% extends "backoffice/base.html" %}
+
+{% block content %}
+
+<h1 class="text-2xl font-semibold mb-6">
+⚠️ Incidents signalés
+</h1>
+
+<table class="table table-zebra">
+
+<thead>
+<tr>
+    <th>Mission</th>
+    <th>Consultant</th>
+    <th>Client</th>
+    <th>Note</th>
+    <th>Statut</th>
+    <th></th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for incident in incidents %}
+<tr>
+
+<td>
+    #{{ incident.contact_request.mission.id }}
+</td>
+
+<td>
+    {{ incident.consultant.email }}
+</td>
+
+<td>
+    {{ incident.contact_request.client.email }}
+</td>
+
+<td>
+    ⭐ {{ incident.feedback.note }}/5
+</td>
+
+<td>
+    <span class="badge badge-error">
+        {{ incident.statut }}
+    </span>
+</td>
+
+<td>
+    <a href="{% url 'bo_mission_detail' incident.contact_request.mission.id %}"
+       class="btn btn-xs btn-outline">
+        Voir mission
+    </a>
+</td>
+
+</tr>
+{% empty %}
+<tr>
+<td colspan="6" class="text-center opacity-60">
+Aucun incident signalé 🎉
+</td>
+</tr>
+{% endfor %}
+
+</tbody>
+</table>
+
+{% endblock %}

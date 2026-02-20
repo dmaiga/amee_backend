@@ -2,60 +2,151 @@
 
 {% block content %}
 
-<h1 class="text-2xl font-semibold mb-6">
-📄 Mission #{{ mission.id }}
-</h1>
-
-<div class="card bg-base-100 shadow">
-<div class="card-body">
-
-<p><b>Client :</b> {{ mission.client.email }}</p>
-<p><b>Titre :</b> {{ mission.titre }}</p>
-<p><b>Domaine :</b> {{ mission.domaine }}</p>
-
-<hr>
-
-<p>{{ mission.description }}</p>
-
-</div>
+<div class="text-sm breadcrumbs mb-4 text-gray-500">
+    <ul>
+        <li><a href="{% url 'bo_missions' %}">Missions</a></li>
+        <li>Détail Mission #{{ mission.id }}</li>
+    </ul>
 </div>
 
+<div class="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-800">📄 {{ mission.titre }}</h1>
+        <p class="text-sm text-gray-500">Publiée le {{ mission.cree_le|date:"d/m/Y" }} par <span class="font-semibold">{{ mission.client.email }}</span></p>
+    </div>
+    <div class="badge badge-lg badge-outline gap-2">
+        📂 {{ mission.domaine }}
+    </div>
+</div>
 
-<h2 class="text-xl font-semibold mt-8 mb-4">
-👨‍💼 Mises en relation
-</h2>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+    <div class="lg:col-span-2 card bg-base-100 shadow-sm border border-base-200">
+        <div class="card-body">
+            <h3 class="card-title text-sm uppercase opacity-50">Description du besoin</h3>
+            <p class="text-gray-700 leading-relaxed">{{ mission.description }}</p>
+            
+            <div class="mt-4 flex gap-4">
+                <div class="bg-base-200 p-3 rounded-lg text-center min-w-[120px]">
+                    <span class="block text-xs uppercase opacity-60">Durée prévue</span>
+                    <span class="font-bold">{{ mission.duree_estimee_jours|default:"--" }} jours</span>
+                </div>
+                <div class="bg-base-200 p-3 rounded-lg text-center min-w-[120px]">
+                    <span class="block text-xs uppercase opacity-60">Budget approx.</span>
+                    <span class="font-bold">{{ mission.budget|default:"Non précisé" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<table class="table table-zebra">
+    <div class="stats stats-vertical shadow-sm border border-base-200">
+        <div class="stat">
+            <div class="stat-title text-xs uppercase">Mises en relation</div>
+            <div class="stat-value text-2xl text-primary">{{ contacts|length }}</div>
+        </div>
+        <div class="stat">
+            <div class="stat-title text-xs uppercase">Feedbacks reçus</div>
+            <div class="stat-value text-2xl text-success">
+                {% with feedbacks=contacts|dictsort:"feedback" %}{{ feedbacks|length }}{% endwith %}
+            </div>
+        </div>
+    </div>
+</div>
 
-<thead>
-<tr>
-    <th>Consultant</th>
-    <th>Statut</th>
-</tr>
-</thead>
+<div class="space-y-8">
+    
+    <div>
+        <div class="flex items-center gap-2 mb-4">
+            <h2 class="text-xl font-bold">🤝 Suivi des Collaborations & Qualité</h2>
+            <div class="h-px flex-1 bg-base-300"></div>
+        </div>
 
-<tbody>
+        <div class="card bg-base-100 shadow-xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="table table-md">
+                    <thead class="bg-base-200">
+                        <tr>
+                            <th>Consultant</th>
+                            <th>Statut Mission</th>
+                            <th>Qualité (Feedback)</th>
+                            <th class="text-center">Alerte Incident</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for contact in contacts %}
+                        <tr class="hover">
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="avatar placeholder">
+                                        <div class="bg-neutral text-neutral-content rounded-full w-8">
+                                            <span>{{ contact.consultant.email|slice:":1"|upper }}</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-sm">{{ contact.consultant.get_full_name|default:contact.consultant.email }}</div>
+                                        <div class="text-xs opacity-50">{{ contact.consultant.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if contact.statut == "MISSION_TERMINEE" %}
+                                    <span class="badge badge-success badge-sm py-3 px-3">Terminée</span>
+                                {% elif contact.statut == "MISSION_CONFIRME" %}
+                                    <span class="badge badge-info badge-sm py-3 px-3">En cours</span>
+                                {% else %}
+                                    <span class="badge badge-ghost badge-sm py-3 px-3 italic">{{ contact.statut }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if contact.feedback %}
+                                    <div class="flex flex-col gap-1">
+                                        <div class="rating rating-xs">
+                                            {% for i in "12345" %}
+                                                <input type="radio" class="mask mask-star-2 bg-orange-400" {% if contact.feedback.note|add:0 == forloop.counter %}checked{% endif %} disabled />
+                                            {% endfor %}
+                                        </div>
+                                        <a href="{% url 'bo_feedback_detail' contact.feedback.id %}" class="link link-primary text-xs font-semibold">Voir le commentaire</a>
+                                    </div>
+                                {% elif contact.statut == "MISSION_TERMINEE" %}
+                                    {% if contact.suivi_envoye %}
+                                        <span class="text-xs italic text-info flex items-center gap-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            Relance envoyée
+                                        </span>
+                                    {% else %}
+                                        <a href="{% url 'bo_demander_feedback' contact.id %}" class="btn btn-xs btn-warning">📩 Relancer Client</a>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-xs opacity-30">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
 
-{% for contact in contacts %}
-<tr>
-    <td>{{ contact.consultant.email }}</td>
+{% if contact.feedback and contact.feedback.incident %}
+   
 
-    <td>
-        <span class="badge">
-            {{ contact.statut }}
-        </span>
-    </td>
-</tr>
-{% empty %}
-<tr>
-<td colspan="2" class="text-center opacity-60">
-Aucune relation.
+        <div class="badge badge-error gap-1 animate-pulse py-3 px-3 font-bold">
+            ⚠️ INCIDENT
+        </div>
+
+  
+{% else %}
+    <span class="text-xs opacity-30">Aucun</span>
+{% endif %}
+
 </td>
-</tr>
-{% endfor %}
-
-</tbody>
-
-</table>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="py-10 text-center opacity-40 italic">
+                                Aucune mise en relation enregistrée pour cette mission.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

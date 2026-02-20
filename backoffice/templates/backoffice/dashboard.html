@@ -1,61 +1,78 @@
 {% extends "backoffice/base.html" %}
 
 {% block content %}
-
-<h1 class="text-2xl font-semibold mb-8">
-📊 Tableau de bord AMEE
-</h1>
-
-<div class="grid lg:grid-cols-3 gap-6">
-
-<!-- MEMBRES -->
-<div class="stat bg-base-100 shadow">
-<div class="stat-title">Membres actifs</div>
-<div class="stat-value text-success">
-{{ membres_actifs }}
-</div>
+<div class="flex justify-between items-center mb-10">
+    <h1 class="text-3xl font-bold text-gray-800 italic">Tableau de bord de Gouvernance</h1>
+    <div class="badge badge-outline p-4">{{ today|date:"d F Y" }}</div>
 </div>
 
-<!-- CONSULTANTS -->
-<div class="stat bg-base-100 shadow">
-<div class="stat-title">Consultants validés</div>
-<div class="stat-value">
-{{ consultants }}
-</div>
+<div class="mb-10">
+    <h2 class="text-sm font-bold uppercase tracking-widest text-gray-500 mb-4">👥 Capital Humain & Roster</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <div class="stat bg-base-100 shadow-sm border-l-4 border-success rounded-lg">
+            <div class="stat-title">Membres Actifs</div>
+            <div class="stat-value text-success">{{ membres_actifs }}</div>
+            <div class="stat-desc">Cotisations à jour</div>
+        </div>
+
+        <div class="stat bg-base-100 shadow-sm rounded-lg">
+            <div class="stat-title text-primary">Experts Validés</div>
+            <div class="stat-value">{{ consultants }}</div>
+            <div class="stat-desc">Taux de conversion : {{ taux_conversion }}%</div>
+        </div>
+
+        <div class="stat bg-base-100 shadow-sm rounded-lg">
+            <div class="stat-title text-warning">Dossiers Roster</div>
+            <div class="stat-value text-warning">{{ roster_attente }}</div>
+            <div class="stat-desc">En attente de validation Bureau</div>
+        </div>
+
+        <div class="stat bg-base-100 shadow-sm rounded-lg border-l-4 border-error">
+            <div class="stat-title text-error font-bold">Alertes Qualité</div>
+            <div class="stat-value text-error">{{ incidents_critiques }}</div>
+            <div class="stat-desc">Incidents non traités</div>
+        </div>
+
+    </div>
 </div>
 
-<!-- ROSTER -->
-<div class="stat bg-base-100 shadow">
-<div class="stat-title">Dossiers en attente</div>
-<div class="stat-value text-warning">
-{{ roster_attente }}
-</div>
+<div class="grid lg:grid-cols-2 gap-8">
+    
+    <div class="card bg-primary text-primary-content shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title opacity-80 uppercase text-xs">Trésorerie Globale</h2>
+            <div class="flex justify-between items-end">
+                <div>
+                    <div class="text-4xl font-black">{{ solde }} FCFA</div>
+                    <div class="text-sm mt-2 opacity-80">+{{ entrees_mois }} FCFA encaissés (30j)</div>
+                </div>
+                <a href="{% url 'bo_transactions' %}" class="btn btn-sm btn-outline btn-secondary border-primary-content text-primary-content">Détails</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl border border-base-200">
+        <div class="card-body">
+            <h2 class="card-title text-gray-500 uppercase text-xs">Activité Missions</h2>
+            <div class="grid grid-cols-2 gap-4 mt-2">
+                <div>
+                    <div class="text-2xl font-bold">{{ missions_ouvertes }}</div>
+                    <div class="text-xs opacity-60">Missions Ouvertes</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-primary">{{ total_contacts }}</div>
+                    <div class="text-xs opacity-60">Mises en relation</div>
+                </div>
+            </div>
+            <div class="card-actions justify-end mt-4">
+                <a href="{% url 'bo_missions' %}" class="link link-primary text-sm">Voir le journal des missions →</a>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<!-- MISSIONS -->
-<div class="stat bg-base-100 shadow">
-<div class="stat-title">Missions ouvertes</div>
-<div class="stat-value">
-{{ missions_ouvertes }}
-</div>
-</div>
 
-<!-- SOLDE -->
-<div class="stat bg-base-100 shadow">
-<div class="stat-title">Solde AMEE</div>
-<div class="stat-value text-success">
-{{ solde }} FCFA
-</div>
-</div>
-
-<!-- PAIEMENTS -->
-<div class="stat bg-base-100 shadow">
-<div class="stat-title">Paiements ce mois</div>
-<div class="stat-value">
-{{ paiements_mois }}
-</div>
-</div>
-
-</div>
 
 {% endblock %}

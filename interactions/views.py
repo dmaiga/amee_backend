@@ -19,40 +19,32 @@ from missions.models import Mission
 
 
 
-
 class RequestContactView(CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ContactRequestSerializer
 
     def perform_create(self, serializer):
 
-        mission = serializer.validated_data['mission']
-        consultant = serializer.validated_data['consultant']
+        mission = serializer.validated_data["mission"]
+        profil = serializer.validated_data["consultant"]
 
         # sécurité mission
         if mission.client != self.request.user:
             raise ValidationError("Mission invalide.")
 
-        # vérifier consultant roster
-        try:
-            profil = ConsultantProfile.objects.get(user=consultant)
-        except ConsultantProfile.DoesNotExist:
-            raise ValidationError("Consultant non valide.")
-
-        if profil.statut != 'VALIDE':
+        if profil.statut != "VALIDE":
             raise ValidationError("Consultant non approuvé.")
 
         if not profil.est_disponible:
             raise ValidationError("Consultant actuellement indisponible.")
 
-
-        if consultant.statut_qualite in ["SUSPENDU", "BANNI"]:
+        if profil.user.statut_qualite in ["SUSPENDU", "BANNI"]:
             raise ValidationError(
-                "Ce consultant n'est actuellement pas disponible pour des missions."
+                "Ce consultant n'est actuellement pas disponible."
             )
 
         duree = serializer.validated_data.get(
-            'duree_estimee_jours',
+            "duree_estimee_jours",
             mission.duree_estimee_jours
         )
 
@@ -71,7 +63,6 @@ class RequestContactView(CreateAPIView):
             )
 
 
-
 class ConsultantInteractionsView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ContactRequestReadSerializer
@@ -83,6 +74,7 @@ class ConsultantInteractionsView(ListAPIView):
             'mission', 'client'
         ).order_by('-cree_le')
 
+
 class ClientInteractionsView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ContactRequestReadSerializer
@@ -93,6 +85,7 @@ class ClientInteractionsView(ListAPIView):
         ).select_related(
             'mission', 'consultant'
         ).order_by('-cree_le')
+
 
 class UpdateContactStatusView(APIView):
     permission_classes = [IsAuthenticated]
@@ -150,6 +143,7 @@ class TerminerMissionView(APIView):
         return Response({
             "detail": "Mission marquée comme terminée."
         })
+
 
 class SuiviMissionView(APIView):
     permission_classes = [EstBureauOuSuperAdmin]

@@ -15,9 +15,10 @@ class IncidentReview(models.Model):
         on_delete=models.CASCADE
     )
 
-    feedback = models.ForeignKey(
+    feedback = models.OneToOneField(
         "quality_control.Feedback",
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name="incident"
     )
 
     statut = models.CharField(

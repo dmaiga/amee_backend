@@ -1,3 +1,5 @@
+from urllib import request
+
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth import authenticate, login
 from django.views.decorators.http import require_POST
@@ -11,6 +13,18 @@ from accounts.models import User
 from roster.models import ConsultantProfile
 from missions.models import Mission
 from interactions.models import ContactRequest
+
+from django.db.models import Prefetch,Sum,Count, Q
+from quality_control.models import Feedback,IncidentReview
+
+from django.utils import timezone
+
+from tresorerie.models import Transaction
+
+from django.core.mail import send_mail
+from django.contrib import messages
+
+
 
 
 #-----------------------------
@@ -43,77 +57,49 @@ def backoffice_login(request):
 
     return render(request, "backoffice/login.html")
 
-from django.db.models import Sum
-from django.utils import timezone
-
-from accounts.models import User
-from tresorerie.models import Transaction
-from roster.models import ConsultantProfile
-from missions.models import Mission
-
-
 @login_required
 def dashboard(request):
+    now = timezone.now()
+    trente_jours_ago = now - timezone.timedelta(days=30)
 
-    # -----------------------
-    # MEMBRES
-    # -----------------------
-    membres_actifs = User.objects.filter(
-        adhesion__date_expiration__gte=timezone.now().date()
-    ).count()
+    # --- 👥 Membres & Roster ---
+    membres_actifs = User.objects.filter(adhesion__date_expiration__gte=now.date()).count()
+    consultants = ConsultantProfile.objects.filter(statut="VALIDE").count()
+    roster_attente = ConsultantProfile.objects.filter(statut="EN_ATTENTE").count()
+    
+    # Nouveau : Taux de conversion (Membres -> Consultants)
+    taux_conversion = 0
+    if membres_actifs > 0:
+        taux_conversion = round((consultants / membres_actifs) * 100, 1)
 
-    consultants = User.objects.filter(
-        role="CONSULTANT"
-    ).count()
-
-    # -----------------------
-    # ROSTER
-    # -----------------------
-    roster_attente = ConsultantProfile.objects.filter(
-        statut="EN_ATTENTE"
-    ).count()
-
-    # -----------------------
-    # MISSIONS
-    # -----------------------
-    missions_ouvertes = Mission.objects.filter(
-        statut="OUVERTE"
-    ).count()
-
-    # -----------------------
-    # TRESORERIE
-    # -----------------------
-    entrees = Transaction.objects.filter(
-        type_transaction="ENTREE",
-        statut="VALIDEE"
-    ).aggregate(total=Sum("montant"))["total"] or 0
-
-    sorties = Transaction.objects.filter(
-        type_transaction="SORTIE",
-        statut="VALIDEE"
-    ).aggregate(total=Sum("montant"))["total"] or 0
-
-    solde = entrees - sorties
-
-    mois = timezone.now().month
-
-    paiements_mois = Transaction.objects.filter(
-        type_transaction="ENTREE",
+    # --- 💰 Trésorerie ---
+    solde = TresorerieService.get_solde()
+    # Entrées du mois dernier pour voir la tendance
+    entrees_mois = Transaction.objects.filter(
+        type_transaction="ENTREE", 
         statut="VALIDEE",
-        date_transaction__month=mois
-    ).count()
+        date_transaction__gte=trente_jours_ago
+    ).aggregate(Sum('montant'))['montant__sum'] or 0
+
+    # --- 🤝 Missions & Qualité ---
+    missions_ouvertes = Mission.objects.filter(statut="OUVERTE").count()
+    total_contacts = ContactRequest.objects.count()
+    
+    # Nouveau : Alertes Incidents non résolus
+    incidents_critiques = IncidentReview.objects.filter(statut="A_TRAITER").count()
 
     context = {
         "membres_actifs": membres_actifs,
         "consultants": consultants,
         "roster_attente": roster_attente,
+        "taux_conversion": taux_conversion,
         "missions_ouvertes": missions_ouvertes,
+        "total_contacts": total_contacts,
         "solde": solde,
-        "paiements_mois": paiements_mois,
+        "entrees_mois": entrees_mois,
+        "incidents_critiques": incidents_critiques,
     }
-
     return render(request, "backoffice/dashboard.html", context)
-
 
 #-----------------------------
 #
@@ -218,7 +204,6 @@ def tresorerie_depense(request):
         context
     )
 
-from tresorerie.models import Transaction
 
 
 @login_required
@@ -432,9 +417,16 @@ def roster_decision(request, profil_id):
 @login_required
 def missions_list(request):
 
+
     missions = (
         Mission.objects
         .select_related("client")
+        .annotate(
+            incidents=Count(
+                "contacts__feedback",
+                filter=Q(contacts__feedback__incident_signale=True)
+            )
+        )
         .order_by("-id")
     )
 
@@ -444,6 +436,8 @@ def missions_list(request):
         {"missions": missions}
     )
 
+
+
 @login_required
 def mission_detail(request, mission_id):
 
@@ -452,9 +446,15 @@ def mission_detail(request, mission_id):
         pk=mission_id
     )
 
-    contacts = ContactRequest.objects.filter(
-        mission=mission
-    ).select_related("consultant")
+    contacts = (
+        ContactRequest.objects
+        .filter(mission=mission)
+        .select_related(
+            "consultant",
+            "feedback",
+            "feedback__incident"   
+        )
+    )
 
     return render(
         request,
@@ -465,7 +465,88 @@ def mission_detail(request, mission_id):
         }
     )
 
+
+
+@login_required
+def demander_feedback(request, contact_id):
+
+    contact = get_object_or_404(ContactRequest, pk=contact_id)
+
+    if contact.statut != "MISSION_TERMINEE":
+        messages.error(request, "La mission n'est pas terminée.")
+        return redirect("bo_mission_detail", mission_id=contact.mission.id)
+
+    if hasattr(contact, "feedback"):
+        messages.warning(request, "Feedback déjà reçu.")
+        return redirect("bo_mission_detail", mission_id=contact.mission.id)
+    
+    # 🔴 empêche double relance
+    if contact.suivi_envoye:
+        messages.info(request, "Une demande de feedback a déjà été envoyée.")
+        return redirect("bo_mission_detail", mission_id=contact.mission.id)
+
+    # envoi email
+    lien = f"/feedback/{contact.id}/"
+
+    send_mail(
+        subject="Merci d'évaluer votre mission AMEE",
+        message=f"""
+Bonjour,
+
+Votre mission est terminée.
+Merci de partager votre retour :
+
+{lien}
+
+AMEE – Qualité réseau
+""",
+        from_email="noreply@amee.org",
+        recipient_list=[contact.client.email],
+    )
+
+    contact.suivi_envoye = True
+    contact.save(update_fields=["suivi_envoye"])
+
+    messages.success(request, "Demande de feedback envoyée.")
+
+    return redirect("bo_mission_detail", mission_id=contact.mission.id)
 #-----------------------------
 #
 #-----------------------------
 
+@login_required
+def incidents_list(request):
+
+    incidents = (
+        IncidentReview.objects
+        .select_related(
+            "consultant",
+            "contact_request__mission",
+            "feedback",
+        )
+        .order_by("-cree_le")
+    )
+
+    return render(
+        request,
+        "backoffice/qualites/incidents_list.html",
+        {"incidents": incidents}
+    )
+
+@login_required
+def feedback_detail(request, feedback_id):
+
+    feedback = get_object_or_404(
+        Feedback.objects.select_related(
+            "contact_request__mission",
+            "contact_request__consultant",
+            "client"
+        ),
+        pk=feedback_id
+    )
+
+    return render(
+        request,
+        "backoffice/qualites/feedback_detail.html",
+        {"feedback": feedback}
+    )

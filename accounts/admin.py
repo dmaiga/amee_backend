@@ -5,6 +5,6 @@ from accounts.models import User
  
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'is_staff', 'is_active')
+    list_display = ('id','username', 'email', 'is_staff', 'is_active')
     list_filter = ('is_staff', 'is_active')
 

@@ -1,27 +1,37 @@
 from rest_framework import serializers
 from interactions.models import ContactRequest
+from missions.serializers import MissionSerializer
+from django.contrib.auth import get_user_model
+from roster.models import ConsultantProfile
+
+User = get_user_model()
+
 
 
 class ContactRequestSerializer(serializers.ModelSerializer):
 
+    consultant = serializers.PrimaryKeyRelatedField(
+        queryset=ConsultantProfile.objects.filter(statut="VALIDE"),
+        write_only=True
+    )
+
     class Meta:
         model = ContactRequest
         fields = [
-            'id',
-            'mission',
-            'consultant',
-            'message',
-            'duree_estimee_jours',
-            'statut',
-            'cree_le'
+            "id",
+            "mission",
+            "consultant",
+            "message",
+            "duree_estimee_jours",
+            "statut",
+            "cree_le",
         ]
-        read_only_fields = ['statut', 'cree_le']
+        read_only_fields = ["statut", "cree_le"]
 
-from missions.serializers import MissionSerializer
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
-
+    def create(self, validated_data):
+        profil = validated_data.pop("consultant")
+        validated_data["consultant"] = profil.user
+        return super().create(validated_data)
 
 class ContactRequestReadSerializer(serializers.ModelSerializer):
 
