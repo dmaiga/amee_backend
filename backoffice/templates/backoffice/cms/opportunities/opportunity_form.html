@@ -1,0 +1,22 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="container py-3">
+
+<h4>
+{% if opportunity %}Modifier{% else %}Créer{% endif %}
+une opportunité
+</h4>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button class="btn btn-success">
+        Enregistrer
+    </button>
+</form>
+
+</div>
+
+{% endblock %}

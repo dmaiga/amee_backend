@@ -1,0 +1,190 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="p-6 space-y-8">
+
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-semibold">
+            🎯 Pilotage Enrôlement & Cotisations
+        </h2>
+            <div class="flex flex-wrap gap-4">
+
+        <a href="{% url 'bo_enregistrer_paiement' %}"
+           class="btn btn-primary">
+            👤 Paiement Individu
+        </a>
+
+        <a href="{% url 'bo_paiement_bureau' %}"
+           class="btn btn-secondary">
+            🏢 Paiement Bureau
+        </a>
+
+    </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- KPI -->
+    <!-- ===================================================== -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        <div class="stat bg-base-100 shadow rounded-box">
+            <div class="stat-title">Individus à jour</div>
+            <div class="stat-value text-success">
+                {{ individus_a_jour }}
+            </div>
+        </div>
+
+        <div class="stat bg-base-100 shadow rounded-box">
+            <div class="stat-title">Individus à relancer</div>
+            <div class="stat-value text-warning">
+                {{ individus_relance }}
+            </div>
+        </div>
+
+        <div class="stat bg-base-100 shadow rounded-box">
+            <div class="stat-title">Bureaux à jour</div>
+            <div class="stat-value text-success">
+                {{ bureaux_a_jour }}
+            </div>
+        </div>
+
+        <div class="stat bg-base-100 shadow rounded-box">
+            <div class="stat-title">Bureaux à relancer</div>
+            <div class="stat-value text-error">
+                {{ bureaux_relance }}
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- TABLE BUREAUX -->
+    <!-- ===================================================== -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+
+            <h3 class="card-title">
+                🏢 Bureaux à relancer / inactifs
+            </h3>
+
+            <div class="overflow-x-auto mt-3">
+                <table class="table table-zebra">
+
+                    <thead>
+                        <tr>
+                            <th>Organisation</th>
+                            <th>Email</th>
+                            <th>Dernière cotisation</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for b in liste_bureaux_relance %}
+                        <tr>
+                            <td class="font-medium">
+                                {{ b.nom }}
+                            </td>
+
+                            <td>
+                                {{ b.email_contact }}
+                            </td>
+
+                            <td>
+                                {{ b.derniere_cotisation|default:"Jamais" }}
+                            </td>
+
+                            <td>
+                                {% if not b.est_actif %}
+                                    <span class="badge badge-error">
+                                        Inactif
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-warning">
+                                        À relancer
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center opacity-60">
+                                Aucun bureau à relancer
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+
+
+    <!-- ===================================================== -->
+    <!-- TABLE INDIVIDUS -->
+    <!-- ===================================================== -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+
+            <h3 class="card-title">
+                👤 Individus à relancer
+            </h3>
+
+            <div class="overflow-x-auto mt-3">
+                <table class="table table-zebra">
+
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>ID membre</th>
+                            <th>Dernière cotisation</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for u in liste_individus_relance %}
+                        <tr>
+                            <td class="font-medium">
+                                {{ u.get_full_name|default:u.email }}
+                            </td>
+
+                            <td>
+                                {{ u.email }}
+                            </td>
+
+                            <td>
+                                {{ u.id_membre_association }}
+                            </td>
+
+                            <td>
+                                {{ u.derniere_cotisation|default:"Jamais" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center opacity-60">
+                                Aucun individu à relancer
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

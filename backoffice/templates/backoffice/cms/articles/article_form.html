@@ -1,0 +1,27 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="container py-3">
+
+<h4>
+{% if article %}Modifier{% else %}Créer{% endif %}
+un article
+</h4>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button class="btn btn-success">
+        Enregistrer
+    </button>
+
+    <a href="{% url 'bo_articles_list' %}" class="btn btn-secondary">
+        Annuler
+    </a>
+</form>
+
+</div>
+
+{% endblock %}

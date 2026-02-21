@@ -1,13 +1,17 @@
 from rest_framework.generics import ListAPIView, RetrieveAPIView
-from rest_framework.permissions import AllowAny
-
-from .models import Article, Resource, Opportunity
-from .serializers import (
+from rest_framework.permissions import AllowAny,IsAuthenticated
+from django.shortcuts import get_object_or_404
+from cms.models import Article, Resource, Opportunity
+from cms.serializers import (
     ArticleSerializer,
     ResourceSerializer,
     OpportunitySerializer,
+    
 )
-from .permissions import EstMembreActif
+from cms.permissions import EstMembreActif,EstBureauOuSuperAdmin
+from rest_framework.viewsets import ModelViewSet
+
+
 
 
 # =====================================================
@@ -30,7 +34,6 @@ class ArticleDetailView(RetrieveAPIView):
     def get_queryset(self):
         return Article.objects.filter(publie=True)
 
-
 # =====================================================
 # RESOURCES (MEMBRES UNIQUEMENT)
 # =====================================================
@@ -42,14 +45,12 @@ class ResourceListView(ListAPIView):
     def get_queryset(self):
         return Resource.objects.all().order_by("-cree_le")
 
-
 class ResourceDetailView(RetrieveAPIView):
     permission_classes = [EstMembreActif]
     serializer_class = ResourceSerializer
 
     def get_queryset(self):
         return Resource.objects.all()
-
 
 # =====================================================
 # OPPORTUNITIES (MEMBRES PAR DEFAUT)
@@ -62,10 +63,13 @@ class OpportunityListView(ListAPIView):
     def get_queryset(self):
         return Opportunity.objects.filter(publie=True).order_by("-cree_le")
 
-
 class OpportunityDetailView(RetrieveAPIView):
     permission_classes = [EstMembreActif]
     serializer_class = OpportunitySerializer
 
     def get_queryset(self):
         return Opportunity.objects.filter(publie=True)
+
+# =====================================================
+#
+# =====================================================

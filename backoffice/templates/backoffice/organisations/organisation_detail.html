@@ -1,0 +1,52 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="p-6 space-y-6">
+
+<h2 class="text-2xl font-semibold">
+{{ organisation.nom }}
+</h2>
+
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+
+<p><b>Email :</b> {{ organisation.email_contact }}</p>
+<p><b>Téléphone :</b> {{ organisation.telephone }}</p>
+<p><b>Siège :</b> {{ organisation.siege }}</p>
+
+<a href="{% url 'bo_organisation_edit' organisation.id %}"
+   class="btn btn-primary mt-3">
+Modifier
+</a>
+
+</div>
+</div>
+
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+
+<h3 class="card-title">Historique paiements</h3>
+
+<table class="table table-zebra">
+<tr>
+<th>Date</th>
+<th>Catégorie</th>
+<th>Montant</th>
+</tr>
+
+{% for t in transactions %}
+<tr>
+<td>{{ t.date_transaction }}</td>
+<td>{{ t.get_categorie_display }}</td>
+<td>{{ t.montant }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+</div>
+</div>
+
+</div>
+
+{% endblock %}

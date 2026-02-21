@@ -1,0 +1,55 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="max-w-3xl mx-auto p-6 space-y-6">
+
+<h2 class="text-2xl font-semibold">
+💰 Paiement Bureau
+</h2>
+
+{% if success %}
+<div class="alert alert-success">
+Paiement enregistré pour {{ organisation.nom }} ✅
+</div>
+{% endif %}
+
+<form method="post" class="card bg-base-100 shadow">
+<div class="card-body space-y-4">
+
+{% csrf_token %}
+
+<label class="label">Organisation</label>
+<select name="organisation" class="select select-bordered w-full" required>
+    <option value="">-- sélectionner --</option>
+    {% for org in organisations %}
+        <option value="{{ org.id }}">{{ org.nom }}</option>
+    {% endfor %}
+</select>
+
+<label class="label">Type de paiement</label>
+<select name="operation" class="select select-bordered w-full">
+    <option value="ADHESION">Adhésion</option>
+    <option value="COTISATION">Cotisation</option>
+    <option value="FULL">Adhésion + Cotisation</option>
+</select>
+
+<input type="number"
+       name="montant"
+       placeholder="Montant"
+       class="input input-bordered w-full"
+       required>
+
+<textarea name="description"
+          class="textarea textarea-bordered w-full"
+          placeholder="Description"></textarea>
+
+<button class="btn btn-primary">
+Enregistrer paiement
+</button>
+
+</div>
+</form>
+
+</div>
+
+{% endblock %}

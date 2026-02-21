@@ -1,0 +1,42 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="container py-3">
+
+<h4>{{ opportunity.titre }}</h4>
+
+<p class="text-muted">
+{{ opportunity.get_type_display }}
+</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        {{ opportunity.description|linebreaks }}
+    </div>
+</div>
+
+<p>
+<strong>Date limite :</strong>
+{{ opportunity.date_limite }}
+</p>
+
+<p>
+<strong>Accès :</strong>
+{% if opportunity.reserve_aux_membres %}
+🔒 Membres
+{% else %}
+Public
+{% endif %}
+</p>
+
+{% if opportunity.fichier_joint %}
+<a href="{{ opportunity.fichier_joint.url }}"
+   target="_blank"
+   class="btn btn-success">
+   Télécharger document
+</a>
+{% endif %}
+
+</div>
+
+{% endblock %}

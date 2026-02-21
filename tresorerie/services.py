@@ -186,7 +186,10 @@ def process_membership_payment(transaction):
 
     if transaction.type_transaction != "ENTREE":
         return
-
+    
+    if transaction.organization_id:
+        return
+    
     if transaction.categorie == "ADHESION":
         handle_adhesion(transaction)
         return

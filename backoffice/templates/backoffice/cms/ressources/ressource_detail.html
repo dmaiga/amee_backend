@@ -1,0 +1,40 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="container py-3">
+
+<h4>{{ ressource.titre }}</h4>
+
+<p class="text-muted">
+    {{ ressource.get_categorie_display }}
+</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        {{ ressource.description|linebreaks }}
+    </div>
+</div>
+
+<p>
+<strong>Accès :</strong>
+{% if ressource.reserve_aux_membres %}
+🔒 Membres uniquement
+{% else %}
+Public
+{% endif %}
+</p>
+
+<p>
+<strong>Téléchargements :</strong>
+{{ ressource.telechargements }}
+</p>
+
+<a href="{{ ressource.fichier.url }}"
+   class="btn btn-success"
+   target="_blank">
+   Télécharger le fichier
+</a>
+
+</div>
+
+{% endblock %}

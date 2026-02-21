@@ -2,49 +2,171 @@
 
 {% block content %}
 
-<h1 class="text-2xl font-semibold mb-6">
-    👤 Dossier Consultant
-</h1>
-
-<div class="card bg-base-100 shadow">
-    <div class="card-body">
-
-        <p><b>Membre :</b> {{ profil.user.id_membre_association }}</p>
-        <p><b>Email :</b> {{ profil.user.email }}</p>
-
-        <hr>
-
-        <p><b>Domaine :</b> {{ profil.domaine_expertise }}</p>
-        <p><b>Expérience :</b> {{ profil.annees_experience }} ans</p>
-
-        <p class="mt-4">
-            <b>Résumé :</b><br>
-            {{ profil.resume_profil }}
-        </p>
-
-        {% if request.user.role == "SECRETARIAT" or request.user.role == "BUREAU" or request.user.role == "SUPERADMIN" %}
-
-        <hr class="my-6">
-
-        <form method="post" action="{% url 'bo_roster_decision' profil.id %}" class="flex gap-3">
-            {% csrf_token %}
-
-            {% if profil.statut == "EN_ATTENTE" %}
-                <button name="action" value="valider" class="btn btn-success">
-                    ✅ Valider Consultant
-                </button>
-
-                <button name="action" value="refuser" class="btn btn-error">
-                    ❌ Refuser
-                </button>
-            {% else %}
-                <span class="badge badge-outline">
-                    Décision déjà prise (Statut : {{ profil.get_statut_display }})
-                </span>
-            {% endif %}
-        </form>
-
-        {% endif %} </div>
+<div class="text-sm breadcrumbs mb-4 text-gray-500">
+    <ul>
+        <li><a href="{% url 'bo_roster' %}">Roster</a></li>
+        <li>Dossier #{{ profil.id }}</li>
+    </ul>
 </div>
+
+<div class="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
+    <div class="flex items-center gap-4">
+        <div class="avatar placeholder">
+            <div class="bg-neutral text-neutral-content rounded-full w-16 shadow-lg">
+                <span class="text-xl">{{ profil.user.email|slice:":1"|upper }}</span>
+            </div>
+        </div>
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">{{ profil.user.get_full_name|default:profil.user.email }}</h1>
+            <p class="text-sm opacity-60 italic">Membre depuis le {{ profil.user.date_joined|date:"d M Y" }}</p>
+        </div>
+    </div>
+    
+    <div class="flex flex-col items-end gap-2">
+        {% if profil.statut == "SOUMIS" %}
+            <span class="badge badge-warning badge-lg gap-2 p-4 font-bold animate-pulse">⏳ EN ATTENTE</span>
+        {% elif profil.statut == "VALIDE" %}
+            <span class="badge badge-success badge-lg gap-2 p-4 text-white font-bold">✅ VALIDÉ</span>
+        {% else %}
+            <span class="badge badge-error badge-lg gap-2 p-4 text-white font-bold">❌ REFUSÉ</span>
+        {% endif %}
+        
+        {% if profil.user.adhesion.est_actif %}
+            <span class="text-[10px] font-black text-success uppercase tracking-widest">● Adhésion AMEE Active</span>
+        {% else %}
+            <span class="text-[10px] font-black text-error uppercase tracking-widest">○ Adhésion Inactive / Non-payée</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <div class="lg:col-span-2 space-y-6">
+        
+        <div class="card bg-base-100 shadow-sm border border-base-200">
+            <div class="card-body">
+                <div class="flex justify-between items-center border-b pb-4 mb-4">
+                    <h2 class="card-title text-gray-600 uppercase text-xs tracking-widest">Expertise Professionnelle</h2>
+                    <span class="badge badge-outline">{{ profil.annees_experience }} ans d'exp.</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="label text-xs font-bold opacity-50 uppercase">Domaine principal</label>
+                        <p class="font-semibold text-lg">{{ profil.domaine_expertise }}</p>
+                    </div>
+                    <div>
+                        <label class="label text-xs font-bold opacity-50 uppercase">ID Membre</label>
+                        <p class="font-mono text-primary">{{ profil.user.id_membre_association|default:"NON GÉNÉRÉ" }}</p>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <label class="label text-xs font-bold opacity-50 uppercase">Résumé du parcours</label>
+                    <div class="bg-base-200/50 p-4 rounded-xl text-sm leading-relaxed text-gray-700 italic border-l-4 border-primary">
+                        "{{ profil.resume_profil }}"
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-base-100 shadow-sm border border-base-200">
+            <div class="card-body">
+                <h2 class="card-title text-gray-600 uppercase text-xs tracking-widest mb-6">Fil des décisions</h2>
+                
+                <ul class="timeline timeline-vertical timeline-compact">
+                    {% for h in profil.historique.all|dictsortreversed:"cree_le" %}
+                    <li>
+                        <hr/>
+                        <div class="timeline-middle">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 {% if h.nouveau_statut == 'VALIDE' %}text-success{% elif h.nouveau_statut == 'REFUSE' %}text-error{% else %}text-info{% endif %}"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                        </div>
+                        <div class="timeline-end mb-6 ml-4">
+                            <time class="font-mono italic text-xs opacity-50">{{ h.cree_le|date:"d M Y @ H:i" }}</time>
+                            <div class="text-sm font-black">{{ h.nouveau_statut }}</div>
+                            <div class="text-xs opacity-70">Décidé par : {{ h.decision_par.get_full_name|default:h.decision_par.email }}</div>
+                            {% if h.motif %}
+                                <div class="mt-2 p-2 bg-error/10 border-l-2 border-error text-error text-xs italic">
+                                    {{ h.motif }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <hr/>
+                    </li>
+                    {% empty %}
+                        <p class="text-xs opacity-40 italic">Aucune action enregistrée pour le moment.</p>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <div class="card bg-base-100 shadow-xl border-t-4 border-primary sticky top-6">
+            <div class="card-body">
+                <h2 class="card-title text-sm uppercase opacity-50 mb-4">Actions de validation</h2>
+
+                {% if profil.statut == "SOUMIS" %}
+                    <form method="post" action="{% url 'bo_roster_decision' profil.id %}" class="space-y-4">
+                        {% csrf_token %}
+                        
+                        <div id="action-buttons" class="space-y-2">
+                            <button name="action" value="valider" class="btn btn-success btn-block shadow-md">
+                                ✅ Valider l'expert
+                            </button>
+                            
+                            <button type="button" onclick="showRefusArea()" class="btn btn-outline btn-error btn-block">
+                                ❌ Refuser le dossier
+                            </button>
+                        </div>
+
+                        <div id="zone-refus" class="hidden animate-in fade-in duration-300">
+                            <div class="form-control mb-4">
+                                <label class="label font-bold text-xs text-error">MOTIF DU REFUS</label>
+                                <textarea name="motif_refus" id="motif_refus" class="textarea textarea-error w-full h-32 bg-base-200" placeholder="L'expert doit justifier de 5 ans d'expérience..."></textarea>
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="hideRefusArea()" class="btn btn-ghost flex-1 btn-sm font-bold">Annuler</button>
+                                <button name="action" value="refuser" class="btn btn-error flex-1 btn-sm text-white">Confirmer</button>
+                            </div>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="alert bg-base-200 border-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6 opacity-40"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div class="text-xs opacity-60 font-medium">Le statut actuel est définitif. Pour modifier, contactez l'administrateur.</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card bg-primary text-primary-content shadow-lg">
+            <div class="card-body p-6">
+                <h3 class="font-bold text-sm">Contacter l'expert</h3>
+                <p class="text-xs opacity-80 mb-4 text-justify">Besoin de précisions sur le CV ou les diplômes ?</p>
+                <a href="mailto:{{ profil.user.email }}" class="btn btn-sm btn-secondary no-animation">✉️ Envoyer un Email</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const actionButtons = document.getElementById("action-buttons");
+const zoneRefus = document.getElementById("zone-refus");
+const textArea = document.getElementById("motif_refus");
+
+function showRefusArea() {
+    actionButtons.classList.add("hidden");
+    zoneRefus.classList.remove("hidden");
+    textArea.setAttribute("required", "required");
+    textArea.focus();
+}
+
+function hideRefusArea() {
+    actionButtons.classList.remove("hidden");
+    zoneRefus.classList.add("hidden");
+    textArea.removeAttribute("required");
+}
+</script>
 
 {% endblock %}

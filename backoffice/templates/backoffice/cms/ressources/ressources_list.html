@@ -1,0 +1,55 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="container-fluid py-3">
+
+<div class="d-flex justify-content-between mb-3">
+    <h4>Ressources</h4>
+
+    <a href="{% url 'bo_ressource_create' %}" class="btn btn-primary">
+        + Ajouter une ressource
+    </a>
+</div>
+
+<table class="table table-hover">
+<thead>
+<tr>
+    <th>Titre</th>
+    <th>Catégorie</th>
+    <th>Membres</th>
+    <th>Téléchargements</th>
+    <th></th>
+</tr>
+</thead>
+
+<tbody>
+{% for r in ressources %}
+<tr>
+    <td>{{ r.titre }}</td>
+    <td>{{ r.get_categorie_display }}</td>
+
+    <td>
+        {% if r.reserve_aux_membres %}
+            🔒 Membres
+        {% else %}
+            Public
+        {% endif %}
+    </td>
+
+    <td>{{ r.telechargements }}</td>
+
+    <td>
+        <a href="{% url 'bo_ressource_detail' r.id %}"
+           class="btn btn-sm btn-outline-secondary">Voir</a>
+
+        <a href="{% url 'bo_ressource_edit' r.id %}"
+           class="btn btn-sm btn-outline-primary">Edit</a>
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="container-fluid py-3">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4>{{ article.titre }}</h4>
+
+            <small class="text-muted">
+                {{ article.get_type_display }}
+                •
+                {% if article.date_publication %}
+                    {{ article.date_publication|date:"d/m/Y H:i" }}
+                {% else %}
+                    Non programmé
+                {% endif %}
+            </small>
+        </div>
+
+        <div>
+            <a href="{% url 'bo_article_edit' article.id %}"
+               class="btn btn-primary btn-sm">
+                ✏️ Modifier
+            </a>
+
+            <a href="{% url 'bo_articles_list' %}"
+               class="btn btn-outline-secondary btn-sm">
+                ← Retour
+            </a>
+        </div>
+    </div>
+
+
+    <!-- STATUT -->
+    <div class="mb-3">
+        {% if article.publie %}
+            <span class="badge bg-success">Publié</span>
+        {% else %}
+            <span class="badge bg-warning text-dark">Brouillon</span>
+        {% endif %}
+    </div>
+
+
+    <!-- IMAGE -->
+    {% if article.image %}
+        <div class="mb-4">
+            <img src="{{ article.image.url }}"
+                 class="img-fluid rounded shadow-sm"
+                 style="max-height:400px;">
+        </div>
+    {% endif %}
+
+
+    <!-- CONTENU -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            {{ article.contenu|linebreaks }}
+        </div>
+    </div>
+
+
+    <!-- INFOS TECHNIQUES -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            Informations
+        </div>
+
+        <div class="card-body">
+
+            <p>
+                <strong>Slug :</strong>
+                {{ article.slug }}
+            </p>
+
+            <p>
+                <strong>Lien externe :</strong>
+                {% if article.lien_externe %}
+                    <a href="{{ article.lien_externe }}" target="_blank">
+                        {{ article.lien_externe }}
+                    </a>
+                {% else %}
+                    —
+                {% endif %}
+            </p>
+
+            <p>
+                <strong>Publication forcée :</strong>
+                {% if article.publie_manuellement %}
+                    Oui
+                {% else %}
+                    Non
+                {% endif %}
+            </p>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

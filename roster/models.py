@@ -1,3 +1,4 @@
+# roster/models.py
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
@@ -40,6 +41,8 @@ class ConsultantProfile(models.Model):
 
     cree_le = models.DateTimeField(auto_now_add=True)
     motif_refus = models.TextField(null=True, blank=True)
+    motif_reexamen = models.TextField(null=True, blank=True)
+
     est_disponible = models.BooleanField(default=True)
     
     class Meta:
@@ -50,27 +53,58 @@ class ConsultantProfile(models.Model):
 
     def valider(self, validateur):
 
-        if not hasattr(self.user, "adhesion") or not self.user.adhesion.est_actif:
-            raise ValueError("Impossible de valider un consultant non à jour.")
+        ancien = self.statut
 
-        self.statut = 'VALIDE'
+        self.statut = "VALIDE"
         self.valide_par = validateur
         self.date_validation = timezone.now()
         self.save()
 
-        # Promotion automatique
-        self.user.role = 'CONSULTANT'
-        self.user.save(update_fields=["role"])
+        RosterDecisionHistory.objects.create(
+            profil=self,
+            ancien_statut=ancien,
+            nouveau_statut="VALIDE",
+            decision_par=validateur
+        )
 
-    
     def refuser(self, validateur, motif=None):
 
-        self.statut = 'REFUSE'
+        ancien = self.statut
+
+        self.statut = "REFUSE"
         self.valide_par = validateur
         self.date_validation = timezone.now()
         self.motif_refus = motif
         self.save()
 
+        RosterDecisionHistory.objects.create(
+            profil=self,
+            ancien_statut=ancien,
+            nouveau_statut="REFUSE",
+            motif=motif,
+            decision_par=validateur
+        )
+
+    def demander_reexamen(self, demandeur, motif):
+    
+        if self.statut != "REFUSE":
+            raise ValueError("Réexamen non autorisé.")
+    
+        ancien = self.statut
+    
+        self.statut = "SOUMIS"
+        self.motif_reexamen = motif
+        self.motif_refus = None
+        self.save()
+    
+        RosterDecisionHistory.objects.create(
+            profil=self,
+            ancien_statut=ancien,
+            nouveau_statut="SOUMIS",
+            motif=motif,
+            decision_par=demandeur
+        )
+    
     def __str__(self):
         return f"#{self.id}  - {self.user.email} - {self.statut}"
 
@@ -93,3 +127,24 @@ class ConsultantProfile(models.Model):
             return False
 
         return self.user.adhesion.est_actif
+
+class RosterDecisionHistory(models.Model):
+
+    profil = models.ForeignKey(
+        "ConsultantProfile",
+        on_delete=models.CASCADE,
+        related_name="historique"
+    )
+
+    ancien_statut = models.CharField(max_length=20)
+    nouveau_statut = models.CharField(max_length=20)
+
+    motif = models.TextField(blank=True, null=True)
+
+    decision_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        on_delete=models.SET_NULL
+    )
+
+    cree_le = models.DateTimeField(auto_now_add=True)

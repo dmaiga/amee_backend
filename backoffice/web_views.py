@@ -1,10 +1,19 @@
+#backoffice/web_views.py
 from urllib import request
-
+from django import forms
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth import authenticate, login
 from django.views.decorators.http import require_POST
 from django.http import HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from datetime import timedelta
+
+from django.db.models import Prefetch,Sum,Count, Q,Max
+
+from django.core.mail import send_mail
+from django.contrib import messages
+
 
 from backoffice.api.tresorerie.services import TresorerieService
 from backoffice.permissions.roster import can_manage_roster
@@ -13,16 +22,23 @@ from accounts.models import User
 from roster.models import ConsultantProfile
 from missions.models import Mission
 from interactions.models import ContactRequest
+from cms.models import Article, Resource, Opportunity
 
-from django.db.models import Prefetch,Sum,Count, Q
 from quality_control.models import Feedback,IncidentReview
 
-from django.utils import timezone
 
 from tresorerie.models import Transaction
 
-from django.core.mail import send_mail
-from django.contrib import messages
+from backoffice.forms import ArticleForm,ResourceForm,OpportunityForm
+
+from organizations.models import Organization
+from memberships.models import Membership
+
+from organizations.models import Organization
+
+from backoffice.forms import OrganizationForm
+
+
 
 
 
@@ -30,7 +46,6 @@ from django.contrib import messages
 #-----------------------------
 #
 #-----------------------------
-
 
 def backoffice_login(request):
 
@@ -104,6 +119,165 @@ def dashboard(request):
 #-----------------------------
 #
 #-----------------------------
+
+@login_required
+def enrolement_dashboard(request):
+
+    today = timezone.now().date()
+    limite = today - timedelta(days=365)
+
+    # =====================================================
+    # INDIVIDUS
+    # =====================================================
+
+    individus = (
+        User.objects
+        .filter(id_membre_association__isnull=False)
+        .annotate(
+            derniere_cotisation=Max(
+                "transactions__date_transaction",
+                filter=Q(
+                    transactions__categorie="COTISATION",
+                    transactions__statut="VALIDEE"
+                )
+            )
+        )
+    )
+
+    individus_a_jour = individus.filter(
+        derniere_cotisation__gte=limite
+    )
+
+    individus_relance = individus.filter(
+        Q(derniere_cotisation__lt=limite) |
+        Q(derniere_cotisation__isnull=True)
+    )
+
+    # =====================================================
+    # BUREAUX
+    # =====================================================
+
+    bureaux = (
+        Organization.objects
+        .annotate(
+            derniere_cotisation=Max(
+                "transactions__date_transaction",
+                filter=Q(
+                    transactions__categorie="COTISATION",
+                    transactions__statut="VALIDEE"
+                )
+            )
+        )
+    )
+
+    bureaux_a_jour = bureaux.filter(
+        derniere_cotisation__gte=limite
+    )
+
+    bureaux_relance = bureaux.filter(
+        Q(derniere_cotisation__lt=limite) |
+        Q(derniere_cotisation__isnull=True) |
+        Q(est_actif=False)
+    )
+
+    # =====================================================
+    context = {
+        # KPI
+        "individus_a_jour": individus_a_jour.count(),
+        "individus_relance": individus_relance.count(),
+        "bureaux_a_jour": bureaux_a_jour.count(),
+        "bureaux_relance": bureaux_relance.count(),
+
+        # tables
+        "liste_individus_relance": individus_relance[:10],
+        "liste_bureaux_relance": bureaux_relance[:10],
+    }
+
+    return render(
+        request,
+        "backoffice/tresorerie/dashboard.html",
+        context
+    )
+
+@login_required
+def paiement_bureau(request):
+
+    organisations = Organization.objects.filter(
+        est_actif=True
+    ).order_by("nom")
+
+    context = {
+        "organisations": organisations
+    }
+
+    if request.method == "POST":
+
+        organisation_id = request.POST.get("organisation")
+        operation = request.POST.get("operation")
+        montant = request.POST.get("montant")
+        description = request.POST.get("description")
+
+        organisation = get_object_or_404(
+            Organization,
+            pk=organisation_id
+        )
+
+        transactions = []
+
+        base_data = {
+            "type_transaction": "ENTREE",
+            "montant": int(montant),
+            "description": description,
+            "date_transaction": timezone.now().date(),
+            "organization": organisation,
+            "cree_par": request.user,
+            "statut": "VALIDEE",
+        }
+
+        # -----------------------------
+        # ADHESION + COTISATION
+        # -----------------------------
+        if operation == "FULL":
+
+            t1 = Transaction.objects.create(
+                **base_data,
+                categorie="ADHESION"
+            )
+
+            t2 = Transaction.objects.create(
+                **base_data,
+                categorie="COTISATION"
+            )
+
+            transactions = [t1, t2]
+
+        elif operation == "ADHESION":
+
+            transactions.append(
+                Transaction.objects.create(
+                    **base_data,
+                    categorie="ADHESION"
+                )
+            )
+
+        elif operation == "COTISATION":
+
+            transactions.append(
+                Transaction.objects.create(
+                    **base_data,
+                    categorie="COTISATION"
+                )
+            )
+
+        context["success"] = True
+        context["transactions"] = transactions
+        context["organisation"] = organisation
+
+    return render(
+        request,
+        "backoffice/tresorerie/paiement_bureau.html",
+        context
+    )
 
 @login_required
 def tresorerie_paiement(request):
@@ -204,8 +378,6 @@ def tresorerie_depense(request):
         context
     )
 
-
-
 @login_required
 def transactions_list(request):
 
@@ -265,10 +437,10 @@ def transaction_detail(request, transaction_id):
         {"transaction": transaction}
     )
 
-
 #-----------------------------
 #
 #-----------------------------
+
 @login_required
 def membres_list(request):
 
@@ -306,7 +478,6 @@ def membres_list(request):
         context
     )
 
-
 @login_required
 def membre_detail(request, user_id):
 
@@ -343,7 +514,6 @@ def membre_detail(request, user_id):
 #-----------------------------
 #
 #-----------------------------
-
 
 @login_required
 def roster_list(request):
@@ -384,7 +554,6 @@ def roster_detail(request, profil_id):
         {"profil": profil}
     )
 
-
 @require_POST
 @login_required
 def roster_decision(request, profil_id):
@@ -397,16 +566,20 @@ def roster_decision(request, profil_id):
     action = request.POST.get("action")
 
     if action == "valider":
-        profil.statut = "VALIDE"
-        profil.save(update_fields=["statut"])
-
-        user = profil.user
-        user.role = "CONSULTANT"
-        user.save(update_fields=["role"])
+        profil.valider(validateur=request.user)
 
     elif action == "refuser":
-        profil.statut = "REFUSE"
-        profil.save(update_fields=["statut"])
+
+        motif = request.POST.get("motif_refus")
+
+        if not motif:
+            messages.error(request, "Veuillez préciser le motif du refus.")
+            return redirect("bo_roster_detail", profil_id=profil.id)
+
+        profil.refuser(
+            validateur=request.user,
+            motif=motif
+        )
 
     return redirect("bo_roster_detail", profil_id=profil.id)
 
@@ -436,8 +609,6 @@ def missions_list(request):
         {"missions": missions}
     )
 
-
-
 @login_required
 def mission_detail(request, mission_id):
 
@@ -464,8 +635,6 @@ def mission_detail(request, mission_id):
             "contacts": contacts,
         }
     )
-
-
 
 @login_required
 def demander_feedback(request, contact_id):
@@ -510,6 +679,7 @@ AMEE – Qualité réseau
     messages.success(request, "Demande de feedback envoyée.")
 
     return redirect("bo_mission_detail", mission_id=contact.mission.id)
+
 #-----------------------------
 #
 #-----------------------------
@@ -549,4 +719,301 @@ def feedback_detail(request, feedback_id):
         request,
         "backoffice/qualites/feedback_detail.html",
         {"feedback": feedback}
+    )
+
+
+#-----------------------------
+#
+#-----------------------------
+
+@login_required
+def cms_dashboard(request):
+
+    context = {
+        "articles_total": Article.objects.count(),
+        "articles_brouillons": Article.objects.filter(publie=False).count(),
+        "resources_total": Resource.objects.count(),
+        "opportunities_actives":
+            Opportunity.objects.filter(publie=True).count(),
+
+        "articles": Article.objects.order_by("-date_publication")[:5],
+        "resources": Resource.objects.order_by("-cree_le")[:5],
+        "opportunities": Opportunity.objects.order_by("-cree_le")[:5],
+    }
+
+    return render(
+        request,
+        "backoffice/cms/dashboard.html",
+        context
+    )
+
+# ----------------------------- 
+
+@login_required
+def articles_list(request):
+
+    statut = request.GET.get("statut")
+
+    articles = Article.objects.all().order_by("-date_publication")
+
+    if statut == "publie":
+        articles = articles.filter(publie=True)
+
+    elif statut == "brouillon":
+        articles = articles.filter(publie=False)
+
+    return render(
+        request,
+        "backoffice/cms/articles/articles_list.html",
+        {
+            "articles": articles,
+            "selected_statut": statut,
+        }
+    )
+
+@login_required
+def article_detail(request, article_id):
+
+    article = get_object_or_404(Article, pk=article_id)
+
+    return render(
+        request,
+        "backoffice/cms/articles/article_detail.html",
+        {"article": article}
+    )
+
+@login_required
+def article_form(request, article_id=None):
+
+    article = None
+
+    if article_id:
+        article = get_object_or_404(Article, pk=article_id)
+
+    if request.method == "POST":
+        form = ArticleForm(
+            request.POST,
+            request.FILES,
+            instance=article
+        )
+
+        if form.is_valid():
+            form.save()
+            return redirect("bo_articles_list")
+
+    else:
+        form = ArticleForm(instance=article)
+
+    return render(
+        request,
+        "backoffice/cms/articles/article_form.html",
+        {
+            "form": form,
+            "article": article,
+        }
+    )
+
+# -----------------------------
+
+@login_required
+def ressources_list(request):
+
+    categorie = request.GET.get("categorie")
+
+    ressources = Resource.objects.all().order_by("-cree_le")
+
+    if categorie:
+        ressources = ressources.filter(categorie=categorie)
+
+    return render(
+        request,
+        "backoffice/cms/ressources/ressources_list.html",
+        {
+            "ressources": ressources,
+            "categories": Resource.CATEGORIE_CHOICES,
+            "selected_categorie": categorie,
+        }
+    )
+
+@login_required
+def ressource_detail(request, ressource_id):
+
+    ressource = get_object_or_404(Resource, pk=ressource_id)
+
+    return render(
+        request,
+        "backoffice/cms/ressources/ressource_detail.html",
+        {"ressource": ressource}
+    )
+
+@login_required
+def ressource_form(request, ressource_id=None):
+
+    ressource = None
+
+    if ressource_id:
+        ressource = get_object_or_404(Resource, pk=ressource_id)
+
+    if request.method == "POST":
+        form = ResourceForm(
+            request.POST,
+            request.FILES,
+            instance=ressource
+        )
+
+        if form.is_valid():
+            form.save()
+            return redirect("bo_ressources_list")
+
+    else:
+        form = ResourceForm(instance=ressource)
+
+    return render(
+        request,
+        "backoffice/cms/ressources/ressource_form.html",
+        {
+            "form": form,
+            "ressource": ressource,
+        }
+    )
+
+# -----------------------------
+
+@login_required
+def opportunities_list(request):
+
+    statut = request.GET.get("statut")
+
+    opportunities = Opportunity.objects.all().order_by("-cree_le")
+
+    if statut == "active":
+        opportunities = [o for o in opportunities if not o.est_expire]
+
+    elif statut == "expire":
+        opportunities = [o for o in opportunities if o.est_expire]
+
+    return render(
+        request,
+        "backoffice/cms/opportunities/opportunities_list.html",
+        {
+            "opportunities": opportunities,
+            "selected_statut": statut,
+        }
+    )
+
+@login_required
+def opportunity_detail(request, opportunity_id):
+
+    opportunity = get_object_or_404(Opportunity, pk=opportunity_id)
+
+    return render(
+        request,
+        "backoffice/cms/opportunities/opportunity_detail.html",
+        {"opportunity": opportunity}
+    )
+
+@login_required
+def opportunity_form(request, opportunity_id=None):
+    
+    opportunity = None
+
+    if opportunity_id:
+        opportunity = get_object_or_404(Opportunity, pk=opportunity_id)
+
+    if request.method == "POST":
+        form = OpportunityForm(
+            request.POST,
+            request.FILES,
+            instance=opportunity
+        )
+
+        if form.is_valid():
+            form.save()
+            return redirect("bo_opportunities_list")
+
+    else:
+        form = OpportunityForm(instance=opportunity)
+
+    return render(
+        request,
+        "backoffice/cms/opportunities/opportunity_form.html",
+        {
+            "form": form,
+            "opportunity": opportunity,
+        }
+    )
+
+
+#-----------------------------
+#
+#-----------------------------
+
+
+@login_required
+def organisations_list(request):
+
+    organisations = (
+        Organization.objects
+        .annotate(
+            derniere_cotisation=Max(
+                "transactions__date_transaction",
+                filter=Q(
+                    transactions__categorie="COTISATION",
+                    transactions__statut="VALIDEE"
+                )
+            )
+        )
+        .order_by("nom")
+    )
+
+    return render(
+        request,
+        "backoffice/organisations/organisations_list.html",
+        {"organisations": organisations}
+    )
+
+@login_required
+def organisation_detail(request, organisation_id):
+
+    organisation = get_object_or_404(
+        Organization.objects.prefetch_related("transactions"),
+        pk=organisation_id
+    )
+
+    transactions = organisation.transactions.order_by("-date_transaction")[:10]
+
+    return render(
+        request,
+        "backoffice/organisations/organisation_detail.html",
+        {
+            "organisation": organisation,
+            "transactions": transactions,
+        }
+    )
+
+@login_required
+def organisation_form(request, organisation_id=None):
+
+    organisation = None
+
+    if organisation_id:
+        organisation = get_object_or_404(Organization, pk=organisation_id)
+
+    if request.method == "POST":
+        form = OrganizationForm(request.POST, instance=organisation)
+
+        if form.is_valid():
+            form.save()
+            return redirect("bo_organisations_list")
+
+    else:
+        form = OrganizationForm(instance=organisation)
+
+    return render(
+        request,
+        "backoffice/organisations/organisation_form.html",
+        {
+            "form": form,
+            "organisation": organisation,
+        }
     )

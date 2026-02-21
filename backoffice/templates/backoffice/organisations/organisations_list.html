@@ -1,0 +1,60 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="p-6">
+
+<div class="flex justify-between mb-4">
+    <h2 class="text-xl font-semibold">🏢 Bureaux partenaires</h2>
+
+    <a href="{% url 'bo_organisation_create' %}" class="btn btn-primary">
+        + Nouveau bureau
+    </a>
+</div>
+
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+
+<table class="table table-zebra">
+<thead>
+<tr>
+<th>Nom</th>
+<th>Email</th>
+<th>Dernière cotisation</th>
+<th>Statut</th>
+<th></th>
+</tr>
+</thead>
+
+<tbody>
+{% for org in organisations %}
+<tr>
+<td class="font-medium">{{ org.nom }}</td>
+<td>{{ org.email_contact }}</td>
+<td>{{ org.derniere_cotisation|default:"Jamais" }}</td>
+
+<td>
+{% if org.est_actif %}
+<span class="badge badge-success">Actif</span>
+{% else %}
+<span class="badge badge-error">Inactif</span>
+{% endif %}
+</td>
+
+<td>
+<a href="{% url 'bo_organisation_detail' org.id %}"
+   class="btn btn-sm btn-outline">
+Voir
+</a>
+</td>
+</tr>
+{% endfor %}
+</tbody>
+
+</table>
+
+</div>
+</div>
+
+</div>
+
+{% endblock %}

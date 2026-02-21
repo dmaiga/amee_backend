@@ -1,0 +1,212 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="p-6 space-y-6">
+
+    <!-- ================= HEADER ================= -->
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-semibold">
+            📰 Pilotage CMS
+        </h2>
+    </div>
+
+
+    <!-- ================= KPI ================= -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        <div class="stat bg-base-100 shadow rounded-box">
+            <div class="stat-title">Articles</div>
+            <div class="stat-value">{{ articles_total }}</div>
+        </div>
+
+        <div class="stat bg-base-100 shadow rounded-box">
+            <div class="stat-title">Brouillons</div>
+            <div class="stat-value text-warning">
+                {{ articles_brouillons }}
+            </div>
+        </div>
+
+        <div class="stat bg-base-100 shadow rounded-box">
+            <div class="stat-title">Ressources</div>
+            <div class="stat-value">
+                {{ resources_total }}
+            </div>
+        </div>
+
+        <div class="stat bg-base-100 shadow rounded-box">
+            <div class="stat-title">Opportunités actives</div>
+            <div class="stat-value text-success">
+                {{ opportunities_actives }}
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ================= ARTICLES ================= -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="card-title">Derniers articles</h3>
+
+                <a href="{% url 'bo_articles_list' %}"
+                   class="btn btn-sm btn-outline">
+                    Voir tout
+                </a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Titre</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for article in articles %}
+                        <tr>
+                            <td class="font-medium">
+                                {{ article.titre }}
+                            </td>
+                            <td>{{ article.get_type_display }}</td>
+                            <td>{{ article.date_publication|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if article.publie %}
+                                    <div class="badge badge-success">Publié</div>
+                                {% else %}
+                                    <div class="badge badge-warning">Brouillon</div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center opacity-60">
+                                Aucun article
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ================= RESSOURCES ================= -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="card-title">Dernières ressources</h3>
+
+                <a href="{% url 'bo_ressources_list' %}"
+                   class="btn btn-sm btn-outline">
+                    Voir tout
+                </a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Titre</th>
+                            <th>Catégorie</th>
+                            <th>Accès</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in resources %}
+                        <tr>
+                            <td class="font-medium">{{ r.titre }}</td>
+                            <td>{{ r.get_categorie_display }}</td>
+
+                            <td>
+                                {% if r.reserve_aux_membres %}
+                                    <span class="badge badge-info">Membres</span>
+                                {% else %}
+                                    <span class="badge badge-ghost">Public</span>
+                                {% endif %}
+                            </td>
+
+                            <td>{{ r.cree_le|date:"d/m/Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center opacity-60">
+                                Aucune ressource
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ================= OPPORTUNITÉS ================= -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="card-title">Opportunités récentes</h3>
+
+                <a href="{% url 'bo_opportunities_list' %}"
+                   class="btn btn-sm btn-outline">
+                    Voir tout
+                </a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Titre</th>
+                            <th>Type</th>
+                            <th>Date limite</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in opportunities %}
+                        <tr>
+                            <td class="font-medium">{{ o.titre }}</td>
+                            <td>{{ o.get_type_display }}</td>
+                            <td>{{ o.date_limite }}</td>
+
+                            <td>
+                                {% if o.est_expire %}
+                                    <span class="badge badge-error">
+                                        Expirée
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-success">
+                                        Active
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center opacity-60">
+                                Aucune opportunité
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

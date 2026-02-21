@@ -92,9 +92,15 @@ class Transaction(models.Model):
             )
     
         # sécurité métier
-        if self.categorie == "ADHESION" and not self.email_payeur:
-            raise ValueError("Une adhésion nécessite un email payeur.")
-    
+        # Email obligatoire uniquement pour adhésion INDIVIDUELLE
+        if (
+            self.categorie == "ADHESION"
+            and not self.organization_id
+            and not self.email_payeur
+        ):
+            raise ValueError(
+                "Une adhésion individuelle nécessite un email payeur."
+            )
         super().save(*args, **kwargs)
     
         # Déclenche uniquement BROUILLON → VALIDEE

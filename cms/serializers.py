@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import Article, Resource, Opportunity
+from cms.models import Article, Resource, Opportunity
+from rest_framework import serializers
+
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -18,3 +20,4 @@ class OpportunitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Opportunity
         fields = "__all__"
+

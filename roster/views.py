@@ -30,9 +30,20 @@ class SoumettreCandidatureView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        if hasattr(user, 'profil_roster'):
+        profil = getattr(user, "profil_roster", None)
+
+        if profil:
+        
+            # autoriser seulement si refusé
+            if profil.statut == "REFUSE":
+                profil.demander_reexamen(demandeur=user)
+                return Response(
+                    {"detail": "Demande de réexamen envoyée."},
+                    status=status.HTTP_200_OK
+                )
+
             return Response(
-                {"detail": "Profil déjà existant."},
+                {"detail": "Une candidature est déjà en cours."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -51,7 +62,7 @@ class ValiderCandidatureView(APIView):
 
         profil = get_object_or_404(ConsultantProfile, pk=pk)
 
-        if profil.statut != 'SOUMIS':
+        if profil.statut not in ['SOUMIS', 'REFUSE']:
             return Response(
                 {"detail": "Profil non soumis."},
                 status=status.HTTP_400_BAD_REQUEST

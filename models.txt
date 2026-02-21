@@ -1,0 +1,893 @@
+# accounts/models.py
+from django.db import models
+from django.contrib.auth.models import AbstractUser, BaseUserManager
+import uuid
+from django.utils.text import slugify
+
+from quality_control.models import Feedback
+
+
+
+# =====================================================
+# Custom User Manager (LOGIN PAR EMAIL)
+# =====================================================
+
+class UserManager(BaseUserManager):
+
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError("Un email est obligatoire.")
+
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+
+        user.set_password(password)
+        user.save(using=self._db)
+
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_active", True)
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
+
+        return self.create_user(email, password, **extra_fields)
+
+
+# =====================================================
+# Custom User Model
+# =====================================================
+
+class User(AbstractUser):
+
+
+    ROLE_CHOICES = (
+        
+        ('SUPERADMIN', 'Administrateur Système'),
+        ('BUREAU', 'Membre du Bureau / Conseil'),
+        ('COMPTA', 'Comptabilité'),
+
+        ('SECRETARIAT', 'Secrétariat Administratif'),
+        ('MEMBER', 'Membre Adhérent'),
+        ('CONSULTANT', 'Expert Roster'),
+        ('CLIENT', 'Institution / Recruteur'),
+    )
+
+    STATUT_QUALITE = (
+        ("NORMAL", "Normal"),
+        ("SURVEILLANCE", "Sous surveillance"),
+        ("SUSPENDU", "Suspendu"),
+        ("BANNI", "Banni"),
+    )
+    
+    statut_qualite = models.CharField(
+        max_length=20,
+        choices=STATUT_QUALITE,
+        default="NORMAL"
+    )
+    
+    # username conservé mais auto-généré
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        blank=True
+    )
+
+    email = models.EmailField(unique=True, max_length=255)
+
+    id_membre_association = models.CharField(
+        max_length=50,
+        unique=True,
+        null=True,
+        blank=True
+    )
+    
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="membres"
+    )
+
+
+    external_id = models.UUIDField(
+        default=uuid.uuid4,
+        editable=False,
+        unique=True
+    )
+
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default='CLIENT'
+    )
+
+    is_active_account = models.BooleanField(default=True)
+
+    # LOGIN PAR EMAIL
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
+
+    objects = UserManager()
+
+    # ============================
+    # AUTO USERNAME GENERATION
+    # ============================
+    def generate_username(self):
+        base_username = slugify(f"{self.first_name}{self.last_name}") or "user"
+        username = base_username
+        counter = 1
+
+        while User.objects.filter(username=username).exclude(pk=self.pk).exists():
+            username = f"{base_username}{counter}"
+            counter += 1
+
+        return username
+
+    def save(self, *args, **kwargs):
+        # Génère username seulement s'il est vide
+        if not self.username:
+            self.username = self.generate_username()
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.email} - {self.get_role_display()}"
+
+    @property
+    def est_recommande_amee(self):
+    
+        if self.role != "CONSULTANT":
+            return False
+    
+        feedbacks = Feedback.objects.filter(
+            contact_request__consultant=self,
+            note__gte=4
+        )
+    
+        return feedbacks.count() >= 5
+    
+
+# cms/models.py
+from django.db import models
+from django.utils.text import slugify
+from django.utils import timezone
+from django.utils import timezone
+
+class Article(models.Model):
+    TYPE_CHOICES = (
+        ("ACTUALITE", "Actualité"),
+        ("EVENEMENT", "Événement"),
+        ("COMMUNIQUE", "Communiqué officiel"),
+
+        ("OPPORTUNITE", "Opportunité"),
+        ("FORMATION", "Formation / Atelier"),
+        ("PARTENARIAT", "Partenariat"),
+        ("APPEL", "Appel à participation"),
+        ("AUTRE", "Autre"),
+    )
+
+    titre = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True, blank=True)
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    contenu = models.TextField()
+    image = models.ImageField(upload_to="cms/articles/", null=True, blank=True)
+    publie = models.BooleanField(default=False)
+    date_publication = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Laisser vide pour publier immédiatement"
+    )
+    
+    lien_externe = models.URLField(
+        blank=True,
+        null=True,
+        help_text="Lien externe (inscription, document officiel, partenaire...)"
+    )
+    
+    publie_manuellement = models.BooleanField(
+        default=False,
+        help_text="Forcer la publication indépendamment de la date"
+    )
+
+
+    def save(self, *args, **kwargs):
+    
+        # ---------- SLUG ----------
+        if not self.slug:
+            base_slug = slugify(self.titre)
+            slug = base_slug
+            counter = 1
+            while Article.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+    
+        now = timezone.now()
+    
+        # ---------- LOGIQUE PUBLICATION ----------
+        # 1️⃣ publication forcée depuis admin
+        if self.publie:
+            if not self.date_publication:
+                self.date_publication = now
+    
+        # 2️⃣ publication programmée
+        elif self.date_publication:
+            if self.date_publication <= now:
+                self.publie = True
+            else:
+                self.publie = False
+    
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return self.titre
+
+class Resource(models.Model):
+    CATEGORIE_CHOICES = (
+        ("GUIDE", "Guide technique"),
+        ("RAPPORT", "Rapport d'évaluation"),
+        ("REGLEMENT", "Texte réglementaire"),
+        ("ETUDE_CAS", "Étude de cas"),
+    )
+    titre = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    fichier = models.FileField(upload_to="cms/resources/")
+    categorie = models.CharField(max_length=30, choices=CATEGORIE_CHOICES)
+    reserve_aux_membres = models.BooleanField(default=True)
+    telechargements = models.PositiveIntegerField(default=0)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"[{self.get_categorie_display()}] {self.titre}"
+
+class Opportunity(models.Model):
+    TYPE_CHOICES = (
+        ("EMPLOI", "Offre d'emploi"),
+        ("STAGE", "Stage"),
+        ("APPEL_OFFRE", "Appel d'offre"),
+        ("PARTENARIAT", "Coopération"),
+    )
+
+    titre = models.CharField(max_length=255)
+    description = models.TextField()
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    date_limite = models.DateField(null=True, blank=True)
+    reserve_aux_membres = models.BooleanField(default=True)
+    fichier_joint = models.FileField(upload_to="cms/opportunites/", null=True, blank=True)
+    publie = models.BooleanField(default=True)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def est_expire(self):
+        if not self.date_limite:
+            return False
+        return self.date_limite < timezone.now().date()
+
+
+
+# interactions/models.py
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+
+
+class ContactRequest(models.Model):
+
+    STATUT_CHOICES = (
+        ('ENVOYE', 'Contact partagé'),
+        ('MISSION_CONFIRME', 'Mission confirmée'),
+        ('MISSION_TERMINEE', 'Mission terminée'),
+        ('SANS_SUITE', 'Sans suite'),
+        ('REFUSE', 'Refus du consultant'),
+    )
+
+    client = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='demandes_clients'
+    )
+
+    consultant = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='demandes_consultant'
+    )
+
+    mission = models.ForeignKey(
+        'missions.Mission',
+        on_delete=models.CASCADE,
+        related_name='contacts'
+    )
+
+    est_collaboration_validee = models.BooleanField(
+        default=False,
+        help_text="Indique qu'une collaboration réelle a été confirmée"
+    )
+
+    message = models.TextField(blank=True, null=True)
+
+    duree_estimee_jours = models.PositiveIntegerField(
+        null=True,
+        blank=True
+    )
+
+    statut = models.CharField(
+        max_length=30,
+        choices=STATUT_CHOICES,
+        default='ENVOYE'
+    )
+
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    date_suivi_prevu = models.DateTimeField(null=True, blank=True)
+    suivi_envoye = models.BooleanField(default=False)
+
+    suivi_effectue = models.BooleanField(default=False)
+    date_suivi_reel = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.client} → {self.consultant} ({self.statut})"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['mission', 'consultant'],
+                name='unique_contact_per_mission_consultant'
+            )
+        ]
+        
+    def save(self, *args, **kwargs):
+
+        if self.statut == 'MISSION_CONFIRME':
+            self.est_collaboration_validee = True
+
+        super().save(*args, **kwargs)
+
+    @property
+    def etat_feedback(self):
+    
+        if self.statut != "MISSION_TERMINEE":
+            return None
+    
+        if not hasattr(self, "feedback"):
+            return "ATTENTE_FEEDBACK"
+    
+        if self.feedback.incident_signale:
+            return "INCIDENT"
+    
+        return "OK"
+    
+        
+# memberships/models.py
+
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
+from django.utils import timezone
+
+
+class Membership(models.Model):
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='adhesion'
+    )
+
+    date_activation = models.DateField(null=True, blank=True)
+    date_expiration = models.DateField(null=True, blank=True)
+
+    valide_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='adhesions_validees'
+    )
+
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    # ===============================
+    # SOURCE DE VÉRITÉ
+    # ===============================
+    @property
+    def est_actif(self):
+        if not self.date_expiration:
+            return False
+        return self.date_expiration >= timezone.now().date()
+    
+
+    def __str__(self):
+        return f"{self.user.email} - actif:{self.est_actif}"
+
+    @property
+    def valide_par(self):
+    
+        transaction = self.user.transactions.filter(
+            statut="VALIDEE",
+            categorie="COTISATION"
+        ).order_by("-date_transaction").first()
+    
+        return transaction.cree_par if transaction else None
+    
+
+# missions/models.py
+
+from django.db import models
+from django.conf import settings
+
+
+class Mission(models.Model):
+
+    STATUT_CHOICES = (
+        ('OUVERTE', 'Ouverte'),
+        ('FERMEE', 'Fermée'),
+    )
+
+    client = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='missions'
+    )
+
+    titre = models.CharField(max_length=255)
+    description = models.TextField()
+
+    domaine = models.CharField(max_length=255)
+
+    localisation = models.CharField(max_length=255, blank=True, null=True)
+
+    duree_estimee_jours = models.PositiveIntegerField(null=True, blank=True)
+
+    statut = models.CharField(
+        max_length=20,
+        choices=STATUT_CHOICES,
+        default='OUVERTE'
+    )
+
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.titre
+
+# organizations/models.py
+from django.db import models
+
+
+class Organization(models.Model):
+
+    nom = models.CharField(max_length=255)
+    sigle = models.CharField(max_length=50, blank=True)
+
+    site_web = models.URLField(blank=True)
+    email_contact = models.EmailField()
+    telephone = models.CharField(max_length=50, blank=True)
+    siege= models.CharField(max_length=255, blank=True)
+    est_actif = models.BooleanField(default=True)
+
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.nom
+
+
+# quality_control/models.py
+from django.db import models
+from django.conf import settings
+from django.core.exceptions import ValidationError
+
+    
+class IncidentReview(models.Model):
+
+    contact_request = models.OneToOneField(
+        "interactions.ContactRequest",
+        on_delete=models.CASCADE
+    )
+
+    consultant = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+
+    feedback = models.OneToOneField(
+        "quality_control.Feedback",
+        on_delete=models.CASCADE,
+        related_name="incident"
+    )
+
+    statut = models.CharField(
+        max_length=20,
+        choices=(
+            ("OUVERT", "Ouvert"),
+            ("EN_ANALYSE", "En analyse"),
+            ("CLOTURE", "Clôturé"),
+        ),
+        default="OUVERT"
+    )
+
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    from django.db import transaction
+    
+    @transaction.atomic
+    def creer_signalement(self, niveau, commentaire):
+        from .models import Signalement
+
+        if self.statut == "CLOTURE":
+            raise ValueError("Cet incident est déjà clôturé.")
+
+        if hasattr(self, "signalement"):
+            raise ValueError("Un signalement existe déjà pour cet incident.")
+
+        signalement = Signalement.objects.create(
+            incident=self,
+            consultant=self.consultant,
+            niveau=niveau,
+            commentaire_interne=commentaire,
+        )
+
+        # appliquer sanction automatiquement
+        if niveau == 1:
+            self.consultant.statut_qualite = "SURVEILLANCE"
+        elif niveau == 2:
+            self.consultant.statut_qualite = "SUSPENDU"
+
+        self.consultant.save()
+
+        self.statut = "CLOTURE"
+        self.save()
+
+        return signalement
+
+class Feedback(models.Model):
+
+    contact_request = models.OneToOneField(
+        "interactions.ContactRequest",
+        on_delete=models.CASCADE,
+        related_name="feedback"
+    )
+
+    client = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+
+    note = models.PositiveIntegerField()
+    commentaire = models.TextField(blank=True)
+    incident_signale = models.BooleanField(default=False)
+    description_incident = models.TextField(blank=True)
+
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Feedback {self.note}/5"
+  
+    def save(self, *args, **kwargs):
+
+        is_new = self.pk is None
+
+        if self.contact_request.client != self.client:
+            raise ValidationError("Ce client ne correspond pas à la mission.")
+
+        if self.contact_request.statut != "MISSION_TERMINEE":
+            raise ValidationError("Feedback autorisé uniquement après mission terminée.")
+
+        super().save(*args, **kwargs)
+
+        # créer incident seulement à la création
+        if is_new and self.incident_signale:
+            IncidentReview.objects.get_or_create(
+                contact_request=self.contact_request,
+                consultant=self.contact_request.consultant,
+                feedback=self
+            )
+
+class Signalement(models.Model):
+
+    incident = models.OneToOneField(
+        "IncidentReview",
+        on_delete=models.CASCADE,
+        related_name="signalement"
+    )
+
+    consultant = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+
+    niveau = models.PositiveSmallIntegerField(
+        choices=(
+            (1, "Premier avertissement"),
+            (2, "Suspension"),
+            (3, "Examen conseil"),
+        )
+    )
+
+    commentaire_interne = models.TextField()
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.incident_id:
+            raise ValueError("Un signalement doit provenir d'un incident.")
+        super().save(*args, **kwargs)
+
+
+# roster/models.py
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+
+
+class ConsultantProfile(models.Model):
+
+    STATUT_CHOICES = (
+        ('BROUILLON', 'Brouillon'),
+        ('SOUMIS', 'Soumis'),
+        ('VALIDE', 'Validé'),
+        ('REFUSE', 'Refusé'),
+    )
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='profil_roster'
+    )
+
+    statut = models.CharField(
+        max_length=20,
+        choices=STATUT_CHOICES,
+        default='BROUILLON'
+    )
+
+    domaine_expertise = models.CharField(max_length=255)
+    annees_experience = models.IntegerField()
+    resume_profil = models.TextField()
+
+    valide_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='profils_valides'
+    )
+
+    date_validation = models.DateTimeField(null=True, blank=True)
+
+    cree_le = models.DateTimeField(auto_now_add=True)
+    motif_refus = models.TextField(null=True, blank=True)
+    motif_reexamen = models.TextField(null=True, blank=True)
+
+    est_disponible = models.BooleanField(default=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=["statut", "est_disponible"]),
+        ]
+
+
+    def valider(self, validateur):
+
+        ancien = self.statut
+
+        self.statut = "VALIDE"
+        self.valide_par = validateur
+        self.date_validation = timezone.now()
+        self.save()
+
+        RosterDecisionHistory.objects.create(
+            profil=self,
+            ancien_statut=ancien,
+            nouveau_statut="VALIDE",
+            decision_par=validateur
+        )
+
+    def refuser(self, validateur, motif=None):
+
+        ancien = self.statut
+
+        self.statut = "REFUSE"
+        self.valide_par = validateur
+        self.date_validation = timezone.now()
+        self.motif_refus = motif
+        self.save()
+
+        RosterDecisionHistory.objects.create(
+            profil=self,
+            ancien_statut=ancien,
+            nouveau_statut="REFUSE",
+            motif=motif,
+            decision_par=validateur
+        )
+
+    def demander_reexamen(self, demandeur, motif):
+    
+        if self.statut != "REFUSE":
+            raise ValueError("Réexamen non autorisé.")
+    
+        ancien = self.statut
+    
+        self.statut = "SOUMIS"
+        self.motif_reexamen = motif
+        self.motif_refus = None
+        self.save()
+    
+        RosterDecisionHistory.objects.create(
+            profil=self,
+            ancien_statut=ancien,
+            nouveau_statut="SOUMIS",
+            motif=motif,
+            decision_par=demandeur
+        )
+    
+    def __str__(self):
+        return f"#{self.id}  - {self.user.email} - {self.statut}"
+
+    @property
+    def est_actif_roster(self):
+        """
+        Actif seulement si :
+        - profil validé
+        - disponible
+        - membership actif
+        """
+
+        if self.statut != "VALIDE":
+            return False
+
+        if not self.est_disponible:
+            return False
+
+        if not hasattr(self.user, "adhesion"):
+            return False
+
+        return self.user.adhesion.est_actif
+
+class RosterDecisionHistory(models.Model):
+
+    profil = models.ForeignKey(
+        "ConsultantProfile",
+        on_delete=models.CASCADE,
+        related_name="historique"
+    )
+
+    ancien_statut = models.CharField(max_length=20)
+    nouveau_statut = models.CharField(max_length=20)
+
+    motif = models.TextField(blank=True, null=True)
+
+    decision_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        on_delete=models.SET_NULL
+    )
+
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+# tresorerie/models.py
+
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
+from memberships.models import Membership
+from django.utils import timezone
+from datetime import timedelta
+class Transaction(models.Model):
+
+    TYPE_CHOICES = (
+        ("ENTREE", "Entrée"),
+        ("SORTIE", "Sortie"),
+    )
+
+    CATEGORIE_CHOICES = (
+        ("ADHESION", "Frais d’adhésion"),
+        ("COTISATION", "Cotisation annuelle"),
+
+        ("DON", "Don"),
+        ("SUBVENTION", "Subvention"),
+
+        ("EVENEMENT", "Organisation événement"),
+        ("FORMATION", "Formation"),
+        ("ACHAT", "Acquisition matériel"),
+        ("FONCTIONNEMENT", "Frais fonctionnement"),
+    )
+
+    STATUT_CHOICES = (
+        ("BROUILLON", "Brouillon"),
+        ("VALIDEE", "Validée"),
+        ("ANNULEE", "Annulée"),
+    )
+
+    statut = models.CharField(max_length=15, choices=STATUT_CHOICES, default="BROUILLON")
+
+    type_transaction = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    categorie = models.CharField(max_length=30, choices=CATEGORIE_CHOICES)
+    montant = models.DecimalField(max_digits=12, decimal_places=0)
+
+    description = models.TextField(blank=True)
+    date_transaction = models.DateField()
+
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="transactions"
+    )
+    
+
+    membre = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="transactions",
+        null=True,
+        blank=True
+    )
+
+
+    email_payeur = models.EmailField(
+        null=True,
+        blank=True,
+        help_text="Utilisé pour créer automatiquement un membre si inexistant"
+    )
+
+    cree_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.categorie} - {self.montant}"
+    # =====================================================
+    # MOTEUR MÉTIER MEMBERSHIP
+    # =====================================================
+    def save(self, *args, **kwargs):
+    
+        ancien_statut = None
+    
+        if self.pk:
+            ancien_statut = (
+                Transaction.objects
+                .filter(pk=self.pk)
+                .values_list("statut", flat=True)
+                .first()
+            )
+    
+        # sécurité métier
+        # Email obligatoire uniquement pour adhésion INDIVIDUELLE
+        if (
+            self.categorie == "ADHESION"
+            and not self.organization_id
+            and not self.email_payeur
+        ):
+            raise ValueError(
+                "Une adhésion individuelle nécessite un email payeur."
+            )
+        super().save(*args, **kwargs)
+    
+        # Déclenche uniquement BROUILLON → VALIDEE
+        if (
+            self.statut == "VALIDEE"
+            and ancien_statut == "BROUILLON"
+        ):
+            from .services import process_membership_payment
+            process_membership_payment(self)
+    
+
+
+

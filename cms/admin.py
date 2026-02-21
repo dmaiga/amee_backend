@@ -115,3 +115,7 @@ class OpportunityAdmin(admin.ModelAdmin):
                "Active"
            )
     statut_expiration.short_description = "Statut"
+
+# =====================================================
+# 
+# =====================================================

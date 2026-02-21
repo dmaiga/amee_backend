@@ -1,5 +1,7 @@
+# cms/models.py
 from django.db import models
 from django.utils.text import slugify
+from django.utils import timezone
 from django.utils import timezone
 
 class Article(models.Model):
@@ -7,6 +9,7 @@ class Article(models.Model):
         ("ACTUALITE", "Actualité"),
         ("EVENEMENT", "Événement"),
         ("COMMUNIQUE", "Communiqué officiel"),
+
         ("OPPORTUNITE", "Opportunité"),
         ("FORMATION", "Formation / Atelier"),
         ("PARTENARIAT", "Partenariat"),
@@ -88,9 +91,6 @@ class Resource(models.Model):
     def __str__(self):
         return f"[{self.get_categorie_display()}] {self.titre}"
 
-
-from django.utils import timezone
-
 class Opportunity(models.Model):
     TYPE_CHOICES = (
         ("EMPLOI", "Offre d'emploi"),
@@ -103,6 +103,7 @@ class Opportunity(models.Model):
     description = models.TextField()
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     date_limite = models.DateField(null=True, blank=True)
+    reserve_aux_membres = models.BooleanField(default=True)
     fichier_joint = models.FileField(upload_to="cms/opportunites/", null=True, blank=True)
     publie = models.BooleanField(default=True)
     cree_le = models.DateTimeField(auto_now_add=True)
@@ -112,3 +113,5 @@ class Opportunity(models.Model):
         if not self.date_limite:
             return False
         return self.date_limite < timezone.now().date()
+
+
