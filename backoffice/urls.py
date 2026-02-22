@@ -41,6 +41,11 @@ urlpatterns = [
     # --- ESPACE MEMBRES (Gestion administrative) ---
     path("membres/", membres_list, name="bo_membres"),
     path("membres/<int:user_id>/", membre_detail, name="bo_membre_detail"),
+    # -------- CLIENTS ----------
+    path("clients/", web_views.clients_list, name="clients_list"),
+    path("clients/<int:pk>/",web_views.client_detail, name="client_detail"),
+    path("clients/<int:pk>/valider/",web_views.valider_client,name="valider_client"),
+    path("clients/<int:pk>/refuser/",web_views.refuser_client,name="refuser_client"),
 
     # --- ESPACE ROSTER (Validation des experts) ---
     path("roster/", roster_list, name="bo_roster"),

@@ -3,122 +3,203 @@
 {% block title %}Détail Mission - {{ mission.titre }}{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto space-y-6">
+<div class="max-w-6xl mx-auto space-y-6 pb-12">
     
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-            <h1 class="text-3xl font-bold text-base-content">{{ mission.titre }}</h1>
-            <p class="opacity-60 italic text-sm">Créée le {{ mission.cree_le|date:"d F Y" }}</p>
-        </div>
-        <div class="flex gap-2">
-            <a href="{% url 'client_experts' %}?mission={{ mission.id }}" class="btn btn-primary">
-                <i data-lucide="user-plus"></i> Trouver un expert
-            </a>
+    <div class="flex flex-col gap-4">
+        <a href="{% url 'client_missions' %}" class="btn btn-ghost btn-sm w-fit gap-2 opacity-60 hover:opacity-100">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Retour aux missions
+        </a>
+
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center gap-3">
+                    <h1 class="text-3xl md:text-4xl font-extrabold text-base-content tracking-tight">{{ mission.titre }}</h1>
+                    <span class="badge badge-lg badge-primary badge-outline font-bold">{{ mission.get_statut_display }}</span>
+                </div>
+                <p class="text-base opacity-60 flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-4 h-4"></i> Créée le {{ mission.cree_le|date:"d F Y" }}
+                </p>
+            </div>
+            
+            <div class="flex gap-3 w-full md:w-auto">
+                <a href="{% url 'client_experts' %}?mission={{ mission.id }}" class="btn btn-primary flex-1 md:flex-none shadow-md gap-2">
+                    <i data-lucide="user-search" class="w-5 h-5"></i> Trouver un expert
+                </a>
+            </div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <div class="lg:col-span-2 space-y-6">
+        <div class="lg:col-span-2 space-y-8">
             
-            <div class="card bg-base-100 shadow-xl">
-                <div class="card-body">
-                    <h2 class="card-title border-b pb-2 mb-4 text-primary">Détails du besoin</h2>
-                    <div class="prose prose-sm max-w-none">
-                        <h3 class="font-bold">Description</h3>
-                        <p>{{ mission.description|linebreaks }}</p>
+            <div class="card bg-base-100 shadow-sm border border-base-200">
+                <div class="card-body p-6 md:p-8">
+                    <div class="flex items-center gap-2 mb-6 text-primary">
+                        <i data-lucide="file-text" class="w-6 h-6"></i>
+                        <h2 class="card-title text-xl font-bold">Détails du besoin</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-6 bg-base-200/50 rounded-2xl border border-base-200">
+                        <div class="space-y-1">
+                            <span class="text-xs uppercase font-bold opacity-40">Domaine</span>
+                            <p class="font-semibold text-base">{{ mission.domaine }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-xs uppercase font-bold opacity-40">Localisation</span>
+                            <p class="font-semibold text-base flex items-center gap-2">
+                                <i data-lucide="map-pin" class="w-4 h-4 opacity-50"></i>
+                                {{ mission.localisation|default:"À distance" }}
+                            </p>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-xs uppercase font-bold opacity-40">Durée estimée</span>
+                            <p class="font-semibold text-base flex items-center gap-2">
+                                <i data-lucide="clock" class="w-4 h-4 opacity-50"></i>
+                                {{ mission.duree_estimee_jours|default:"—" }} jours
+                            </p>
+                        </div>
+                    </div>
+
+                    <article class="prose prose-base max-w-none">
+                        <h3 class="text-lg font-bold mb-2">Description du projet</h3>
+                        <div class="text-base-content/80 leading-relaxed">
+                            {{ mission.description|linebreaks }}
+                        </div>
 
                         {% if mission.objectifs %}
-                            <h3 class="font-bold mt-4">Objectifs</h3>
-                            <p>{{ mission.objectifs|linebreaks }}</p>
+                            <h3 class="text-lg font-bold mt-8 mb-2">Objectifs & Livrables</h3>
+                            <div class="text-base-content/80 leading-relaxed">
+                                {{ mission.objectifs|linebreaks }}
+                            </div>
                         {% endif %}
-                    </div>
-
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 p-4 bg-base-200 rounded-lg text-sm">
-                        <div class="flex flex-col">
-                            <span class="opacity-50">Domaine</span>
-                            <span class="font-bold">{{ mission.domaine }}</span>
-                        </div>
-                        <div class="flex flex-col">
-                            <span class="opacity-50">Localisation</span>
-                            <span class="font-bold">{{ mission.localisation|default:"Distance" }}</span>
-                        </div>
-                        <div class="flex flex-col">
-                            <span class="opacity-50">Durée</span>
-                            <span class="font-bold">{{ mission.duree_estimee_jours|default:"—" }} jours</span>
-                        </div>
-                    </div>
+                    </article>
                 </div>
             </div>
 
-            <div class="card bg-base-100 shadow-xl">
-                <div class="card-body">
-                    <h2 class="card-title border-b pb-2 mb-4">Experts sollicités</h2>
-                    <div class="space-y-4">
+            <div class="card bg-base-100 shadow-sm border border-base-200">
+                <div class="card-body p-6 md:p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-2 text-base-content">
+                            <i data-lucide="users" class="w-6 h-6"></i>
+                            <h2 class="card-title text-xl font-bold">Experts sollicités</h2>
+                        </div>
+                        <span class="badge badge-ghost font-medium">{{ mission.contacts.count }} contact(s)</span>
+                    </div>
+
+                    <div class="grid gap-4">
                         {% for contact in mission.contacts.all %}
-                        <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg group hover:bg-base-300 transition-colors">
-                            <div class="flex items-center gap-3">
+                        <div class="flex flex-col md:flex-row justify-between items-center p-5 bg-base-50 border border-base-200 rounded-2xl group hover:border-primary/30 transition-all">
+                            <div class="flex items-center gap-4 w-full">
                                 <div class="avatar placeholder">
-                                    <div class="bg-neutral text-neutral-content rounded-full w-10">
+                                    <div class="bg-primary text-primary-content rounded-full w-12 shadow-inner font-bold">
                                         <span>{{ contact.consultant.first_name|slice:":1" }}</span>
                                     </div>
                                 </div>
                                 <div>
-                                    <div class="font-bold">{{ contact.consultant.get_full_name }}</div>
-                                    <div class="text-xs opacity-60">{{ contact.consultant.profil_roster.domaine_expertise }}</div>
+                                    <div class="font-bold text-lg">{{ contact.consultant.get_full_name }}</div>
+                                    <div class="text-sm opacity-60 font-medium">{{ contact.consultant.profil_roster.domaine_expertise }}</div>
                                 </div>
                             </div>
-                            <span class="badge badge-outline {% if contact.statut == 'ACCEPTE' %}badge-success{% endif %}">
-                                {{ contact.get_statut_display }}
-                            </span>
+                            
+                            <div class="flex items-center gap-4 w-full md:w-auto mt-4 md:mt-0">
+                                <span class="badge badge-md py-4 px-4 font-bold {% if contact.statut == 'ACCEPTE' %}badge-success text-white{% elif contact.statut == 'REFUSE' %}badge-error text-white{% else %}badge-ghost{% endif %}">
+                                     {{ contact.get_statut_display }}
+                                </span>
+                                <a href="#" class="btn btn-sm btn-circle btn-ghost">
+                                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                                </a>
+                            </div>
                         </div>
                         {% empty %}
-                        <div class="text-center py-6 opacity-40 italic">Aucun expert contacté pour le moment.</div>
+                        <div class="text-center py-12 bg-base-200/30 rounded-2xl border-2 border-dashed border-base-300">
+                            <i data-lucide="user-x" class="mx-auto w-12 h-12 opacity-10 mb-2"></i>
+                            <p class="opacity-40 italic">Aucun expert contacté pour cette mission.</p>
+                        </div>
                         {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="space-y-6">
-            <div class="card bg-base-100 shadow-xl">
-                <div class="card-body">
-                    <h2 class="card-title border-b pb-2 mb-4">Documents</h2>
+        <div class="space-y-8">
+            <div class="card bg-base-100 shadow-sm border border-base-200 sticky top-6">
+                <div class="card-body p-6">
+                    <h2 class="card-title text-lg mb-4 flex items-center gap-2">
+                        <i data-lucide="paperclip" class="text-primary w-5 h-5"></i> Documents
+                    </h2>
                     
-                    <div class="space-y-3 mb-6">
+                    <div class="space-y-2 mb-6">
                         {% for doc in mission.documents.all %}
-                        <div class="flex flex-col p-2 border-b border-base-200">
-                            <div class="flex justify-between items-start">
-                                <span class="text-sm font-semibold truncate">{{ doc.nom }}</span>
-                                <a href="{{ doc.fichier.url }}" class="btn btn-ghost btn-xs text-primary" download>
-                                    <i data-lucide="download" class="w-4 h-4"></i>
-                                </a>
+                        <div class="flex items-center justify-between p-3 rounded-xl hover:bg-base-200 transition-colors border border-transparent hover:border-base-300">
+                            <div class="flex items-center gap-3 overflow-hidden">
+                                <div class="p-2 bg-base-200 rounded-lg">
+                                    <i data-lucide="file" class="w-4 h-4 opacity-60"></i>
+                                </div>
+                                <div class="truncate">
+                                    <p class="text-sm font-bold truncate leading-tight">{{ doc.nom }}</p>
+                                    <span class="text-[10px] uppercase font-bold opacity-40">{{ doc.get_type_document_display }}</span>
+                                </div>
                             </div>
-                            <span class="text-[10px] opacity-50 uppercase">{{ doc.get_type_document_display }}</span>
+                            <a href="{{ doc.fichier.url }}" class="btn btn-ghost btn-sm btn-circle text-primary" download>
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                            </a>
                         </div>
                         {% empty %}
-                        <p class="text-xs opacity-50 text-center py-4 italic">Aucun document.</p>
+                        <div class="text-center py-6 border-2 border-dashed border-base-200 rounded-xl">
+                            <p class="text-xs opacity-40 italic">Aucun document joint.</p>
+                        </div>
                         {% endfor %}
                     </div>
 
-                    <div class="bg-base-200 p-4 rounded-xl">
-                        <h3 class="text-xs font-bold uppercase mb-3 opacity-70">Ajouter un fichier</h3>
-                        <form method="post" enctype="multipart/form-data" action="{% url 'mission_add_document' mission.id %}" class="space-y-2">
-                            {% csrf_token %}
-                            <input type="text" name="nom" placeholder="Ex: TDR Final" class="input input-sm input-bordered w-full">
-                            <select name="type_document" class="select select-sm select-bordered w-full">
-                                <option value="TOR">Termes de référence</option>
-                                <option value="CDC">Cahier des charges</option>
-                                <option value="ANNEXE">Annexe technique</option>
-                                <option value="AUTRE" selected>Autre</option>
-                            </select>
-                            <input type="file" name="fichier" required class="file-input file-input-xs file-input-bordered w-full">
-                            <button class="btn btn-primary btn-sm w-full mt-2">Uploader</button>
-                        </form>
+                    <div class="collapse collapse-plus bg-base-200 rounded-2xl">
+                        <input type="checkbox" /> 
+                        <div class="collapse-title text-sm font-bold flex items-center gap-2">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i> Ajouter un fichier
+                        </div>
+                        <div class="collapse-content px-4 pb-4">
+                            <form method="post" enctype="multipart/form-data" action="{% url 'mission_add_document' mission.id %}" class="space-y-3">
+                                {% csrf_token %}
+                                <input type="text" name="nom" placeholder="Nom du fichier..." class="input input-sm input-bordered w-full">
+                                <select name="type_document" class="select select-sm select-bordered w-full text-xs font-bold">
+                                    <option value="TOR">Termes de référence</option>
+                                    <option value="CDC">Cahier des charges</option>
+                                    <option value="ANNEXE">Annexe technique</option>
+                                    <option value="AUTRE" selected>Autre document</option>
+                                </select>
+                                <input type="file" name="fichier" required class="file-input file-input-xs file-input-bordered w-full">
+                                <button class="btn btn-primary btn-sm w-full font-bold">Uploader</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="p-2">
+                <h2 class="text-sm font-bold uppercase tracking-widest opacity-40 mb-6 flex items-center gap-2">
+                    <i data-lucide="history" class="w-4 h-4"></i> Historique
+                </h2>
+                <ul class="timeline timeline-vertical timeline-compact">
+                    {% for event in historique %}
+                    <li>
+                        {% if not forloop.first %}<hr class="bg-base-300"/>{% endif %}
+                        <div class="timeline-middle">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-primary"></i>
+                        </div>
+                        <div class="timeline-end p-2 pl-4">
+                            <time class="text-[10px] font-mono opacity-50">{{ event.date|date:"d M Y H:i" }}</time>
+                            <div class="text-sm font-bold leading-tight mt-1">{{ event.label }}</div>
+                        </div>
+                        {% if not forloop.last %}<hr class="bg-base-300"/>{% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    lucide.createIcons();
+</script>
 {% endblock %}

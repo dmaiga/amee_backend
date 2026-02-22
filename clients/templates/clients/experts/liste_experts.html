@@ -4,62 +4,138 @@
 
 {% block content %}
 
-<h1 class="text-2xl font-bold mb-6">Trouver un expert</h1>
+<div class="max-w-7xl mx-auto space-y-8 pb-10">
 
-<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-
-{% for expert in experts %}
-<div class="card bg-base-100 shadow-md border">
-
-    <div class="card-body">
-
-        <h2 class="card-title">
-            {{ expert.user.first_name }} {{ expert.user.last_name }}
-        </h2>
-
-        <p class="text-sm opacity-70">
-            {{ expert.domaine_expertise }}
-        </p>
-
-        <p class="mt-3 text-sm">
-            {{ expert.public_profile.resume_public|truncatewords:25 }}
-        </p>
-
-        <div class="mt-3 text-xs opacity-70">
-            <strong>Langues :</strong>
-            {{ expert.public_profile.langues|default:"—" }}
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-extrabold tracking-tight">Annuaire des experts</h1>
+            <p class="opacity-60">Accédez aux meilleurs consultants certifiés du réseau AMEE.</p>
         </div>
-
-        <div class="mt-2 badge badge-outline">
-            {{ expert.public_profile.get_statut_disponibilite_display }}
+        
+        {% if selected_mission %}
+        <div class="alert alert-info bg-primary/10 border-primary/20 text-primary-content shadow-sm flex gap-4 py-2 px-4">
+            <i data-lucide="info" class="w-5 h-5 text-primary"></i>
+            <span class="text-sm font-medium">Vous cherchez pour la mission : <strong>{{ selected_mission.titre }}</strong></span>
         </div>
-
-        {% if expert.user.est_recommande_amee %}
-            <div class="badge badge-success mt-2">
-                Recommandé AMEE
-            </div>
         {% endif %}
+    </div>
 
-        <div class="card-actions justify-end mt-4">
+    <div class="card bg-base-100 shadow-sm border border-base-200">
+        <div class="card-body p-4">
+            <form method="get" class="flex flex-col md:flex-row gap-4">
+                {% if request.GET.mission %}
+                    <input type="hidden" name="mission" value="{{ request.GET.mission }}">
+                {% endif %}
 
-            <!-- futur workflow mission -->
-<a href="{% url 'client_expert_detail' expert.id %}"
-   class="btn btn-primary btn-sm">
-    Voir le profil
-</a>
+                <div class="relative flex-1">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-40"></i>
+                    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Nom, compétence ou mot-clé..." class="input input-bordered w-full pl-10" />
+                </div>
 
+                <div class="relative flex-1 max-w-xs">
+                    <i data-lucide="map-pin" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-40"></i>
+                    <input type="text" name="localisation" value="{{ request.GET.localisation }}" placeholder="Localisation" class="input input-bordered w-full pl-10" />
+                </div>
+
+                <select name="filtre" class="select select-bordered font-medium">
+                    <option value="">Tous les experts</option>
+                    <option value="connus" {% if request.GET.filtre == "connus" %}selected{% endif %}>🤝 Déjà collaboré</option>
+                    <option value="nouveaux" {% if request.GET.filtre == "nouveaux" %}selected{% endif %}>✨ Nouveaux experts</option>
+                </select>
+
+                <button class="btn btn-primary px-8">
+                    Appliquer
+                </button>
+            </form>
         </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
+    {% for expert in experts %}
+    <div class="card bg-base-100 border border-base-200 hover:shadow-xl transition-all duration-300 group">
+        
+        <div class="card-body p-6">
+            <div class="flex gap-4 items-start mb-4">
+                <div class="avatar placeholder">
+                    <div class="bg-base-200 text-base-content rounded-xl w-16 h-16 border-2 border-base-300 group-hover:border-primary/50 transition-colors">
+                        <span class="text-xl font-bold">{{ expert.user.first_name|slice:":1" }}{{ expert.user.last_name|slice:":1" }}</span>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <h2 class="font-bold text-lg leading-tight group-hover:text-primary transition-colors">
+                        {{ expert.user.get_full_name }}
+                    </h2>
+                    <p class="text-sm font-semibold text-primary/80">{{ expert.domaine_expertise }}</p>
+                    <p class="text-[10px] uppercase tracking-wider font-bold opacity-40 mt-1">
+                        {{ expert.annees_experience }} ans d'expérience
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2 mb-4">
+                {% if expert.user.est_recommande_amee %}
+                    <div class="badge badge-success gap-1 text-[10px] font-bold py-3 text-white">
+                        <i data-lucide="award" class="w-3 h-3"></i> RECOMMANDÉ AMEE
+                    </div>
+                {% endif %}
+                
+                {% if expert.deja_collabore %}
+                    <div class="badge badge-info gap-1 text-[10px] font-bold py-3 text-white">
+                        <i data-lucide="handshake" class="w-3 h-3"></i> DÉJÀ COLLABORÉ
+                    </div>
+                {% endif %}
+                
+                <div class="badge badge-outline gap-1 text-[10px] font-bold py-3">
+                    <span class="w-2 h-2 rounded-full {% if expert.public_profile.statut_disponibilite == 'RECHERCHE' %}bg-success{% else %}bg-warning{% endif %}"></span>
+                    {{ expert.public_profile.get_statut_disponibilite_display|upper }}
+                </div>
+            </div>
+
+            <p class="text-sm opacity-70 line-clamp-3 min-h-[4.5rem]">
+                {{ expert.public_profile.resume_public|default:"Aucune description disponible." }}
+            </p>
+
+            <div class="grid grid-cols-2 gap-2 mt-6 py-3 border-t border-b border-base-100 bg-base-50/50 rounded-lg px-2 text-[11px]">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="globe" class="w-3 h-3 opacity-40"></i>
+                    <span class="font-medium truncate">{{ expert.public_profile.langues|default:"—" }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i data-lucide="map-pin" class="w-3 h-3 opacity-40"></i>
+                    <span class="font-medium truncate">{{ expert.public_profile.localisation|default:"Distance" }}</span>
+                </div>
+            </div>
+
+            <div class="card-actions justify-between items-center mt-6">
+                <a href="{% url 'client_expert_detail' expert.id %}{% if request.GET.mission %}?mission={{ request.GET.mission }}{% endif %}" 
+                   class="btn btn-ghost btn-sm text-primary font-bold">
+                    Profil détaillé
+                </a>
+                
+                <a href="{% url 'client_expert_detail' expert.id %}" class="btn btn-primary btn-sm px-6 shadow-md">
+                    Contacter
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full py-16 text-center bg-base-100 rounded-3xl border-2 border-dashed border-base-300">
+        <div class="flex flex-col items-center gap-4">
+            <i data-lucide="users-round" class="w-16 h-16 opacity-10"></i>
+            <h3 class="text-xl font-bold">Aucun expert ne correspond à votre recherche</h3>
+            <p class="opacity-50 max-w-sm mx-auto">Essayez de modifier vos filtres ou de rechercher par mots-clés plus larges.</p>
+            <a href="{% url 'client_experts' %}" class="btn btn-ghost">Réinitialiser les filtres</a>
+        </div>
+    </div>
+    {% endfor %}
 
     </div>
-</div>
-{% empty %}
-
-<div class="alert">
-    Aucun expert disponible actuellement.
-</div>
-
-{% endfor %}
 
 </div>
+
+<script>
+    lucide.createIcons();
+</script>
 
 {% endblock %}

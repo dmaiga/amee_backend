@@ -1,0 +1,160 @@
+{% extends "base_client.html" %}
+
+{% block title %}Collaborations & Contacts{% endblock %}
+
+{% block content %}
+
+<div class="max-w-6xl mx-auto space-y-8 pb-12">
+
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-extrabold tracking-tight">Suivi des collaborations</h1>
+            <p class="opacity-60">Gérez vos échanges et suivez l'état de vos demandes auprès des experts.</p>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-sm border border-base-200">
+        <div class="card-body p-4">
+            <form method="get" class="flex flex-col md:flex-row gap-3">
+                
+                <div class="flex-1">
+                    <label class="label pt-0"><span class="label-text font-bold text-xs uppercase opacity-50">Mission</span></label>
+                    <select name="mission" class="select select-bordered w-full font-medium">
+                        <option value="">Toutes les missions</option>
+                        {% for m in missions %}
+                            <option value="{{ m.id }}" {% if selected_mission == m.id|stringformat:"s" %}selected{% endif %}>
+                                {{ m.titre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="flex-1">
+                    <label class="label pt-0"><span class="label-text font-bold text-xs uppercase opacity-50">Statut</span></label>
+                    <select name="statut" class="select select-bordered w-full font-medium">
+                        <option value="">Tous les statuts</option>
+                        <option value="ENVOYE" {% if selected_statut == "ENVOYE" %}selected{% endif %}>⏱️ Demande envoyée</option>
+                        <option value="MISSION_CONFIRME" {% if selected_statut == "MISSION_CONFIRME" %}selected{% endif %}>✅ Collaboration active</option>
+                        <option value="REFUSE" {% if selected_statut == "REFUSE" %}selected{% endif %}>❌ Refusé</option>
+                        <option value="MISSION_TERMINEE" {% if selected_statut == "MISSION_TERMINEE" %}selected{% endif %}>🏁 Terminée</option>
+                    </select>
+                </div>
+
+                <div class="flex items-end">
+                    <button class="btn btn-primary px-8 w-full md:w-auto">
+                        <i data-lucide="filter" class="w-4 h-4"></i> Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-sm border border-base-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="table table-lg">
+                <thead class="bg-base-200/50">
+                    <tr class="text-xs uppercase opacity-60">
+                        <th>Expert</th>
+                        <th>Mission</th>
+                        <th class="text-center">Statut</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-base-100">
+
+                    {% for contact in contacts %}
+                    <tr class="hover:bg-base-200/20 transition-colors">
+                        
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <div class="avatar placeholder">
+                                    <div class="bg-primary/10 text-primary rounded-lg w-10 h-10 font-bold">
+                                        <span>{{ contact.consultant.first_name|slice:":1" }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="font-bold">{{ contact.consultant.get_full_name }}</div>
+                                    <div class="text-[10px] opacity-50 font-medium uppercase tracking-tighter">
+                                        {{ contact.consultant.profil_roster.domaine_expertise|default:"Expert" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="flex flex-col">
+                                <span class="badge badge-ghost font-medium text-xs">{{ contact.mission.titre }}</span>
+                                <span class="text-[10px] opacity-40 mt-1 italic">Contacté le {{ contact.cree_le|date:"d/m/Y" }}</span>
+                            </div>
+                        </td>
+
+                        <td class="text-center">
+                            {% if contact.statut == "ENVOYE" %}
+                                <div class="badge badge-warning badge-outline font-bold py-3 px-4">EN ATTENTE</div>
+                            {% elif contact.statut == "MISSION_CONFIRME" %}
+                                <div class="badge badge-success text-white font-bold py-3 px-4 shadow-sm">ACTIVE</div>
+                            {% elif contact.statut == "MISSION_TERMINEE" %}
+                                <div class="badge badge-neutral font-bold py-3 px-4">TERMINÉE</div>
+                            {% elif contact.statut == "REFUSE" %}
+                                <div class="badge badge-error badge-outline font-bold py-3 px-4">REFUSÉ</div>
+                            {% else %}
+                                <div class="badge badge-ghost font-bold py-3 px-4 italic">SANS SUITE</div>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-right">
+                            <div class="flex justify-end gap-2">
+                                
+                                {% if contact.statut == "ENVOYE" %}
+                                    <div class="tooltip" data-tip="{% if contact.date_derniere_relance %}Dernière relance : {{ contact.date_derniere_relance|timesince }}{% else %}Envoyer un rappel{% endif %}">
+                                        <a href="{% url 'relancer_consultant' contact.pk %}" 
+                                           class="btn btn-sm {% if contact.date_derniere_relance %}btn-ghost opacity-40 btn-disabled{% else %}btn-warning btn-outline{% endif %} gap-2">
+                                            <i data-lucide="bell-ring" class="w-4 h-4"></i>
+                                            Relancer
+                                        </a>
+                                    </div>
+                                {% endif %}
+
+                                {% if contact.statut == "MISSION_TERMINEE" %}
+                                    {% if contact.feedback %}
+                                        <a href="{% url 'client_feedback_detail' contact.feedback.id %}" class="btn btn-sm btn-success btn-ghost gap-2">
+                                            <i data-lucide="star" class="w-4 h-4 text-orange-400"></i>
+                                            Feedback
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'client_feedback' contact.pk %}" class="btn btn-sm btn-primary gap-2 animate-pulse">
+                                            <i data-lucide="message-square-plus" class="w-4 h-4"></i>
+                                            Noter l'expert
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+
+                                <a href="{% url 'client_mission_detail' contact.mission.id %}" class="btn btn-sm btn-ghost btn-circle" title="Voir mission">
+                                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                                </a>
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-20 opacity-40 italic">
+                            <div class="flex flex-col items-center gap-2">
+                                <i data-lucide="inbox" class="w-12 h-12 opacity-10"></i>
+                                <p>Aucune collaboration trouvée pour ces critères.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+</script>
+
+{% endblock %}

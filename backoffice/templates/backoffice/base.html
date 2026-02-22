@@ -124,12 +124,21 @@
                 <li class="menu-title text-xs mt-4">
                     <span>RÉSEAU</span>
                 </li>
-                <li><a href="{% url 'bo_membres' %}" class="{% if request.resolver_match.url_name == 'bo_membres' %}active{% endif %}">
-                    <i data-lucide="users" class="w-4 h-4"></i> Annuaire Membres
-                </a></li>
                 <li><a href="{% url 'bo_organisations_list' %}" class="{% if request.resolver_match.url_name == 'bo_organisations_list' %}active{% endif %}">
                     <i data-lucide="building" class="w-4 h-4"></i> Bureaux Membres
                 </a></li>
+
+                <li>
+    <a href="{% url 'clients_list' %}"
+       class="{% if 'clients' in request.path %}active{% endif %}">
+        <i data-lucide="briefcase" class="w-4 h-4"></i>
+        Clients Entreprises
+    </a>
+</li>
+                <li><a href="{% url 'bo_membres' %}" class="{% if request.resolver_match.url_name == 'bo_membres' %}active{% endif %}">
+                    <i data-lucide="users" class="w-4 h-4"></i>  Membres
+                </a></li>
+
                 <li><a href="{% url 'bo_roster' %}" class="{% if 'roster' in request.path %}active{% endif %}">
                     <i data-lucide="clipboard-check" class="w-4 h-4"></i> Validation Roster
                     {% if roster_pending_count %}<span class="badge badge-warning badge-sm ml-auto">{{ roster_pending_count }}</span>{% endif %}

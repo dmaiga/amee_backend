@@ -1,0 +1,97 @@
+{% extends "base_client.html" %}
+{% block title %}Mes feedbacks{% endblock %}
+
+{% block content %}
+
+<div class="max-w-6xl mx-auto space-y-8 pb-12">
+
+    <div class="flex flex-col md:flex-row justify-between items-end gap-6">
+        <div>
+            <h1 class="text-3xl font-extrabold tracking-tight">Mes évaluations</h1>
+            <p class="opacity-60 mt-1">Retrouvez l'historique des missions évaluées et la qualité des experts.</p>
+        </div>
+        
+        <div class="stats shadow bg-base-100 border border-base-200">
+            <div class="stat py-2 px-6">
+                <div class="stat-title text-xs font-bold uppercase">Missions évaluées</div>
+                <div class="stat-value text-primary text-2xl">{{ feedbacks|length }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        {% for fb in feedbacks %}
+        <div class="card bg-base-100 border border-base-200 hover:shadow-lg transition-all group">
+            <div class="card-body p-6">
+                
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="avatar placeholder">
+                            <div class="bg-primary/10 text-primary rounded-full w-12 h-12 font-bold border border-primary/20">
+                                <span>{{ fb.contact_request.consultant.first_name|slice:":1" }}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-lg leading-tight group-hover:text-primary transition-colors">
+                                {{ fb.contact_request.consultant.get_full_name }}
+                            </h2>
+                            <p class="text-xs opacity-50">{{ fb.contact_request.mission.titre|truncatechars:40 }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col items-end">
+                        <div class="rating rating-sm rating-half pointer-events-none">
+                            {% for i in "12345" %}
+                                <input type="radio" class="mask mask-star-2 {% if fb.note >= forloop.counter|add:0 %}bg-orange-400{% else %}bg-base-300{% endif %}" />
+                            {% endfor %}
+                        </div>
+                        <span class="text-[10px] font-bold opacity-40 mt-1 uppercase">{{ fb.cree_le|date:"d M Y" }}</span>
+                    </div>
+                </div>
+
+                <div class="bg-base-200/50 p-4 rounded-2xl relative">
+                    <i data-lucide="quote" class="absolute -top-2 -left-1 w-6 h-6 opacity-5 text-primary"></i>
+                    <p class="text-sm italic opacity-70 line-clamp-3">
+                        {% if fb.commentaire %}
+                            "{{ fb.commentaire }}"
+                        {% else %}
+                            <span class="opacity-30">Aucun commentaire écrit pour cette évaluation.</span>
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div class="card-actions justify-end mt-4">
+                    <a href="{% url 'client_feedback_detail' fb.id %}" class="btn btn-ghost btn-sm gap-2 font-bold hover:bg-primary/10 hover:text-primary">
+                        Détails de l'évaluation
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-20 text-center bg-base-100 rounded-3xl border-2 border-dashed border-base-300">
+            <div class="flex flex-col items-center gap-4">
+                <div class="bg-base-200 p-6 rounded-full">
+                    <i data-lucide="star-off" class="w-12 h-12 opacity-20"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold">Aucune évaluation publiée</h3>
+                    <p class="opacity-60 max-w-sm mx-auto">
+                        Les feedbacks apparaissent ici une fois que vos missions sont terminées et notées.
+                    </p>
+                </div>
+                <a href="{% url 'client_collaborations' %}" class="btn btn-outline btn-sm">Voir mes collaborations</a>
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+<script>
+    lucide.createIcons();
+</script>
+
+{% endblock %}

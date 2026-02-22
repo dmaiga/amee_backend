@@ -1,124 +1,167 @@
 {% extends "base_client.html" %}
 
-{% block title %}Expert{% endblock %}
+{% block title %}Expert - {{ expert.user.get_full_name }}{% endblock %}
 
 {% block content %}
 
-<div class="max-w-4xl mx-auto">
-
-    <!-- HEADER -->
-    <div class="card bg-base-100 shadow mb-6">
-        <div class="card-body">
-
-            <h1 class="text-2xl font-bold">
-                {{ expert.user.first_name }}
-                {{ expert.user.last_name }}
-            </h1>
-
-            <p class="opacity-70">
-                {{ expert.domaine_expertise }}
-            </p>
-
-            {% if expert.user.est_recommande_amee %}
-                <div class="badge badge-success mt-2">
-                    Recommandé AMEE
-                </div>
-            {% endif %}
-
-        </div>
+<div class="max-w-5xl mx-auto pb-12">
+    
+    <div class="mb-6">
+        <a href="{% url 'client_experts' %}" class="btn btn-ghost btn-sm gap-2 opacity-60 hover:opacity-100">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Retour à l'annuaire
+        </a>
     </div>
 
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="space-y-6">
+            
+            <div class="card bg-base-100 shadow-sm border border-base-200">
+                <div class="card-body items-center text-center p-6">
+                    <div class="avatar placeholder mb-4">
+                        <div class="bg-primary text-primary-content rounded-2xl w-24 h-24 text-3xl font-bold shadow-lg">
+                            <span>{{ expert.user.first_name|slice:":1" }}{{ expert.user.last_name|slice:":1" }}</span>
+                        </div>
+                    </div>
+                    
+                    <h1 class="text-xl font-extrabold">{{ expert.user.get_full_name }}</h1>
+                    <p class="text-primary font-bold text-sm">{{ expert.domaine_expertise }}</p>
+                    <p class="text-[10px] uppercase tracking-widest opacity-50 font-bold">{{ expert.annees_experience }} ans d'expérience</p>
 
-    <!-- PROFIL PUBLIC -->
-    <div class="card bg-base-100 shadow mb-6">
-        <div class="card-body">
-
-            <h2 class="font-semibold mb-3">Présentation</h2>
-
-            <p>
-                {{ expert.public_profile.resume_public }}
-            </p>
-
-            <div class="grid md:grid-cols-2 gap-4 mt-6 text-sm">
-
-                <div>
-                    <strong>Langues :</strong><br>
-                    {{ expert.public_profile.langues|default:"—" }}
+                    {% if expert.user.est_recommande_amee %}
+                    <div class="mt-4 flex items-center gap-2 px-4 py-2 bg-success/10 text-success rounded-full text-xs font-bold border border-success/20">
+                        <i data-lucide="award" class="w-4 h-4"></i> Recommandé AMEE
+                    </div>
+                    {% endif %}
                 </div>
+            </div>
 
-                <div>
-                    <strong>Zones d'expérience :</strong><br>
-                    {{ expert.public_profile.experience_geographique|default:"—" }}
+            <div class="card bg-base-100 shadow-xl border-2 {% if expert.deja_collabore %}border-success/30{% else %}border-primary/20{% endif %}">
+                <div class="card-body p-6">
+                    <h2 class="card-title text-sm uppercase tracking-wider opacity-60 mb-4">Solliciter l'expert</h2>
+                    
+                    {% if missions_client %}
+                        <form method="post" action="{% url 'request_contact_client' %}" class="space-y-4">
+                            {% csrf_token %}
+                            <input type="hidden" name="consultant_id" value="{{ expert.id }}">
+                            
+                            <div class="form-control">
+                                <label class="label pt-0"><span class="label-text font-bold text-xs">Sélectionner une mission</span></label>
+                                <select name="mission_id" class="select select-bordered select-sm w-full focus:ring-2 focus:ring-primary/20">
+                                    {% for mission in missions_client %}
+                                        <option value="{{ mission.id }}" {% if request.GET.mission|add:"0" == mission.id %}selected{% endif %}>
+                                            {{ mission.titre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <button class="btn {% if expert.deja_collabore %}btn-success{% else %}btn-primary{% endif %} w-full shadow-md">
+                                <i data-lucide="send" class="w-4 h-4 mr-2"></i>
+                                {% if expert.deja_collabore %}Proposer la mission{% else %}Demander le contact{% endif %}
+                            </button>
+                            
+                            {% if expert.deja_collabore %}
+                            <div class="flex items-center gap-2 p-3 bg-success/5 rounded-lg border border-success/10">
+                                <i data-lucide="check-circle" class="w-4 h-4 text-success"></i>
+                                <p class="text-[11px] text-success-content font-medium">Vous avez déjà collaboré avec cet expert.</p>
+                            </div>
+                            {% endif %}
+                        </form>
+                    {% else %}
+                        <div class="text-center py-4 space-y-3">
+                            <p class="text-xs opacity-60">Vous n'avez aucune mission ouverte pour solliciter cet expert.</p>
+                            <a href="{% url 'client_mission_create' %}" class="btn btn-outline btn-sm btn-block">Créer une mission</a>
+                        </div>
+                    {% endif %}
                 </div>
+            </div>
 
-                <div>
-                    <strong>Secteurs :</strong><br>
-                    {{ expert.public_profile.secteurs_experience|default:"—" }}
+            <div class="card bg-base-100 shadow-sm border border-base-200">
+                <div class="card-body p-5 space-y-4">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase opacity-40 block mb-1">Disponibilité</span>
+                        <div class="badge badge-outline gap-2 font-bold py-3 text-xs">
+                            <span class="w-2 h-2 rounded-full {% if expert.public_profile.statut_disponibilite == 'RECHERCHE' %}bg-success{% else %}bg-warning{% endif %}"></span>
+                            {{ expert.public_profile.get_statut_disponibilite_display }}
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold uppercase opacity-40 block mb-1">Langues</span>
+                        <p class="text-sm font-semibold">{{ expert.public_profile.langues|default:"—" }}</p>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold uppercase opacity-40 block mb-1">Localisation</span>
+                        <p class="text-sm font-semibold flex items-center gap-1">
+                            <i data-lucide="map-pin" class="w-3 h-3 opacity-40"></i>
+                            {{ expert.public_profile.localisation|default:"Distance / Mobile" }}
+                        </p>
+                    </div>
                 </div>
+            </div>
+        </div>
 
-                <div>
-                    <strong>Disponibilité :</strong><br>
-                    {{ expert.public_profile.get_statut_disponibilite_display }}
+        <div class="lg:col-span-2 space-y-6">
+            
+            <div class="card bg-base-100 shadow-sm border border-base-200">
+                <div class="card-body p-8">
+                    <h2 class="card-title text-2xl font-bold mb-6 flex items-center gap-3">
+                        <i data-lucide="user" class="text-primary w-6 h-6"></i>
+                        Profil Professionnel
+                    </h2>
+                    
+                    <div class="prose prose-base max-w-none text-base-content/80 leading-relaxed">
+                        {{ expert.public_profile.resume_public|linebreaks }}
+                    </div>
+
+                    <div class="divider my-8"></div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                                <i data-lucide="layers" class="w-4 h-4"></i> Secteurs d'expérience
+                            </h3>
+                            <div class="flex flex-wrap gap-2">
+                                {% for secteur in expert.public_profile.secteurs_experience.split %}
+                                    <span class="badge badge-ghost font-medium py-3 px-3">{{ secteur }}</span>
+                                {% empty %}
+                                    <span class="text-xs opacity-40 italic">Non renseigné</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                                <i data-lucide="globe" class="w-4 h-4"></i> Zones géographiques
+                            </h3>
+                            <div class="flex flex-wrap gap-2">
+                                {{ expert.public_profile.experience_geographique|default:"—" }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
 
+            <div class="flex gap-4">
+                {% if expert.public_profile.lien_linkedin %}
+                <a href="{{ expert.public_profile.lien_linkedin }}" target="_blank" class="btn btn-outline gap-2">
+                    <i data-lucide="linkedin" class="w-4 h-4"></i> LinkedIn
+                </a>
+                {% endif %}
+                
+                {% if expert.public_profile.lien_cv %}
+                <a href="{{ expert.public_profile.lien_cv }}" target="_blank" class="btn btn-ghost gap-2 text-primary">
+                    <i data-lucide="external-link" class="w-4 h-4"></i> Voir le CV complet
+                </a>
+                {% endif %}
             </div>
 
         </div>
     </div>
-
-
-    <!-- CONTACT VIA MISSION -->
-    <div class="card bg-base-100 shadow">
-        <div class="card-body">
-
-            <h2 class="font-semibold mb-4">
-                Contacter cet expert
-            </h2>
-
-            {% if missions_client %}
-
-            <form method="post"
-                  action="/api/interactions/request-contact/">
-                {% csrf_token %}
-
-                <input type="hidden"
-                       name="consultant_id"
-                       value="{{ expert.user.id }}">
-
-                <label class="label">
-                    <span class="label-text">
-                        Sélectionner une mission
-                    </span>
-                </label>
-
-                <select name="mission_id"
-                        class="select select-bordered w-full mb-4">
-
-                    {% for mission in missions_client %}
-                        <option value="{{ mission.id }}">
-                            {{ mission.titre }}
-                        </option>
-                    {% endfor %}
-
-                </select>
-
-                <button class="btn btn-primary">
-                    Envoyer une demande de contact
-                </button>
-
-            </form>
-
-            {% else %}
-
-            <div class="alert">
-                Vous devez créer une mission avant de contacter un expert.
-            </div>
-
-            {% endif %}
-
-        </div>
-    </div>
-
 </div>
+
+<script>
+    lucide.createIcons();
+</script>
 
 {% endblock %}

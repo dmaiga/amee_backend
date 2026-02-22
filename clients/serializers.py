@@ -9,6 +9,13 @@ User = get_user_model()
 
 class ClientRegistrationSerializer(serializers.ModelSerializer):
 
+    PROVIDERS_PUBLICS = [
+        "gmail.com",
+        "yahoo.com",
+        "hotmail.com",
+        "outlook.com",
+    ]
+
     class Meta:
         model = ClientProfile
         fields = [
@@ -23,35 +30,67 @@ class ClientRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
 
         email = validated_data["email_pro"].lower().strip()
+        domain = email.split("@")[1]
 
-        # 🔐 génération password
-        password = secrets.token_urlsafe(8)
+        auto_valide = domain not in self.PROVIDERS_PUBLICS
 
-        # création user
+        password = secrets.token_urlsafe(10)
+
+        # -----------------------------
+        # Création USER
+        # -----------------------------
         user = User.objects.create_user(
             email=email,
             password=password,
             role="CLIENT",
+            is_active=auto_valide,
         )
 
+        # -----------------------------
+        # Création PROFILE
+        # -----------------------------
         client = ClientProfile.objects.create(
             user=user,
+            est_verifie=auto_valide,
             **validated_data
         )
 
-        # 📧 envoi accès
-        send_mail(
-            subject="Accès plateforme AMEE",
-            message=(
-                f"Bonjour,\n\n"
-                f"Votre accès a été créé.\n\n"
-                f"Login : {email}\n"
-                f"Mot de passe : {password}\n\n"
-                f"Connectez-vous ici : https://amee.org/login/"
-            ),
-            from_email=None,
-            recipient_list=[email],
-            fail_silently=True,
-        )
+        # -----------------------------
+        # EMAIL SELON CAS
+        # -----------------------------
+        if auto_valide:
+
+            send_mail(
+                subject="Activation de votre espace client AMEE",
+                message=(
+                    f"Bonjour {client.nom_contact},\n\n"
+                    f"Votre espace client AMEE est maintenant actif.\n\n"
+                    f"Identifiant : {email}\n"
+                    f"Mot de passe temporaire : {password}\n\n"
+                    f"Nous vous recommandons de modifier votre mot de passe après connexion.\n\n"
+                    f"Connexion : https://amee.org/login/\n\n"
+                    f"L’équipe AMEE"
+                ),
+                from_email=None,
+                recipient_list=[email],
+                fail_silently=True,
+            )
+
+        else:
+
+            send_mail(
+                subject="Demande d'accès AMEE en cours de vérification",
+                message=(
+                    f"Bonjour {client.nom_contact},\n\n"
+                    f"Votre demande d'accès à la plateforme AMEE a bien été reçue.\n\n"
+                    f"Notre équipe va vérifier vos informations "
+                    f"avant activation de votre espace client.\n\n"
+                    f"Vous recevrez un email dès validation.\n\n"
+                    f"L’équipe AMEE"
+                ),
+                from_email=None,
+                recipient_list=[email],
+                fail_silently=True,
+            )
 
         return client

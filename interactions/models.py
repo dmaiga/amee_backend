@@ -7,7 +7,7 @@ from django.utils import timezone
 class ContactRequest(models.Model):
 
     STATUT_CHOICES = (
-        ('ENVOYE', 'Contact partagé'),
+        ('ENVOYE', 'Demande envoyée'),
         ('MISSION_CONFIRME', 'Mission confirmée'),
         ('MISSION_TERMINEE', 'Mission terminée'),
         ('SANS_SUITE', 'Sans suite'),
@@ -50,6 +50,11 @@ class ContactRequest(models.Model):
         default='ENVOYE'
     )
 
+    date_derniere_relance = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+    nb_relances = models.PositiveIntegerField(default=0)
     cree_le = models.DateTimeField(auto_now_add=True)
 
     date_suivi_prevu = models.DateTimeField(null=True, blank=True)

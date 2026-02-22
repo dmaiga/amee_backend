@@ -1,0 +1,59 @@
+{% extends "base_client.html" %}
+{% block title %}Paramètres Profil{% endblock %}
+
+{% block content %}
+
+<div class="max-w-3xl mx-auto">
+
+<h1 class="text-2xl font-bold mb-6">
+Paramètres du profil
+</h1>
+
+<form method="post"
+      class="card bg-base-100 shadow p-6 space-y-4">
+
+{% csrf_token %}
+
+<div>
+<label class="label">Entreprise</label>
+{{ form.nom_entreprise }}
+</div>
+
+<div>
+<label class="label">Secteur d'activité</label>
+{{ form.secteur_activite }}
+</div>
+
+<div class="grid md:grid-cols-2 gap-4">
+<div>
+<label class="label">Email professionnel</label>
+{{ form.email_pro }}
+</div>
+
+<div>
+<label class="label">Téléphone</label>
+{{ form.telephone_pro }}
+</div>
+</div>
+
+<div>
+<label class="label">Nom du contact</label>
+{{ form.nom_contact }}
+</div>
+
+<div>
+<label class="label">Fonction</label>
+{{ form.fonction_contact }}
+</div>
+
+<div class="text-right pt-4">
+<button class="btn btn-primary">
+Enregistrer
+</button>
+</div>
+
+</form>
+
+</div>
+
+{% endblock %}

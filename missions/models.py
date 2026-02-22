@@ -57,7 +57,6 @@ class Mission(models.Model):
     def __str__(self):
         return self.titre
 
-
 class MissionDocument(models.Model):
 
     TYPE_DOC = (

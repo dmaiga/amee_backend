@@ -1,52 +1,176 @@
 {% extends "base_client.html" %}
-
 {% block content %}
 
-<div class="max-w-5xl mx-auto">
+<div class="max-w-6xl mx-auto space-y-6 pb-10">
 
-<h1 class="text-2xl font-bold mb-6">
-Bienvenue {{ request.user.client_profile.nom_entreprise }}
-</h1>
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-base-content">
+                Bonjour, {{ request.user.client_profile.nom_entreprise }}
+            </h1>
+            <p class="text-sm opacity-60">Voici le résumé de votre activité AMEE.</p>
+        </div>
+        <a href="{% url 'client_mission_create' %}" class="btn btn-primary w-full md:w-auto">
+            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+            Nouvelle mission
+        </a>
+    </div>
 
-<a href="{% url 'client_mission_create' %}" class="btn btn-primary mb-6">
-+ Nouvelle mission
-</a>
+    <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
+        <div class="stat bg-base-100 shadow rounded-2xl border border-base-200 p-4">
+            <div class="stat-title text-xs md:text-sm uppercase font-semibold">Missions</div>
+            <div class="stat-value text-primary text-2xl">{{ missions_actives }}</div>
+        </div>
 
-<div class="card bg-base-100 shadow">
-<div class="card-body">
+        <div class="stat bg-base-100 shadow rounded-2xl border border-base-200 p-4">
+            <div class="stat-title text-xs md:text-sm uppercase font-semibold">En attente</div>
+            <div class="stat-value text-warning text-2xl">{{ demandes_en_attente }}</div>
+        </div>
 
-<h2 class="card-title">Mes missions</h2>
+        <div class="stat bg-base-100 shadow rounded-2xl border border-base-200 p-4">
+            <div class="stat-title text-xs md:text-sm uppercase font-semibold">Collaborations</div>
+            <div class="stat-value text-success text-2xl">{{ collaborations_actives }}</div>
+        </div>
 
-<table class="table">
-<thead>
-<tr>
-<th>ID</th>
-<th>Statut</th>
-<th>Date</th>
-</tr>
-</thead>
+        <div class="stat bg-base-100 shadow rounded-2xl border border-base-200 p-4">
+            <div class="stat-title text-xs md:text-sm uppercase font-semibold">Feedbacks</div>
+            <div class="stat-value text-error text-2xl">{{ feedbacks_en_attente }}</div>
+        </div>
+    </div>
 
-<tbody>
-{% for mission in missions %}
-<tr>
-<td>#{{ mission.id }}</td>
-<td>{{ mission.statut }}</td>
-<td>{{ mission.cree_le }}</td>
-</tr>
-{% empty %}
-<tr>
-<td colspan="3" class="text-center opacity-60">
-Aucune mission pour le moment
-</td>
-</tr>
-{% endfor %}
-</tbody>
+    <div class="card bg-base-100 shadow-sm border border-base-200">
+        <div class="card-body p-4 md:p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="card-title text-lg flex items-center gap-2">
+                    <i data-lucide="activity" class="text-primary"></i> Activité récente
+                </h2>
+            </div>
 
-</table>
+            <div class="hidden md:block overflow-x-auto">
+                <table class="table table-zebra w-full text-sm">
+                    <thead>
+                        <tr class="bg-base-200">
+                            <th>Consultant</th>
+                            <th>Mission</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for contact in derniers_contacts %}
+                        <tr>
+                            <td class="font-medium">{{ contact.consultant.get_full_name }}</td>
+                            <td>{{ contact.mission.titre }}</td>
+                            <td>
+                                <span class="badge badge-outline {% if contact.statut == 'ACCEPTE' %}badge-success{% elif contact.statut == 'ENVOYE' %}badge-warning{% endif %}">
+                                    {{ contact.get_statut_display }}
+                                </span>
+                            </td>
+                            <td class="opacity-70">{{ contact.cree_le|date:"d M Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center py-8">Aucune activité</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="md:hidden space-y-3">
+                {% for contact in derniers_contacts %}
+                <div class="p-3 border border-base-200 rounded-xl bg-base-50">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-bold text-sm">{{ contact.consultant.get_full_name }}</span>
+                        <span class="text-[10px] opacity-50">{{ contact.cree_le|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="text-xs mb-2">{{ contact.mission.titre }}</div>
+                    <div class="badge badge-sm badge-outline">{{ contact.get_statut_display }}</div>
+                </div>
+                {% empty %}
+                <p class="text-center py-4 text-sm opacity-50">Aucune activité récente.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+<div class="card bg-base-100 shadow-sm border border-base-200">
+    <div class="card-body p-4 md:p-8"> <div class="flex items-center justify-between mb-6">
+            <h2 class="card-title text-xl flex items-center gap-3">
+                <i data-lucide="briefcase" class="text-primary w-6 h-6"></i> 
+                Mes missions
+            </h2>
+            <span class="text-sm opacity-50 hidden md:block">{{ missions|length }} mission(s) au total</span>
+        </div>
+        
+        <div class="grid gap-4"> {% for mission in missions %}
+        <div class="p-5 rounded-2xl border border-base-200 hover:border-primary/30 hover:bg-base-200/50 transition-all group">
+
+            <div class="flex justify-between items-center gap-4">
+
+                <div class="flex-1">
+                    <p class="font-bold text-lg text-base-content group-hover:text-primary transition-colors">
+                        {{ mission.titre }}
+                    </p>
+
+                    <p class="text-sm opacity-60 mt-1">
+                        Publiée il y a {{ mission.cree_le|timesince }}
+                    </p>
+
+                    <div class="flex flex-wrap gap-3 mt-4">
+
+                        <div class="badge badge-md py-3 badge-ghost gap-2 font-medium">
+                            <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                            {{ mission.nb_contacts }} expert{{ mission.nb_contacts|pluralize }}
+                        </div>
+
+                        {% if mission.nb_acceptes %}
+                        <div class="badge badge-md py-3 badge-success gap-2 font-medium text-white">
+                            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                            {{ mission.nb_acceptes }} accepté{{ mission.nb_acceptes|pluralize }}
+                        </div>
+                        {% endif %}
+
+                        {% if mission.nb_documents %}
+                        <div class="badge badge-md py-3 badge-info badge-outline gap-2 font-medium">
+                            <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                            {{ mission.nb_documents }} doc{{ mission.nb_documents|pluralize }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+                <div class="flex-none">
+                    <a href="{% url 'client_mission_detail' mission.id %}"
+                       class="btn btn-circle btn-primary btn-outline group-hover:btn-primary group-hover:text-white transition-all">
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+        {% empty %}
+        <div class="text-center py-12 bg-base-200/50 rounded-2xl border-2 border-dashed border-base-300">
+            <i data-lucide="folder-open" class="mx-auto w-12 h-12 opacity-20 mb-3"></i>
+            <p class="text-lg opacity-50">Aucune mission publiée pour le moment.</p>
+        </div>
+        {% endfor %}
+
+        </div>
+
+        <div class="card-actions justify-center mt-6">
+            <a href="{% url 'client_missions' %}" class="btn btn-ghost gap-2">
+                Voir toutes les missions
+                <i data-lucide="external-link" class="w-4 h-4"></i>
+            </a>
+        </div>
+    </div>
+</div>
 
 </div>
-</div>
 
-</div>
+<script>
+  lucide.createIcons();
+</script>
 
 {% endblock %}

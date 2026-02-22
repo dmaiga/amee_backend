@@ -122,7 +122,7 @@ def dashboard(request):
     total_contacts = ContactRequest.objects.count()
     
     # Nouveau : Alertes Incidents non résolus
-    incidents_critiques = IncidentReview.objects.filter(statut="A_TRAITER").count()
+    incidents_critiques = IncidentReview.objects.filter(statut="OUVERT").count()
 
     context = {
         "membres_actifs": membres_actifs,
@@ -560,6 +560,114 @@ def membre_detail(request, user_id):
         context
     )
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from clients.models import ClientProfile
+
+
+@login_required
+def clients_list(request):
+
+    statut = request.GET.get("statut")
+
+    clients = ClientProfile.objects.select_related("user")
+
+    if statut == "en_attente":
+        clients = clients.filter(est_verifie=False)
+
+    elif statut == "verifies":
+        clients = clients.filter(est_verifie=True)
+
+    clients = clients.order_by("-cree_le")
+
+    return render(
+        request,
+        "backoffice/clients/clients_list.html",
+        {
+            "clients": clients,
+            "selected_statut": statut,
+        }
+    )
+
+@login_required
+def client_detail(request, pk):
+
+    client = get_object_or_404(
+        ClientProfile.objects.select_related("user"),
+        pk=pk
+    )
+
+    return render(
+        request,
+        "backoffice/clients/client_detail.html",
+        {
+            "client": client
+        }
+    )
+
+@login_required
+def valider_client(request, pk):
+
+    client = get_object_or_404(ClientProfile, pk=pk)
+
+    if client.est_verifie:
+        messages.info(request, "Client déjà validé.")
+        return redirect("client_detail", pk=pk)
+
+    # -----------------------------
+    # Génération nouveau password
+    # -----------------------------
+    password = secrets.token_urlsafe(10)
+
+    user = client.user
+    user.set_password(password)
+    user.is_active = True
+    user.save()
+
+    # -----------------------------
+    # Validation profil
+    # -----------------------------
+    client.est_verifie = True
+    client.statut_onboarding = "VALIDE"
+    client.valide_par = request.user
+    client.save()
+
+    # -----------------------------
+    # EMAIL ACCÈS
+    # -----------------------------
+    send_mail(
+        subject="Activation de votre espace client AMEE",
+        message=(
+            f"Bonjour {client.nom_contact},\n\n"
+            f"Votre entreprise a été validée par notre équipe.\n\n"
+            f"Vos accès :\n"
+            f"Identifiant : {client.email_pro}\n"
+            f"Mot de passe : {password}\n\n"
+            f"Connexion : https://amee.org/login/\n\n"
+            f"Nous vous conseillons de modifier votre mot de passe après connexion.\n\n"
+            f"L’équipe AMEE"
+        ),
+        from_email=None,
+        recipient_list=[client.email_pro],
+        fail_silently=True,
+    )
+
+    messages.success(request, "Client validé et accès envoyés.")
+
+    return redirect("client_detail", pk=pk)
+
+@login_required
+def refuser_client(request, pk):
+
+    client = get_object_or_404(ClientProfile, pk=pk)
+
+    client.user.is_active = False
+    client.user.save()
+
+    messages.warning(request, "Client refusé.")
+
+    return redirect("clients_list")
 #-----------------------------
 #
 #-----------------------------

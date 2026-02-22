@@ -1,0 +1,110 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Clients{% endblock %}
+{% block page_context %}Gouvernance Clients{% endblock %}
+
+{% block content %}
+
+<div class="space-y-6">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold">Clients Entreprises</h1>
+            <p class="text-sm opacity-70">
+                Gestion et validation des organisations clientes
+            </p>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="tabs tabs-boxed bg-base-100 w-fit">
+        <a href="{% url 'clients_list' %}"
+           class="tab {% if not selected_statut %}tab-active{% endif %}">
+            Tous
+        </a>
+
+        <a href="?statut=en_attente"
+           class="tab {% if selected_statut == 'en_attente' %}tab-active{% endif %}">
+            ⏳ En attente
+        </a>
+
+        <a href="?statut=verifies"
+           class="tab {% if selected_statut == 'verifies' %}tab-active{% endif %}">
+            ✅ Vérifiés
+        </a>
+    </div>
+
+    <!-- Table -->
+    <div class="card bg-base-100 border border-base-300">
+        <div class="overflow-x-auto">
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Entreprise</th>
+                        <th>Contact</th>
+                        <th>Email</th>
+                        <th>Statut</th>
+                        <th>Créé le</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for client in clients %}
+                    <tr class="hover">
+
+                        <td class="font-semibold">
+                            {{ client.nom_entreprise }}
+                        </td>
+
+                        <td>
+                            {{ client.nom_contact }}<br>
+                            <span class="text-xs opacity-60">
+                                {{ client.fonction_contact }}
+                            </span>
+                        </td>
+
+                        <td class="text-sm">
+                            {{ client.email_pro }}
+                        </td>
+
+                        <td>
+                            {% if client.est_verifie %}
+                                <span class="badge badge-success">Validé</span>
+                            {% else %}
+                                <span class="badge badge-warning">En attente</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-sm opacity-70">
+                            {{ client.cree_le|date:"d M Y" }}
+                        </td>
+
+                        <td class="text-right">
+                            <a href="{% url 'client_detail' client.id %}"
+                               class="btn btn-sm btn-outline">
+                                Voir
+                            </a>
+                        </td>
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-10 opacity-60">
+                            Aucun client enregistré
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

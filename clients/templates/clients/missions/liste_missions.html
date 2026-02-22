@@ -4,91 +4,96 @@
 
 {% block content %}
 
-<div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold">Mes missions</h1>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div>
+        <h1 class="text-3xl font-extrabold text-base-content tracking-tight">Mes missions</h1>
+        <p class="text-base opacity-60 mt-1">Gérez vos besoins et suivez vos mises en relation.</p>
+    </div>
 
-    <a href="{% url 'client_mission_create' %}"
-       class="btn btn-primary">
-        + Nouvelle mission
+    <a href="{% url 'client_mission_create' %}" class="btn btn-primary shadow-lg gap-2">
+        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+        Nouvelle mission
     </a>
 </div>
 
-
-<div class="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
 {% for mission in missions %}
 
-<div class="card bg-base-100 shadow border hover:shadow-lg transition">
+<div class="card bg-base-100 border border-base-200 hover:border-primary/40 hover:shadow-xl transition-all duration-300 group">
 
-    <div class="card-body">
+    <div class="card-body p-6">
 
-        <!-- TITRE -->
-        <h2 class="card-title">
+        <div class="flex justify-between items-start mb-2">
+            <span class="text-xs font-bold uppercase tracking-widest text-primary opacity-80">
+                {{ mission.domaine }}
+            </span>
+            <span class="text-xs opacity-50 font-medium">
+                {{ mission.cree_le|date:"d M Y" }}
+            </span>
+        </div>
+
+        <h2 class="card-title text-xl font-bold leading-tight group-hover:text-primary transition-colors">
             {{ mission.titre }}
         </h2>
 
-        <!-- DOMAINE -->
-        <p class="text-sm opacity-70">
-            {{ mission.domaine }}
-        </p>
-
-        <!-- DESCRIPTION -->
-        <p class="text-sm mt-2">
+        <p class="text-base opacity-70 mt-3 line-clamp-2 min-h-[3rem]">
             {{ mission.description|truncatewords:20 }}
         </p>
 
-
-        <!-- META -->
-        <div class="mt-4 flex justify-between items-center">
-
-            <span class="badge badge-outline">
+        <div class="flex flex-wrap gap-2 mt-6">
+            <div class="badge badge-lg badge-outline gap-2 font-semibold">
+                <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
                 {{ mission.get_statut_display }}
-            </span>
-
-            <span class="text-xs opacity-60">
-                {{ mission.cree_le|date:"d M Y" }}
-            </span>
-
+            </div>
+            
+            {% if mission.nb_contacts > 0 %}
+            <div class="badge badge-lg badge-success text-white font-semibold">
+                {{ mission.nb_contacts }} expert{{ mission.nb_contacts|pluralize }} contacté{{ mission.nb_contacts|pluralize }}
+            </div>
+            {% endif %}
         </div>
 
+        <div class="divider my-4 opacity-50"></div>
 
-        <!-- CONTACTS -->
-        <div class="mt-4 flex items-center justify-between text-sm">
-
-            <div>
-                👥 Experts contactés :
-                <strong>{{ mission.nb_contacts }}</strong>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 text-sm font-medium">
+                 <i data-lucide="message-square" class="w-4 h-4 opacity-50"></i>
+                 <span>{{ mission.nb_contacts }} interaction{{ mission.nb_contacts|pluralize }}</span>
             </div>
 
-            {% if mission.nb_contacts > 0 %}
-                <span class="badge badge-success badge-sm">
-                    Active
-                </span>
-            {% endif %}
-
-        </div>
-
-
-        <!-- ACTION -->
-        <div class="card-actions justify-end mt-5">
             <a href="{% url 'client_mission_detail' mission.id %}"
-               class="btn btn-sm btn-primary">
-                Voir la mission
+               class="btn btn-ghost btn-circle hover:bg-primary hover:text-white transition-all">
+                <i data-lucide="arrow-right" class="w-6 h-6"></i>
             </a>
         </div>
 
     </div>
-
 </div>
 
 {% empty %}
 
-<div class="alert bg-base-200">
-    Aucune mission créée pour le moment.
+<div class="col-span-full py-20 text-center bg-base-100 rounded-3xl border-2 border-dashed border-base-300">
+    <div class="flex flex-col items-center gap-4">
+        <div class="bg-base-200 p-6 rounded-full">
+            <i data-lucide="briefcase" class="w-12 h-12 opacity-20"></i>
+        </div>
+        <div>
+            <h3 class="text-xl font-bold">Aucune mission pour le moment</h3>
+            <p class="opacity-60">Commencez par publier votre premier besoin pour trouver un expert.</p>
+        </div>
+        <a href="{% url 'client_mission_create' %}" class="btn btn-primary mt-2">
+            Créer ma première mission
+        </a>
+    </div>
 </div>
 
 {% endfor %}
 
 </div>
+
+<script>
+  lucide.createIcons();
+</script>
 
 {% endblock %}

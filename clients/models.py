@@ -11,7 +11,16 @@ class ClientProfile(models.Model):
         on_delete=models.CASCADE,
         related_name="client_profile"
     )
-
+    statut_onboarding = models.CharField(
+        max_length=20,
+        choices=[
+            ("AUTO", "Auto validé"),
+            ("EN_ATTENTE", "En attente"),
+            ("VALIDE", "Validé"),
+            ("REFUSE", "Refusé"),
+        ],
+        default="EN_ATTENTE"
+    )
     nom_entreprise = models.CharField(max_length=255)
     secteur_activite = models.CharField(max_length=255)
 

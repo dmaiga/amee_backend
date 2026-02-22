@@ -1,0 +1,42 @@
+{% extends "base_client.html" %}
+
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+
+<h1 class="text-xl font-bold mb-6">
+Évaluer la mission — {{ contact.mission.titre }}
+</h1>
+
+<form method="post" class="card bg-base-100 shadow p-6 space-y-4">
+{% csrf_token %}
+
+<label class="label">Note globale</label>
+{{ form.note }}
+
+<label class="label">Commentaire</label>
+{{ form.commentaire }}
+
+<div class="form-control">
+<label class="cursor-pointer flex gap-3">
+{{ form.incident_signale }}
+<span>Signaler un problème sérieux</span>
+</label>
+</div>
+
+<div>
+<label class="label">Description du problème</label>
+{{ form.description_incident }}
+</div>
+
+<div class="text-right">
+<button class="btn btn-primary">
+Envoyer le feedback
+</button>
+</div>
+
+</form>
+
+</div>
+
+{% endblock %}

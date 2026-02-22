@@ -1,0 +1,89 @@
+{% extends "backoffice/base.html" %}
+
+{% block title %}Détail Client{% endblock %}
+{% block page_context %}Fiche Client{% endblock %}
+
+{% block content %}
+
+<div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="flex justify-between items-start">
+        <div>
+            <h1 class="text-2xl font-bold">
+                {{ client.nom_entreprise }}
+            </h1>
+
+            <p class="opacity-70 text-sm">
+                Créé le {{ client.cree_le|date:"d F Y" }}
+            </p>
+        </div>
+
+        {% if client.est_verifie %}
+            <span class="badge badge-success badge-lg">Client validé</span>
+        {% else %}
+            <span class="badge badge-warning badge-lg">En attente</span>
+        {% endif %}
+    </div>
+
+    <!-- Infos -->
+    <div class="grid md:grid-cols-2 gap-6">
+
+        <div class="card bg-base-100 border border-base-300">
+            <div class="card-body">
+                <h2 class="card-title">Entreprise</h2>
+
+                <p><b>Secteur :</b> {{ client.secteur_activite }}</p>
+                <p><b>Email :</b> {{ client.email_pro }}</p>
+                <p><b>Téléphone :</b> {{ client.telephone_pro|default:"—" }}</p>
+            </div>
+        </div>
+
+        <div class="card bg-base-100 border border-base-300">
+            <div class="card-body">
+                <h2 class="card-title">Contact principal</h2>
+
+                <p><b>Nom :</b> {{ client.nom_contact }}</p>
+                <p><b>Fonction :</b> {{ client.fonction_contact }}</p>
+                <p><b>Compte actif :</b>
+                    {% if client.user.is_active %}
+                        ✅ Oui
+                    {% else %}
+                        ❌ Non
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Actions gouvernance -->
+    {% if not client.est_verifie %}
+    <div class="card bg-base-100 border border-warning">
+        <div class="card-body">
+
+            <h2 class="card-title text-warning">
+                Actions de gouvernance
+            </h2>
+
+            <div class="flex gap-3">
+
+                <a href="{% url 'valider_client' client.id %}"
+                   class="btn btn-success">
+                    ✅ Valider le client
+                </a>
+
+                <a href="{% url 'refuser_client' client.id %}"
+                   class="btn btn-outline btn-error">
+                    ❌ Refuser
+                </a>
+
+            </div>
+
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -49,15 +49,24 @@
 
                 <p class="text-xs font-semibold opacity-50 px-4 mb-2 uppercase">Menu Principal</p>
                 <li><a  href="{% url 'client-dashboard' %}" class="flex gap-3"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
-                <li><a  href="{% url 'client_missions' %}" class="flex gap-3"><i data-lucide="briefcase"></i> Mes Missions</a></li>
-                <li><a href="{% url 'client_experts' %}" class="flex gap-3 "><i data-lucide="search"></i> Trouver un Expert</a></li>
-                <li><a href="#" class="flex gap-3"><i data-lucide="arrow-left-right"></i> Mises en relation</a></li>
-                
+                <li><a  href="{% url 'client_missions' %}" class="flex gap-3"><i data-lucide="briefcase"></i> Missions</a></li>
+                <li><a href="{% url 'client_experts' %}" class="flex gap-3 "><i data-lucide="search"></i> Expert</a></li>
+               <li>
+<a href="{% url 'client_collaborations' %}" class="flex gap-3">
+<i data-lucide="arrow-left-right"></i>
+Collaborations
+
+{% if notif_attente %}
+<span class="badge badge-warning">
+{{ notif_attente }}
+</span>
+{% endif %}
+</a>
+</li> 
                 <div class="divider"></div>
-                
                 <p class="text-xs font-semibold opacity-50 px-4 mb-2 uppercase">Qualité & Compte</p>
-                <li><a href="#" class="flex gap-3"><i data-lucide="star"></i> Feedbacks</a></li>
-                <li><a href="#" class="flex gap-3"><i data-lucide="settings"></i> Paramètres Profil</a></li>
+                <li><a href="{% url 'client_feedback_list' %}" class="flex gap-3"><i data-lucide="star"></i> Feedbacks</a></li>
+                <li><a  href="{% url 'client_profile_settings' %}"  class="flex gap-3"><i data-lucide="settings"></i> Paramètres Profil</a></li>
                 
                 <div class="mt-auto pt-4 border-t border-base-300">
                     <div class="px-4 py-2 text-sm opacity-70 italic">{{ request.user.email }}</div>
