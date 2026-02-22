@@ -49,6 +49,18 @@ sans intervenir dans la gestion contractuelle des missions.
 
 Voir : `docs/workflow.md`
 
+## Backoffice (Interface Web)
+
+Le projet expose une interface backoffice serveur (templates Django) en plus des APIs REST:
+
+- URL racine: `/backoffice/`
+- Connexion: `/backoffice/login/`
+- Tableau de bord: `/backoffice/dashboard/`
+
+Documentation detaillee:
+
+- `docs/backoffice.md`
+
 ---
 
 ## Installation

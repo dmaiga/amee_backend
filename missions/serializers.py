@@ -6,14 +6,5 @@ class MissionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Mission
-        fields = [
-            'id',
-            'titre',
-            'description',
-            'domaine',
-            'localisation',
-            'duree_estimee_jours',
-            'statut',
-            'cree_le',
-        ]
-        read_only_fields = ['statut', 'cree_le']
+        fields = "__all__"
+        read_only_fields = ("client", "statut", "cree_le")

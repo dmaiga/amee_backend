@@ -19,38 +19,54 @@ class ConsultantSerializer(serializers.ModelSerializer):
             "statut",
             "domaine_expertise",
             "annees_experience",
-            "resume_profil",
+            
         ]
 
 
 class ConsultantPublicSerializer(serializers.ModelSerializer):
 
     nom_complet = serializers.SerializerMethodField()
-    id_membre = serializers.CharField(
-        source="user.id_membre_association",
-        read_only=True,
-    )
     recommande_amee = serializers.SerializerMethodField()
+
+    resume_public = serializers.CharField(
+        source="public_profile.resume_public"
+    )
+
+    langues = serializers.CharField(
+        source="public_profile.langues"
+    )
+
+    secteurs_experience = serializers.CharField(
+        source="public_profile.secteurs_experience"
+    )
+
+    experience_geographique = serializers.CharField(
+        source="public_profile.experience_geographique"
+    )
+
+    statut_disponibilite = serializers.CharField(
+        source="public_profile.statut_disponibilite"
+    )
 
     class Meta:
         model = ConsultantProfile
         fields = [
             "nom_complet",
-            "id_membre",
             "domaine_expertise",
             "annees_experience",
-            "resume_profil",
+            "resume_public",
+            "langues",
+            "secteurs_experience",
+            "experience_geographique",
+            "statut_disponibilite",
             "recommande_amee",
         ]
 
-    @extend_schema_field(serializers.CharField)
     def get_nom_complet(self, obj):
         return f"{obj.user.first_name} {obj.user.last_name}"
 
-    @extend_schema_field(serializers.BooleanField)
     def get_recommande_amee(self, obj):
         return obj.user.est_recommande_amee
-
 
 class MessageResponseSerializer(serializers.Serializer):
     detail = serializers.CharField()

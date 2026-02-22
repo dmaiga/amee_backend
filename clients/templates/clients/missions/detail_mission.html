@@ -1,0 +1,124 @@
+{% extends "base_client.html" %}
+
+{% block title %}Détail Mission - {{ mission.titre }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6">
+    
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-base-content">{{ mission.titre }}</h1>
+            <p class="opacity-60 italic text-sm">Créée le {{ mission.cree_le|date:"d F Y" }}</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'client_experts' %}?mission={{ mission.id }}" class="btn btn-primary">
+                <i data-lucide="user-plus"></i> Trouver un expert
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-2 space-y-6">
+            
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title border-b pb-2 mb-4 text-primary">Détails du besoin</h2>
+                    <div class="prose prose-sm max-w-none">
+                        <h3 class="font-bold">Description</h3>
+                        <p>{{ mission.description|linebreaks }}</p>
+
+                        {% if mission.objectifs %}
+                            <h3 class="font-bold mt-4">Objectifs</h3>
+                            <p>{{ mission.objectifs|linebreaks }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 p-4 bg-base-200 rounded-lg text-sm">
+                        <div class="flex flex-col">
+                            <span class="opacity-50">Domaine</span>
+                            <span class="font-bold">{{ mission.domaine }}</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="opacity-50">Localisation</span>
+                            <span class="font-bold">{{ mission.localisation|default:"Distance" }}</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="opacity-50">Durée</span>
+                            <span class="font-bold">{{ mission.duree_estimee_jours|default:"—" }} jours</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title border-b pb-2 mb-4">Experts sollicités</h2>
+                    <div class="space-y-4">
+                        {% for contact in mission.contacts.all %}
+                        <div class="flex justify-between items-center p-3 bg-base-200 rounded-lg group hover:bg-base-300 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="avatar placeholder">
+                                    <div class="bg-neutral text-neutral-content rounded-full w-10">
+                                        <span>{{ contact.consultant.first_name|slice:":1" }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="font-bold">{{ contact.consultant.get_full_name }}</div>
+                                    <div class="text-xs opacity-60">{{ contact.consultant.profil_roster.domaine_expertise }}</div>
+                                </div>
+                            </div>
+                            <span class="badge badge-outline {% if contact.statut == 'ACCEPTE' %}badge-success{% endif %}">
+                                {{ contact.get_statut_display }}
+                            </span>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-6 opacity-40 italic">Aucun expert contacté pour le moment.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title border-b pb-2 mb-4">Documents</h2>
+                    
+                    <div class="space-y-3 mb-6">
+                        {% for doc in mission.documents.all %}
+                        <div class="flex flex-col p-2 border-b border-base-200">
+                            <div class="flex justify-between items-start">
+                                <span class="text-sm font-semibold truncate">{{ doc.nom }}</span>
+                                <a href="{{ doc.fichier.url }}" class="btn btn-ghost btn-xs text-primary" download>
+                                    <i data-lucide="download" class="w-4 h-4"></i>
+                                </a>
+                            </div>
+                            <span class="text-[10px] opacity-50 uppercase">{{ doc.get_type_document_display }}</span>
+                        </div>
+                        {% empty %}
+                        <p class="text-xs opacity-50 text-center py-4 italic">Aucun document.</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="bg-base-200 p-4 rounded-xl">
+                        <h3 class="text-xs font-bold uppercase mb-3 opacity-70">Ajouter un fichier</h3>
+                        <form method="post" enctype="multipart/form-data" action="{% url 'mission_add_document' mission.id %}" class="space-y-2">
+                            {% csrf_token %}
+                            <input type="text" name="nom" placeholder="Ex: TDR Final" class="input input-sm input-bordered w-full">
+                            <select name="type_document" class="select select-sm select-bordered w-full">
+                                <option value="TOR">Termes de référence</option>
+                                <option value="CDC">Cahier des charges</option>
+                                <option value="ANNEXE">Annexe technique</option>
+                                <option value="AUTRE" selected>Autre</option>
+                            </select>
+                            <input type="file" name="fichier" required class="file-input file-input-xs file-input-bordered w-full">
+                            <button class="btn btn-primary btn-sm w-full mt-2">Uploader</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

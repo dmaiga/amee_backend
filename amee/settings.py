@@ -82,6 +82,8 @@ INSTALLED_APPS = [
     'organizations',
     'backoffice',
 
+    'clients',
+
 ]
 
 MIDDLEWARE = [
@@ -113,8 +115,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'amee.wsgi.application'
-# Obligatoire pour utiliser ton CustomUser
+
+
 AUTH_USER_MODEL = 'accounts.User'
+
+# --- AUTHENTIFICATION REDIRECTIONS ---
+
+# URL vers laquelle on est renvoyé si on n'est pas connecté
+LOGIN_URL = 'login/'
+
+# URL après déconnexion
+LOGOUT_REDIRECT_URL = 'login/'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases

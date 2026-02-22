@@ -1,147 +1,163 @@
 # Workflow Fonctionnel - Plateforme AMEE
 
-Ce document décrit le fonctionnement métier principal de la plateforme AMEE.
+Ce document decrit le fonctionnement metier principal de la plateforme AMEE.
 
-L'objectif de la plateforme est de faciliter la mise en relation entre
-des institutions (clients) et des experts validés du réseau AMEE,
-sans intervenir dans l'exécution contractuelle des missions.
+Objectif: faciliter la mise en relation entre institutions (clients) et experts valides du reseau AMEE, sans intervenir dans l'execution contractuelle des missions.
 
 ---
 
 ## 1. Inscription utilisateur
 
-Un utilisateur crée un compte sur la plateforme.
+Un utilisateur cree un compte sur la plateforme.
 
-Selon son usage, il devient :
+Selon son usage, il devient:
 - `CLIENT` (institution / recruteur)
-- `MEMBER` (adhérent AMEE)
-- `CONSULTANT` (expert validé)
+- `MEMBER` (adherent AMEE)
+- `CONSULTANT` (expert valide)
 
 ---
 
-## 2. Adhésion (pilotée par la trésorerie)
+## 2. Adhesion (pilotee par la tresorerie)
 
-L'adhésion est un événement comptable porté par une `Transaction` :
+L'adhesion est un evenement comptable porte par une `Transaction`:
 - `type_transaction=ENTREE`
 - `categorie=ADHESION`
 - `statut=BROUILLON` puis validation en `VALIDEE`
 
-Au passage `BROUILLON -> VALIDEE`, le moteur métier :
-- crée (ou retrouve) l'utilisateur via `email_payeur`
-- crée la fiche `Membership` si elle n'existe pas
-- génère un identifiant membre `MEM-YYYY-XXX`
+Au passage `BROUILLON -> VALIDEE`, le moteur metier:
+- cree (ou retrouve) l'utilisateur via `email_payeur`
+- cree la fiche `Membership` si elle n'existe pas
+- genere un identifiant membre `MEM-YYYY-XXX`
 - rattache la transaction au membre
 
 ---
 
 ## 3. Cotisation (activation / renouvellement)
 
-La cotisation est également une `Transaction` (`categorie=COTISATION`).
+La cotisation est egalement une `Transaction` (`categorie=COTISATION`).
 
-Au passage `BROUILLON -> VALIDEE` :
-- l'adhésion est activée si elle était inactive
-- la date d'expiration est prolongée de 365 jours
-- si une adhésion est déjà active, le renouvellement part de la date d'expiration courante
+Au passage `BROUILLON -> VALIDEE`:
+- l'adhesion est activee si elle etait inactive
+- la date d'expiration est prolongee de 365 jours
+- si une adhesion est deja active, le renouvellement part de la date d'expiration courante
 
-Cas couvert par le moteur :
-- une cotisation peut être validée avant l'adhésion
-- lors de la validation de l'adhésion, la cotisation déjà validée est appliquée
+Cas couvert par le moteur:
+- une cotisation peut etre validee avant l'adhesion
+- lors de la validation de l'adhesion, la cotisation deja validee est appliquee
 
 ---
 
-## 4. Enrôlement Roster (Consultant)
+## 4. Enrolement roster (consultant)
 
 Le membre soumet son profil expert.
 
-Le Bureau AMEE :
+Le Bureau AMEE:
 - valide ou refuse la candidature
 
-Si validé :
+Si valide:
 - l'utilisateur devient `CONSULTANT` visible publiquement
 
 ---
 
-## 5. Création d'une Mission (Client)
+## 5. Creation d'une mission (client)
 
-Un client crée un besoin :
+Un client cree un besoin:
 - titre
 - description
 - domaine
 - localisation
-- durée estimée
+- duree estimee
 
-La mission représente un besoin,
-pas un contrat.
+La mission represente un besoin, pas un contrat.
 
 ---
 
 ## 6. Mise en relation
 
-Le client sélectionne un consultant disponible.
+Le client selectionne un consultant disponible.
 
-La plateforme :
+La plateforme:
 - enregistre une `ContactRequest`
-- partage les coordonnées entre les parties
-- démarre le suivi automatique
+- partage les coordonnees entre les parties
+- demarre le suivi automatique
 
 AMEE agit uniquement comme facilitateur.
 
 ---
 
-## 7. Réponse du Consultant
+## 7. Reponse du consultant
 
-Depuis son espace personnel, le consultant indique :
-- Mission confirmée
-- Refus
-- Sans suite
+Depuis son espace personnel, le consultant indique:
+- mission confirmee
+- refus
+- sans suite
 
-Une mission confirmée devient une collaboration validée.
-
----
-
-## 8. Suivi et Feedback
-
-Après confirmation :
-- le système envoie une demande d'évaluation au client
-- les feedbacks alimentent la qualité du réseau
+Une mission confirmee devient une collaboration validee.
 
 ---
 
-## 9. Contrôle Qualité
+## 8. Suivi et feedback
 
-Après la fin d'une mission, un client peut fournir un feedback :
-- Note (1 à 5)
-- Commentaire
-- Signalement d'incident (optionnel)
+Apres confirmation:
+- le systeme envoie une demande d'evaluation au client
+- les feedbacks alimentent la qualite du reseau
 
-Si un incident est signalé :
-- un `IncidentReview` est créé pour analyse
-- un signalement peut être généré avec des niveaux de gravité
+---
 
-Effets possibles :
+## 9. Controle qualite
+
+Apres la fin d'une mission, un client peut fournir un feedback:
+- note (1 a 5)
+- commentaire
+- signalement d'incident (optionnel)
+
+Si un incident est signale:
+- un `IncidentReview` est cree pour analyse
+- un signalement peut etre genere avec des niveaux de gravite
+
+Effets possibles:
 - consultant sous surveillance
 - suspension temporaire
 - examen par le conseil AMEE
 
 ---
 
-## 10. Gestion de Contenu (CMS)
+## 10. Gestion de contenu (CMS)
 
-La plateforme permet de publier :
-- articles (actualités, événements, opportunités, etc.)
-- ressources (guides, rapports, études de cas)
-- opportunités (emplois, appels d'offres, partenariats)
+La plateforme permet de publier:
+- articles (actualites, evenements, opportunites, etc.)
+- ressources (guides, rapports, etudes de cas)
+- opportunites (emplois, appels d'offres, partenariats)
 
-Chaque contenu peut être :
-- publié immédiatement ou programmé
-- réservé aux membres AMEE
-- accompagné de fichiers joints ou liens externes
+Chaque contenu peut etre:
+- publie immediatement ou programme
+- reserve aux membres AMEE
+- accompagne de fichiers joints ou liens externes
 
 ---
 
-## Principe Fondamental
+## 11. Pilotage backoffice (web)
 
-AMEE :
+Le workflow metier est pilote dans l'interface web backoffice:
+
+- authentification: `/backoffice/login/`
+- suivi global: `/backoffice/dashboard/`
+- enrolement et paiements: `/backoffice/tresorerie/dashboard/`
+- gestion membres: `/backoffice/membres/`
+- validation roster: `/backoffice/roster/`
+- suivi missions et feedbacks: `/backoffice/missions/`
+- qualite et incidents: `/backoffice/qualite/incidents/`
+- CMS interne: `/backoffice/cms/`
+- organisations: `/backoffice/organisations/`
+
+Reference detaillee des ecrans et routes:
+- `docs/backoffice.md`
+
+---
+
+## Principe fondamental
+
+AMEE:
 - facilite la mise en relation
-- assure la crédibilité du réseau
-- ne gère pas les contrats ni l'exécution des missions
+- assure la credibilite du reseau
+- ne gere pas les contrats ni l'execution des missions

@@ -46,13 +46,15 @@ from django.utils import timezone
 
 
 from tresorerie.services import TresorerieService
+from django.contrib.auth import logout
+from django.shortcuts import redirect
 
 
 #-----------------------------
 #
 #-----------------------------
 
-def backoffice_login(request):
+def plateforme_login(request):
 
     if request.method == "POST":
 
@@ -67,7 +69,17 @@ def backoffice_login(request):
 
         if user:
             login(request, user)
+
+            # 🔥 ROUTAGE INTELLIGENT
+            if user.role == "CLIENT":
+                return redirect("client-dashboard")
+
+            if user.role == "CONSULTANT":
+                return redirect("consultant-dashboard")  # futur
+
+            # fallback = backoffice
             return redirect("bo_dashboard")
+        
 
         return render(
             request,
@@ -77,6 +89,10 @@ def backoffice_login(request):
 
     return render(request, "backoffice/login.html")
 
+def plateforme_logout(request):
+    logout(request)
+    return redirect("login")
+    
 @login_required
 def dashboard(request):
     now = timezone.now()

@@ -25,31 +25,69 @@ class ConsultantProfile(models.Model):
         default='BROUILLON'
     )
 
+    # -------- Infos minimales AMEE --------
     domaine_expertise = models.CharField(max_length=255)
     annees_experience = models.IntegerField()
-    resume_profil = models.TextField()
 
+    cv_document = models.FileField(
+        upload_to="roster/cv/",
+        null=True,
+        blank=True
+    )
+
+    eligibilite_option = models.CharField(
+        max_length=20,
+        choices=(
+            ("OPTION1", "Diplôme + expérience"),
+            ("OPTION2", "Expérience validée conseil"),
+        ),
+        null=True,
+        blank=True
+    )
+
+    notes_interne_bureau = models.TextField(blank=True)
+
+    # -------- décision --------
     valide_par = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
-        related_name='profils_valides'
+        on_delete=models.SET_NULL
     )
 
     date_validation = models.DateTimeField(null=True, blank=True)
 
     cree_le = models.DateTimeField(auto_now_add=True)
+
+    est_disponible = models.BooleanField(default=True)
     motif_refus = models.TextField(null=True, blank=True)
     motif_reexamen = models.TextField(null=True, blank=True)
 
-    est_disponible = models.BooleanField(default=True)
-    
     class Meta:
         indexes = [
             models.Index(fields=["statut", "est_disponible"]),
         ]
+    
 
+    @property
+    def est_actif_roster(self):
+
+        if self.statut != "VALIDE":
+            return False
+
+        if not self.est_disponible:
+            return False
+
+        if not hasattr(self.user, "adhesion"):
+            return False
+
+        if not self.user.adhesion.est_actif:
+            return False
+
+        if self.user.statut_qualite in ["BANNI", "SUSPENDU"]:
+            return False
+
+        return True
 
     def valider(self, validateur):
 
@@ -108,26 +146,44 @@ class ConsultantProfile(models.Model):
     def __str__(self):
         return f"#{self.id}  - {self.user.email} - {self.statut}"
 
-    @property
-    def est_actif_roster(self):
-        """
-        Actif seulement si :
-        - profil validé
-        - disponible
-        - membership actif
-        """
 
-        if self.statut != "VALIDE":
-            return False
+class ConsultantPublicProfile(models.Model):
 
-        if not self.est_disponible:
-            return False
+    consultant = models.OneToOneField(
+        ConsultantProfile,
+        on_delete=models.CASCADE,
+        related_name="public_profile"
+    )
 
-        if not hasattr(self.user, "adhesion"):
-            return False
+    resume_public = models.TextField()
 
-        return self.user.adhesion.est_actif
+    langues = models.CharField(max_length=255, blank=True)
 
+    secteurs_experience = models.TextField(blank=True)
+    experience_geographique = models.TextField(blank=True)
+
+    lien_cv = models.URLField(blank=True)
+    lien_linkedin = models.URLField(blank=True)
+
+    STATUT_DISPO = (
+        ("RECHERCHE", "Recherche active"),
+        ("OUVERT", "Ouvert opportunités"),
+        ("INDISPONIBLE", "Indisponible"),
+    )
+
+    statut_disponibilite = models.CharField(
+        max_length=20,
+        choices=STATUT_DISPO,
+        default="OUVERT"
+    )
+
+    consentement_publication = models.BooleanField(default=False)
+
+    mis_a_jour_le = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"PublicProfile - {self.consultant.user.email}"
+    
 class RosterDecisionHistory(models.Model):
 
     profil = models.ForeignKey(

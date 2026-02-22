@@ -1,0 +1,85 @@
+{% extends "base_client.html" %}
+
+{% block title %}Nouvelle mission{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-8">
+    
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-base-content">Publier un nouveau besoin</h1>
+        <p class="text-sm opacity-60">Décrivez votre mission pour attirer les meilleurs experts.</p>
+    </div>
+
+    <form method="post" class="card bg-base-100 shadow-xl border border-base-300">
+        {% csrf_token %}
+        
+        <div class="card-body space-y-5">
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-error shadow-sm mb-4">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold text-base-content">Titre de la mission</span>
+                </label>
+                {{ form.titre }}
+                {% if form.titre.errors %}<span class="text-error text-xs mt-1">{{ form.titre.errors.0 }}</span>{% endif %}
+            </div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold text-base-content">Description détaillée</span>
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}<span class="text-error text-xs mt-1">{{ form.description.errors.0 }}</span>{% endif %}
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold text-base-content">Domaine d'expertise</span>
+                    </label>
+                    {{ form.domaine }}
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold text-base-content">Localisation</span>
+                    </label>
+                    {{ form.localisation }}
+                </div>
+            </div>
+
+            <div class="bg-base-200 p-4 rounded-xl grid md:grid-cols-2 gap-6">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold text-base-content italic">Charge estimée (Jours/Homme)</span>
+                    </label>
+                    {{ form.duree_estimee_jours }}
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold text-base-content italic">Budget prévisionnel</span>
+                    </label>
+                    {{ form.budget_estime }}
+                </div>
+            </div>
+
+            <div class="card-actions justify-end pt-6 border-t border-base-200">
+                <button type="reset" class="btn btn-ghost">Annuler</button>
+                <button type="submit" class="btn btn-primary px-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Créer la mission
+                </button>
+            </div>
+
+        </div>
+    </form>
+</div>
+{% endblock %}

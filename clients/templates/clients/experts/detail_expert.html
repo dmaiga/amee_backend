@@ -1,0 +1,124 @@
+{% extends "base_client.html" %}
+
+{% block title %}Expert{% endblock %}
+
+{% block content %}
+
+<div class="max-w-4xl mx-auto">
+
+    <!-- HEADER -->
+    <div class="card bg-base-100 shadow mb-6">
+        <div class="card-body">
+
+            <h1 class="text-2xl font-bold">
+                {{ expert.user.first_name }}
+                {{ expert.user.last_name }}
+            </h1>
+
+            <p class="opacity-70">
+                {{ expert.domaine_expertise }}
+            </p>
+
+            {% if expert.user.est_recommande_amee %}
+                <div class="badge badge-success mt-2">
+                    Recommandé AMEE
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+
+    <!-- PROFIL PUBLIC -->
+    <div class="card bg-base-100 shadow mb-6">
+        <div class="card-body">
+
+            <h2 class="font-semibold mb-3">Présentation</h2>
+
+            <p>
+                {{ expert.public_profile.resume_public }}
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-6 text-sm">
+
+                <div>
+                    <strong>Langues :</strong><br>
+                    {{ expert.public_profile.langues|default:"—" }}
+                </div>
+
+                <div>
+                    <strong>Zones d'expérience :</strong><br>
+                    {{ expert.public_profile.experience_geographique|default:"—" }}
+                </div>
+
+                <div>
+                    <strong>Secteurs :</strong><br>
+                    {{ expert.public_profile.secteurs_experience|default:"—" }}
+                </div>
+
+                <div>
+                    <strong>Disponibilité :</strong><br>
+                    {{ expert.public_profile.get_statut_disponibilite_display }}
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- CONTACT VIA MISSION -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+
+            <h2 class="font-semibold mb-4">
+                Contacter cet expert
+            </h2>
+
+            {% if missions_client %}
+
+            <form method="post"
+                  action="/api/interactions/request-contact/">
+                {% csrf_token %}
+
+                <input type="hidden"
+                       name="consultant_id"
+                       value="{{ expert.user.id }}">
+
+                <label class="label">
+                    <span class="label-text">
+                        Sélectionner une mission
+                    </span>
+                </label>
+
+                <select name="mission_id"
+                        class="select select-bordered w-full mb-4">
+
+                    {% for mission in missions_client %}
+                        <option value="{{ mission.id }}">
+                            {{ mission.titre }}
+                        </option>
+                    {% endfor %}
+
+                </select>
+
+                <button class="btn btn-primary">
+                    Envoyer une demande de contact
+                </button>
+
+            </form>
+
+            {% else %}
+
+            <div class="alert">
+                Vous devez créer une mission avant de contacter un expert.
+            </div>
+
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

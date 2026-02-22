@@ -1,0 +1,52 @@
+{% extends "base_client.html" %}
+
+{% block content %}
+
+<div class="max-w-5xl mx-auto">
+
+<h1 class="text-2xl font-bold mb-6">
+Bienvenue {{ request.user.client_profile.nom_entreprise }}
+</h1>
+
+<a href="{% url 'client_mission_create' %}" class="btn btn-primary mb-6">
++ Nouvelle mission
+</a>
+
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+
+<h2 class="card-title">Mes missions</h2>
+
+<table class="table">
+<thead>
+<tr>
+<th>ID</th>
+<th>Statut</th>
+<th>Date</th>
+</tr>
+</thead>
+
+<tbody>
+{% for mission in missions %}
+<tr>
+<td>#{{ mission.id }}</td>
+<td>{{ mission.statut }}</td>
+<td>{{ mission.cree_le }}</td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="3" class="text-center opacity-60">
+Aucune mission pour le moment
+</td>
+</tr>
+{% endfor %}
+</tbody>
+
+</table>
+
+</div>
+</div>
+
+</div>
+
+{% endblock %}

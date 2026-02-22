@@ -1,0 +1,65 @@
+{% extends "base_client.html" %}
+
+{% block title %}Trouver un Expert{% endblock %}
+
+{% block content %}
+
+<h1 class="text-2xl font-bold mb-6">Trouver un expert</h1>
+
+<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+
+{% for expert in experts %}
+<div class="card bg-base-100 shadow-md border">
+
+    <div class="card-body">
+
+        <h2 class="card-title">
+            {{ expert.user.first_name }} {{ expert.user.last_name }}
+        </h2>
+
+        <p class="text-sm opacity-70">
+            {{ expert.domaine_expertise }}
+        </p>
+
+        <p class="mt-3 text-sm">
+            {{ expert.public_profile.resume_public|truncatewords:25 }}
+        </p>
+
+        <div class="mt-3 text-xs opacity-70">
+            <strong>Langues :</strong>
+            {{ expert.public_profile.langues|default:"—" }}
+        </div>
+
+        <div class="mt-2 badge badge-outline">
+            {{ expert.public_profile.get_statut_disponibilite_display }}
+        </div>
+
+        {% if expert.user.est_recommande_amee %}
+            <div class="badge badge-success mt-2">
+                Recommandé AMEE
+            </div>
+        {% endif %}
+
+        <div class="card-actions justify-end mt-4">
+
+            <!-- futur workflow mission -->
+<a href="{% url 'client_expert_detail' expert.id %}"
+   class="btn btn-primary btn-sm">
+    Voir le profil
+</a>
+
+        </div>
+
+    </div>
+</div>
+{% empty %}
+
+<div class="alert">
+    Aucun expert disponible actuellement.
+</div>
+
+{% endfor %}
+
+</div>
+
+{% endblock %}

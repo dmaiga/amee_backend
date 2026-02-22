@@ -17,6 +17,18 @@ from accounts.serializers import (
 
 from drf_spectacular.utils import extend_schema
 
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
+
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+
+
+
+
 @extend_schema(
     responses=UserMeSerializer,
     tags=["Accounts"],

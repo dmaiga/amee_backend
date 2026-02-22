@@ -29,6 +29,7 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
     SpectacularRedocView
 )
+from django.views.generic import RedirectView
 
  
 urlpatterns = [
@@ -37,7 +38,8 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema')),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema')),
-
+    
+    path('', RedirectView.as_view(url='/backoffice/login/', permanent=True)),
     path('api/auth/login/', LoginView.as_view()),
     path('api/auth/refresh/', TokenRefreshView.as_view()),
     path('api/auth/register/', RegisterView.as_view(), name='register'),
@@ -50,6 +52,8 @@ urlpatterns = [
     path("api/quality/", include("quality_control.urls")),
     path("api/cms/", include("cms.urls")),
 
+    path("api/clients/", include("clients.urls")),
+    path("client/", include("clients.urls")),
     path("backoffice/", include("backoffice.urls")),
 
 ]

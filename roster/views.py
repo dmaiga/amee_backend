@@ -20,7 +20,8 @@ from roster.serializers import (
     MessageResponseSerializer,
     MonProfilRosterResponseSerializer,
 )
-
+from django.db import transaction
+from roster.models import ConsultantPublicProfile
 
 # ===============================
 # SOUMETTRE CANDIDATURE
@@ -28,9 +29,11 @@ from roster.serializers import (
 
 @extend_schema(tags=["Roster"])
 class SoumettreCandidatureView(GenericAPIView):
+
     permission_classes = [IsAuthenticated]
     serializer_class = ConsultantSerializer
 
+    @transaction.atomic
     def post(self, request):
 
         user = request.user
@@ -45,21 +48,29 @@ class SoumettreCandidatureView(GenericAPIView):
 
         if profil:
             if profil.statut == "REFUSE":
-                profil.demander_reexamen(demandeur=user)
+                profil.demander_reexamen(
+                    demandeur=user,
+                    motif=request.data.get("motif", "")
+                )
                 return Response({"detail": "Demande de réexamen envoyée."})
 
             return Response(
-                {"detail": "Une candidature est déjà en cours."},
+                {"detail": "Une candidature existe déjà."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(user=user, statut="SOUMIS")
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        profil = serializer.save(user=user, statut="SOUMIS")
 
+        ConsultantPublicProfile.objects.create(
+            consultant=profil,
+            resume_public=request.data.get("resume_public", "")
+        )
 
+        return Response(serializer.data, status=201)
+    
 # ===============================
 # VALIDER CANDIDATURE
 # ===============================
@@ -128,6 +139,7 @@ class ListeConsultantsPublicView(ListAPIView):
         return ConsultantProfile.objects.filter(
             statut="VALIDE",
             est_disponible=True,
+            public_profile__resume_public__isnull=False,
             user__adhesion__date_expiration__gte=timezone.now().date(),
             user__statut_qualite__in=["NORMAL", "SURVEILLANCE"],
         )
