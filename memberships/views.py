@@ -6,12 +6,18 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 
 from memberships.models import Membership
-from memberships.serializers import AdhesionSerializer
+from memberships.serializers import AdhesionSerializer,MonAdhesionResponseSerializer
+
+from drf_spectacular.utils import extend_schema
 
 
 
-
+@extend_schema(
+    tags=["Memberships"],
+    responses=MonAdhesionResponseSerializer,
+)
 class MonAdhesionView(APIView):
+    permission_classes = [IsAuthenticated]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):

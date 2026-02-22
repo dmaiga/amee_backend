@@ -8,6 +8,7 @@ from memberships.models import Membership
 import secrets
 
 User = get_user_model()
+from tresorerie.models import Transaction
 
 
 # =====================================================
@@ -197,3 +198,52 @@ def process_membership_payment(transaction):
     if transaction.categorie == "COTISATION":
         handle_cotisation(transaction)
         return
+
+# =====================================================
+# SERVICE TRANSACTION CENTRAL
+# =====================================================
+
+
+from django.db.models import Sum
+from tresorerie.models import Transaction
+
+
+class TresorerieService:
+
+    @staticmethod
+    def enregistrer_paiement(user, data):
+        data.setdefault("date_transaction", timezone.now().date())
+
+        transaction = Transaction.objects.create(
+            **data,
+            cree_par=user,
+            statut="VALIDEE",
+        )
+
+        return transaction
+
+    # =====================================================
+    # SOLDE GLOBAL
+    # =====================================================
+    @staticmethod
+    def get_solde():
+        """
+        Calcule le solde réel de la trésorerie :
+        Entrées - Sorties validées uniquement.
+        """
+
+        entrees = (
+            Transaction.objects.filter(
+                type_transaction="ENTREE",
+                statut="VALIDEE"
+            ).aggregate(total=Sum("montant"))["total"] or 0
+        )
+
+        sorties = (
+            Transaction.objects.filter(
+                type_transaction="SORTIE",
+                statut="VALIDEE"
+            ).aggregate(total=Sum("montant"))["total"] or 0
+        )
+
+        return entrees - sorties

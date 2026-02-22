@@ -5,9 +5,10 @@ from .web_views import (
     membre_detail, roster_decision,mission_detail,
     transactions_list,transaction_detail,
     tresorerie_depense,incidents_list,
+    statuer_incident,affecter_incident,
 
 )
-from backoffice import web_views
+from backoffice import views, web_views
 
 urlpatterns = [
     # --- AUTHENTIFICATION & ACCÈS ---
@@ -18,7 +19,18 @@ urlpatterns = [
     path("tresorerie/", include("backoffice.api.tresorerie.urls")),
     path("tresorerie/dashboard/",web_views.enrolement_dashboard,name="bo_enrolement_dashboard"),
     
-    path("tresorerie/paiement-bureau/",web_views.paiement_bureau,name="bo_paiement_bureau"),
+    path(
+        "backoffice/tresorerie/paiement-bureau/",
+        web_views.paiement_bureau,
+        name="bo_paiement_bureau"
+    ),
+
+    path(
+        "backoffice/tresorerie/paiement-bureau/<int:organisation_id>/",
+        web_views.paiement_bureau,
+        name="bo_paiement_bureau_org"
+    ),
+    
     path("tresorerie/paiement/", tresorerie_paiement, name="bo_enregistrer_paiement"),
     path("tresorerie/transactions/",transactions_list,name="bo_transactions"),
     path("tresorerie/transactions/<int:transaction_id>/", transaction_detail, name="bo_transaction_detail"),
@@ -41,7 +53,8 @@ urlpatterns = [
     # ---  ---
     path("qualite/incidents/",incidents_list,name="bo_incidents"),
     path("qualite/feedback/<int:feedback_id>/",feedback_detail,name="bo_feedback_detail"),
-
+    path("qualite/incidents/<int:incident_id>/affecter/", affecter_incident,name="bo_affecter_incident"),
+    path( "qualite/incidents/<int:incident_id>/statuer/", statuer_incident,name="bo_statuer_incident"),
     # ---  ---
 
     path("cms/", web_views.cms_dashboard, name="bo_cms_dashboard"),

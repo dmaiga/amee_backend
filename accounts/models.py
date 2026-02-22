@@ -80,7 +80,7 @@ class User(AbstractUser):
     )
 
     email = models.EmailField(unique=True, max_length=255)
-
+    phone = models.CharField(max_length=30, blank=True)
     id_membre_association = models.CharField(
         max_length=50,
         unique=True,

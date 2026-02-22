@@ -5,7 +5,7 @@
 <div class="max-w-2xl">
 
     <h1 class="text-2xl font-semibold mb-6">
-        💰 Enregistrer un paiement
+        💰 Enrôlement & Paiement membre
     </h1>
 
     <form method="post" class="card bg-base-100 shadow">
@@ -13,44 +13,54 @@
         <div class="card-body space-y-4">
             {% csrf_token %}
 
-            <!-- EMAIL PAYEUR -->
-            <div>
-                <label class="label">Email payeur</label>
-                <input type="email"
-                       name="email_payeur"
-                       class="input input-bordered w-full"
-                       placeholder="membre@email.com">
+            <!-- IDENTITE -->
+            <div class="divider">Identité du membre</div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="label">{{ form.first_name.label }}</label>
+                    {{ form.first_name }}
+                </div>
+
+                <div>
+                    <label class="label">{{ form.last_name.label }}</label>
+                    {{ form.last_name }}
+                </div>
             </div>
 
-            <!-- MONTANT -->
             <div>
-                <label class="label">Montant (FCFA)</label>
-                <input type="number"
-                       name="montant"
-                       required
-                       class="input input-bordered w-full">
+                <label class="label">{{ form.email.label }}</label>
+                {{ form.email }}
             </div>
 
-            <!-- CATEGORIE -->
-<div>
-    <label class="label">Opération</label>
-
-    <select name="operation"
-            class="select select-bordered w-full">
-
-        <option value="FULL">Nouvelle adhésion complète</option>
-        <option value="COTISATION">Renouvellement cotisation</option>
-        <option value="ADHESION">Adhésion seule</option>
-
-    </select>
-</div>
-
-            <!-- DESCRIPTION -->
             <div>
-                <label class="label">Description</label>
-                <textarea name="description"
-                          class="textarea textarea-bordered w-full"
-                          placeholder="Note comptable (optionnel)"></textarea>
+                <label class="label">{{ form.phone.label }}</label>
+                {{ form.phone }}
+            </div>
+
+            <!-- ORGANISATION -->
+            <div>
+                <label class="label">{{ form.organization.label }}</label>
+                {{ form.organization }}
+            </div>
+
+
+            <!-- PAIEMENT -->
+            <div class="divider">Paiement</div>
+
+            <div>
+                <label class="label">{{ form.operation.label }}</label>
+                {{ form.operation }}
+            </div>
+
+            <div>
+                <label class="label">{{ form.montant.label }}</label>
+                {{ form.montant }}
+            </div>
+
+            <div>
+                <label class="label">{{ form.description.label }}</label>
+                {{ form.description }}
             </div>
 
             <!-- SUBMIT -->
@@ -63,6 +73,7 @@
         </div>
 
     </form>
+
 
 {% if result %}
 
@@ -82,9 +93,7 @@
 
         <p>
             Membre :
-            <strong>
-                {{ result.user.id_membre_association }}
-            </strong>
+            <strong>{{ result.user.id_membre_association }}</strong>
             ({{ result.user.email }})
         </p>
 
@@ -107,7 +116,6 @@
 </div>
 
 {% endif %}
-
 
 </div>
 

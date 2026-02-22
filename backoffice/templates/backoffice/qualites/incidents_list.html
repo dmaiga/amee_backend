@@ -14,6 +14,7 @@
     <th>Consultant</th>
     <th>Client</th>
     <th>Note</th>
+    <th>Enquêteur</th>
     <th>Statut</th>
     <th></th>
 </tr>
@@ -39,10 +40,13 @@
 <td>
     ⭐ {{ incident.feedback.note }}/5
 </td>
+<td>
+    {{ incident.enqueteur_display }}
+</td>
 
 <td>
-    <span class="badge badge-error">
-        {{ incident.statut }}
+    <span class="badge {{ incident.badge_class }}">
+        {{ incident.get_statut_display }}
     </span>
 </td>
 

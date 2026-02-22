@@ -1,0 +1,28 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<h4>Rapport d'enquête</h4>
+
+<form method="post">
+    {% csrf_token %}
+
+    {{ form.rapport_enquete.label_tag }}
+    {{ form.rapport_enquete }}
+
+    <div class="mt-3">
+        {{ form.decision.label_tag }}
+        {{ form.decision }}
+    </div>
+
+    <div class="mt-3">
+        {{ form.niveau.label_tag }}
+        {{ form.niveau }}
+    </div>
+
+    <button class="btn btn-danger mt-4">
+        Clôturer l'incident
+    </button>
+</form>
+
+
+{% endblock %}

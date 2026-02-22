@@ -1,11 +1,35 @@
 {% extends "backoffice/base.html" %}
 
 {% block content %}
-<div class="flex justify-between items-center mb-10">
-    <h1 class="text-3xl font-bold text-gray-800 italic">Tableau de bord de Gouvernance</h1>
-    <div class="badge badge-outline p-4">{{ today|date:"d F Y" }}</div>
-</div>
+<div class="bg-base-100 shadow rounded-xl mb-10">
+    <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
+        <!-- TITRE -->
+        <div>
+            <h1 class="text-3xl font-extrabold tracking-tight">
+                Tableau de bord de Gouvernance
+            </h1>
+            <p class="text-sm opacity-60 mt-1">
+                Vue synthétique des opérations, qualité et performance organisationnelle
+            </p>
+        </div>
+
+        <!-- DATE -->
+        <div class="flex items-center gap-2 bg-base-200 px-4 py-2 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="w-5 h-5 opacity-60"
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+
+            <span class="font-medium">
+                {{ today|date:"d F Y" }}
+            </span>
+        </div>
+
+    </div>
+</div>
 <div class="mb-10">
     <h2 class="text-sm font-bold uppercase tracking-widest text-gray-500 mb-4">👥 Capital Humain & Roster</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

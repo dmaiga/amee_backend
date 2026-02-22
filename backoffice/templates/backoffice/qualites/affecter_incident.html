@@ -1,0 +1,17 @@
+{% extends "backoffice/base.html" %}
+
+{% block content %}
+<h4>Affecter un enquêteur</h4>
+
+<form method="post">
+    {% csrf_token %}
+
+    {{ form.enqueteur.label_tag }}
+    {{ form.enqueteur }}
+
+    <button class="btn btn-primary mt-3">
+        Affecter
+    </button>
+</form>
+
+{% endblock %}

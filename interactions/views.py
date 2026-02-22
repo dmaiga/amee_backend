@@ -1,23 +1,33 @@
-from rest_framework.generics import CreateAPIView,ListAPIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied, ValidationError
-
 from django.utils import timezone
 from datetime import timedelta
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 
+from rest_framework.generics import (
+    CreateAPIView,
+    ListAPIView,
+    GenericAPIView,
+)
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework import status
+
 from interactions.models import ContactRequest
-from interactions.serializers import ContactRequestReadSerializer, ContactRequestSerializer,UpdateContactStatusSerializer
+from interactions.serializers import (
+    ContactRequestSerializer,
+    ContactRequestReadSerializer,
+    UpdateContactStatusSerializer,
+    UpdateContactStatusResponseSerializer,
+    SimpleMessageSerializer,
+)
 
 from roster.permissions import EstBureauOuSuperAdmin
-from roster.models import ConsultantProfile
-
-from missions.models import Mission
 
 
+# =====================================================
+# CREATE CONTACT REQUEST
+# =====================================================
 
 class RequestContactView(CreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -28,7 +38,6 @@ class RequestContactView(CreateAPIView):
         mission = serializer.validated_data["mission"]
         profil = serializer.validated_data["consultant"]
 
-        # sécurité mission
         if mission.client != self.request.user:
             raise ValidationError("Mission invalide.")
 
@@ -45,7 +54,7 @@ class RequestContactView(CreateAPIView):
 
         duree = serializer.validated_data.get(
             "duree_estimee_jours",
-            mission.duree_estimee_jours
+            mission.duree_estimee_jours,
         )
 
         date_suivi = None
@@ -55,13 +64,17 @@ class RequestContactView(CreateAPIView):
         try:
             serializer.save(
                 client=self.request.user,
-                date_suivi_prevu=date_suivi
+                date_suivi_prevu=date_suivi,
             )
         except IntegrityError:
             raise ValidationError(
                 "Vous avez déjà contacté ce consultant pour cette mission."
             )
 
+
+# =====================================================
+# LISTES
+# =====================================================
 
 class ConsultantInteractionsView(ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -70,9 +83,8 @@ class ConsultantInteractionsView(ListAPIView):
     def get_queryset(self):
         return ContactRequest.objects.filter(
             consultant=self.request.user
-        ).select_related(
-            'mission', 'client'
-        ).order_by('-cree_le')
+ 
+        ).select_related("mission", "client").order_by("-cree_le")
 
 
 class ClientInteractionsView(ListAPIView):
@@ -82,44 +94,53 @@ class ClientInteractionsView(ListAPIView):
     def get_queryset(self):
         return ContactRequest.objects.filter(
             client=self.request.user
-        ).select_related(
-            'mission', 'consultant'
-        ).order_by('-cree_le')
+        ).select_related("mission", "consultant").order_by("-cree_le")
 
 
-class UpdateContactStatusView(APIView):
+# =====================================================
+# UPDATE STATUS
+# =====================================================
+
+class UpdateContactStatusView(GenericAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = UpdateContactStatusSerializer
 
     def patch(self, request, pk):
 
         contact = get_object_or_404(ContactRequest, pk=pk)
 
-        # 🔐 seul le consultant peut modifier
         if contact.consultant != request.user:
             raise PermissionDenied(
                 "Vous ne pouvez pas modifier cette demande."
             )
+
         if contact.statut == "MISSION_CONFIRME":
-            raise ValidationError(
-                "La mission est déjà confirmée."
-            )
-        
-        serializer = UpdateContactStatusSerializer(data=request.data)
+            raise ValidationError("La mission est déjà confirmée.")
+
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        nouveau_statut = serializer.validated_data['statut']
-
-        contact.statut = nouveau_statut
+        contact.statut = serializer.validated_data["statut"]
         contact.save()
 
-        return Response({
-            "detail": "Statut mis à jour avec succès.",
-            "statut": contact.statut
-        })
+        return Response(
+            UpdateContactStatusResponseSerializer(
+                {
+                    "detail": "Statut mis à jour avec succès.",
+                    "statut": contact.statut,
+                    
+                }
+            ).data
+        )
 
 
-class TerminerMissionView(APIView):
+# =====================================================
+# TERMINER MISSION
+# =====================================================
+
+class TerminerMissionView(GenericAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = SimpleMessageSerializer
 
     def patch(self, request, pk):
 
@@ -135,18 +156,24 @@ class TerminerMissionView(APIView):
 
         contact.statut = "MISSION_TERMINEE"
         contact.save()
-        
-        mission = contact.mission
-        mission.statut = "FERMEE"
-        mission.save()
 
-        return Response({
-            "detail": "Mission marquée comme terminée."
-        })
+        contact.mission.statut = "FERMEE"
+        contact.mission.save()
+
+        return Response(
+            self.get_serializer(
+                {"detail": "Mission marquée comme terminée."}
+            ).data
+        )
 
 
-class SuiviMissionView(APIView):
+# =====================================================
+# SUIVI TERRAIN
+# =====================================================
+
+class SuiviMissionView(GenericAPIView):
     permission_classes = [EstBureauOuSuperAdmin]
+    serializer_class = SimpleMessageSerializer
 
     def patch(self, request, pk):
 
@@ -156,6 +183,8 @@ class SuiviMissionView(APIView):
         contact.date_suivi_reel = timezone.now()
         contact.save()
 
-        return Response({
-            "detail": "Suivi terrain enregistré."
-        })
+        return Response(
+            self.get_serializer(
+                {"detail": "Suivi terrain enregistré."}
+            ).data
+        )

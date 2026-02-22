@@ -7,8 +7,16 @@ from django.shortcuts import get_object_or_404
 from interactions.models import ContactRequest
 from quality_control.models import Feedback
 from quality_control.serializers import FeedbackSerializer
+from drf_spectacular.utils import extend_schema
 
+@extend_schema(
+    tags=["Quality Control"],
+    request=FeedbackSerializer,
+    responses=FeedbackSerializer,
+)
 class CreateFeedbackView(APIView):
+    permission_classes = [IsAuthenticated]
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):

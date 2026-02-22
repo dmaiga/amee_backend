@@ -66,5 +66,15 @@ class UpdateContactStatusSerializer(serializers.Serializer):
         ]
     )
 
+class UpdateContactStatusResponseSerializer(serializers.Serializer):
+    detail = serializers.CharField()
+    statut = serializers.CharField()
+
 class TerminerMissionSerializer(serializers.Serializer):
     confirmer = serializers.BooleanField()
+
+class SimpleMessageSerializer(serializers.Serializer):
+    detail = serializers.CharField()
+
+class EmptySerializer(serializers.Serializer):
+    pass

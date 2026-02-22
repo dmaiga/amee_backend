@@ -14,6 +14,9 @@ class Organization(models.Model):
     est_actif = models.BooleanField(default=True)
 
     cree_le = models.DateTimeField(auto_now_add=True)
-
+    est_affilie = models.BooleanField(default=False)
+    date_affiliation = models.DateField(null=True, blank=True)
+    date_expiration = models.DateField(null=True, blank=True)
+    
     def __str__(self):
         return self.nom

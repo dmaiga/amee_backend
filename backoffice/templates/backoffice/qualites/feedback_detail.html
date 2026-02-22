@@ -2,32 +2,133 @@
 
 {% block content %}
 
-<h1 class="text-2xl font-semibold mb-6">
-⭐ Feedback mission
-</h1>
+<div class="max-w-5xl mx-auto space-y-6">
 
-<div class="card bg-base-100 shadow">
-<div class="card-body">
+    <!-- HEADER -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-semibold">
+            ⭐ Feedback mission
+        </h1>
 
-<p><b>Client :</b> {{ feedback.client.email }}</p>
-<p><b>Consultant :</b> {{ feedback.contact_request.consultant.email }}</p>
+        <div class="badge badge-outline">
+            Mission #{{ feedback.contact_request.mission.id }}
+        </div>
+    </div>
 
-<p class="text-lg mt-3">
-Note : ⭐ {{ feedback.note }}/5
-</p>
 
-<p class="mt-4">
-{{ feedback.commentaire }}
-</p>
+    <!-- INFOS ACTEURS -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
 
-{% if feedback.incident_signale %}
-<div class="alert alert-error mt-6">
-<b>Incident signalé :</b><br>
-{{ feedback.description_incident }}
-</div>
-{% endif %}
+            <h2 class="card-title text-base-content/70">
+                Informations
+            </h2>
 
-</div>
+            <div class="grid md:grid-cols-2 gap-4 mt-2">
+
+                <div class="stat bg-base-200 rounded-box">
+                    <div class="stat-title">Client</div>
+                    <div class="stat-value text-base">
+                        {{ feedback.client.email }}
+                    </div>
+                </div>
+
+                <div class="stat bg-base-200 rounded-box">
+                    <div class="stat-title">Consultant</div>
+                    <div class="stat-value text-base">
+                        {{ feedback.contact_request.consultant.email }}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- FEEDBACK -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+
+            <h2 class="card-title">
+                Évaluation client
+            </h2>
+
+            <div class="flex items-center gap-3 mt-2">
+                <div class="rating rating-lg">
+                    {% for i in "12345" %}
+                        <input type="radio" class="mask mask-star-2 bg-warning"
+                               {% if forloop.counter == feedback.note %}checked{% endif %}
+                               disabled />
+                    {% endfor %}
+                </div>
+
+                <span class="text-lg font-semibold">
+                    {{ feedback.note }}/5
+                </span>
+            </div>
+
+            {% if feedback.commentaire %}
+            <div class="mt-4 p-4 bg-base-200 rounded-lg whitespace-pre-line">
+                {{ feedback.commentaire }}
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+
+    <!-- INCIDENT SIGNALÉ -->
+    {% if feedback.incident_signale %}
+    <div class="alert alert-error shadow">
+        <div>
+            <span class="font-semibold">Incident signalé</span>
+            <p class="mt-1 opacity-90">
+                {{ feedback.description_incident }}
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <!-- SUIVI INCIDENT -->
+    {% if feedback.incident %}
+    <div class="card bg-base-100 shadow border border-warning/30">
+        <div class="card-body">
+
+            <h2 class="card-title">
+                🔎 Suivi de l'incident
+            </h2>
+
+            <div class="flex flex-wrap gap-6 mt-3">
+
+                <div>
+                    <div class="text-sm opacity-60">Statut</div>
+                    <span class="badge {{ feedback.incident.badge_class }} mt-1">
+                        {{ feedback.incident.get_statut_display }}
+                    </span>
+                </div>
+
+                <div>
+                    <div class="text-sm opacity-60">Enquêteur</div>
+                    <div class="font-medium">
+                        {{ feedback.incident.enqueteur_display }}
+                    </div>
+                </div>
+
+            </div>
+
+            {% if feedback.incident.rapport_enquete %}
+            <div class="divider">Rapport d'enquête</div>
+
+            <div class="bg-base-200 p-5 rounded-lg whitespace-pre-line leading-relaxed">
+                {{ feedback.incident.rapport_enquete }}
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 
 {% endblock %}

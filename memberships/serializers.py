@@ -23,3 +23,7 @@ class AdhesionSerializer(serializers.ModelSerializer):
             'date_expiration',
             'est_actif'
         ]
+
+class MonAdhesionResponseSerializer(serializers.Serializer):
+    a_une_adhesion = serializers.BooleanField()
+    adhesion = AdhesionSerializer(required=False, allow_null=True)

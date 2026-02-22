@@ -22,17 +22,39 @@ class IncidentReview(models.Model):
         related_name="incident"
     )
 
+
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    STATUTS = [
+        ("OUVERT", "Ouvert"),
+        ("ENQUETE", "Enquête en cours"),
+        ("ANALYSE", "En analyse"),
+        ("CLOTURE", "Clôturé"),
+    ]
+
     statut = models.CharField(
         max_length=20,
-        choices=(
-            ("OUVERT", "Ouvert"),
-            ("EN_ANALYSE", "En analyse"),
-            ("CLOTURE", "Clôturé"),
-        ),
+        choices=STATUTS,
         default="OUVERT"
     )
 
-    cree_le = models.DateTimeField(auto_now_add=True)
+    enqueteur = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="incidents_assignes"
+    )
+
+    rapport_enquete = models.TextField(blank=True)
+    decision = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True
+    )
+
+    date_cloture = models.DateTimeField(null=True, blank=True)
+
 
     from django.db import transaction
     
@@ -65,7 +87,24 @@ class IncidentReview(models.Model):
         self.save()
 
         return signalement
+    
+    @property
+    def badge_class(self):
+        return {
+            "OUVERT": "badge-warning",
+            "ENQUETE": "badge-info",
+            "ANALYSE": "badge-primary",
+            "CLOTURE": "badge-success",
+        }.get(self.statut, "badge-ghost")
 
+    @property
+    def enqueteur_display(self):
+        if not self.enqueteur:
+            return "-"
+    
+        full = f"{self.enqueteur.first_name} {self.enqueteur.last_name}".strip()
+        return full if full else self.enqueteur.email
+    
 class Feedback(models.Model):
 
     contact_request = models.OneToOneField(

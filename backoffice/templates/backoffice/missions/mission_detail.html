@@ -7,6 +7,7 @@
         <li><a href="{% url 'bo_missions' %}">Missions</a></li>
         <li>Détail Mission #{{ mission.id }}</li>
     </ul>
+    
 </div>
 
 <div class="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
@@ -119,21 +120,57 @@
                                     <span class="text-xs opacity-30">—</span>
                                 {% endif %}
                             </td>
-                            <td class="text-center">
+<td class="text-center">
 
 {% if contact.feedback and contact.feedback.incident %}
-   
 
-        <div class="badge badge-error gap-1 animate-pulse py-3 px-3 font-bold">
-            ⚠️ INCIDENT
-        </div>
+    {% with incident=contact.feedback.incident %}
 
-  
+        {# -------- BADGE STATUT -------- #}
+
+        {% if incident.statut == "OUVERT" %}
+            <span class="badge badge-warning font-bold">
+                ⚠ Incident ouvert
+            </span>
+
+            <div class="mt-2">
+                <a href="{% url 'bo_affecter_incident' incident.id %}"
+                   class="btn btn-xs btn-warning">
+                    Affecter enquêteur
+                </a>
+            </div>
+
+        {% elif incident.statut == "ENQUETE" %}
+
+            <span class="badge badge-info font-bold">
+                🔎 Enquête en cours
+            </span>
+
+            {% if incident.enqueteur == request.user %}
+                <div class="mt-2">
+                    <a href="{% url 'bo_statuer_incident' incident.id %}"
+                       class="btn btn-xs btn-error">
+                        Statuer incident
+                    </a>
+                </div>
+            {% endif %}
+
+        {% elif incident.statut == "CLOTURE" %}
+
+            <span class="badge badge-success font-bold">
+                ✅ Clôturé
+            </span>
+
+        {% endif %}
+
+    {% endwith %}
+
 {% else %}
     <span class="text-xs opacity-30">Aucun</span>
 {% endif %}
 
 </td>
+
                         </tr>
                         {% empty %}
                         <tr>

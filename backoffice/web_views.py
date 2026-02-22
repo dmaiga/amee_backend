@@ -29,7 +29,10 @@ from quality_control.models import Feedback,IncidentReview
 
 from tresorerie.models import Transaction
 
-from backoffice.forms import ArticleForm,ResourceForm,OpportunityForm
+from backoffice.forms import (
+    ArticleForm,ResourceForm,
+    OpportunityForm,AffecterIncidentForm,
+    StatuerIncidentForm, EnrolementPaiementForm)
 
 from organizations.models import Organization
 from memberships.models import Membership
@@ -38,9 +41,11 @@ from organizations.models import Organization
 
 from backoffice.forms import OrganizationForm
 
+from datetime import timedelta
+from django.utils import timezone
 
 
-
+from tresorerie.services import TresorerieService
 
 
 #-----------------------------
@@ -199,80 +204,102 @@ def enrolement_dashboard(request):
         context
     )
 
+
 @login_required
-def paiement_bureau(request):
+def paiement_bureau(request, organisation_id=None):
 
     organisations = Organization.objects.filter(
         est_actif=True
     ).order_by("nom")
 
-    context = {
-        "organisations": organisations
-    }
+    organisation_selected = None
 
-    if request.method == "POST":
-
-        organisation_id = request.POST.get("organisation")
-        operation = request.POST.get("operation")
-        montant = request.POST.get("montant")
-        description = request.POST.get("description")
-
-        organisation = get_object_or_404(
+    if organisation_id:
+        organisation_selected = get_object_or_404(
             Organization,
             pk=organisation_id
         )
 
-        transactions = []
+    context = {
+        "organisations": organisations,
+        "organisation_selected": organisation_selected,
+    }
+
+    # =====================================================
+    # POST : ENREGISTREMENT PAIEMENT
+    # =====================================================
+    if request.method == "POST":
+
+        organisation = get_object_or_404(
+            Organization,
+            pk=request.POST.get("organisation")
+        )
+
+        operation = request.POST.get("operation")
+        montant = int(request.POST.get("montant"))
+        description = request.POST.get("description")
+
+        today = timezone.now().date()
 
         base_data = {
             "type_transaction": "ENTREE",
-            "montant": int(montant),
+            "montant": montant,
             "description": description,
-            "date_transaction": timezone.now().date(),
+            "date_transaction": today,
             "organization": organisation,
-            "cree_par": request.user,
-            "statut": "VALIDEE",
         }
 
+        transactions = []
+
         # -----------------------------
-        # ADHESION + COTISATION
+        # ADHESION INITIALE
         # -----------------------------
-        if operation == "FULL":
-
-            t1 = Transaction.objects.create(
-                **base_data,
-                categorie="ADHESION"
-            )
-
-            t2 = Transaction.objects.create(
-                **base_data,
-                categorie="COTISATION"
-            )
-
-            transactions = [t1, t2]
-
-        elif operation == "ADHESION":
+        if operation in ["FULL", "ADHESION"]:
 
             transactions.append(
-                Transaction.objects.create(
-                    **base_data,
-                    categorie="ADHESION"
+                TresorerieService.enregistrer_paiement(
+                    user=request.user,
+                    data={**base_data, "categorie": "ADHESION"}
                 )
             )
 
-        elif operation == "COTISATION":
+            organisation.est_affilie = True
+            organisation.date_affiliation = today
+            organisation.date_expiration = today + timedelta(days=365)
+
+        # -----------------------------
+        # COTISATION / RENOUVELLEMENT
+        # -----------------------------
+        if operation in ["FULL", "COTISATION"]:
 
             transactions.append(
-                Transaction.objects.create(
-                    **base_data,
-                    categorie="COTISATION"
+                TresorerieService.enregistrer_paiement(
+                    user=request.user,
+                    data={**base_data, "categorie": "COTISATION"}
                 )
             )
 
-        context["success"] = True
-        context["transactions"] = transactions
-        context["organisation"] = organisation
+            base_date = organisation.date_expiration or today
 
+            if base_date < today:
+                base_date = today
+
+            organisation.date_expiration = base_date + timedelta(days=365)
+
+        # sauvegarde organisation
+        organisation.save()
+
+        context.update({
+            "success": True,
+            "transactions": transactions,
+            "organisation": organisation,
+        })
+
+        return redirect("bo_enrolement_dashboard")
+
+    # =====================================================
+    # GET
+    # =====================================================
     return render(
         request,
         "backoffice/tresorerie/paiement_bureau.html",
@@ -282,74 +309,79 @@ def paiement_bureau(request):
 @login_required
 def tresorerie_paiement(request):
 
-    context = {}
-
     if request.method == "POST":
+        form = EnrolementPaiementForm(request.POST)
 
-        operation = request.POST.get("operation")
+        if form.is_valid():
 
-        base_data = {
-            "type_transaction": "ENTREE",
-            "montant": int(request.POST.get("montant")),
-            "email_payeur": request.POST.get("email_payeur"),
-            "description": request.POST.get("description"),
-        }
+            data = form.cleaned_data
 
-        transactions = []
-
-        # -----------------------------
-        # ADHESION COMPLETE
-        # -----------------------------
-        if operation == "FULL":
-
-            t1 = TresorerieService.enregistrer_paiement(
-                user=request.user,
-                data={**base_data, "categorie": "ADHESION"}
+            # -------------------------
+            # CREATE OR UPDATE USER
+            # -------------------------
+            user, created = User.objects.get_or_create(
+                email=data["email"],
+                defaults={
+                    "first_name": data["first_name"],
+                    "last_name": data["last_name"],
+                    "phone": data["phone"],
+                    "organization": data["organization"],
+                    "role": "MEMBER",
+                }
             )
 
-            t2 = TresorerieService.enregistrer_paiement(
-                user=request.user,
-                data={**base_data, "categorie": "COTISATION"}
-            )
+            # update infos si déjà existant
+            if not created:
+                user.first_name = data["first_name"]
+                user.last_name = data["last_name"]
+                user.phone = data["phone"]
+                user.organization = data["organization"]
+                user.save()
 
-            transactions = [t1, t2]
+            base_data = {
+                "type_transaction": "ENTREE",
+                "montant": data["montant"],
+                "email_payeur": user.email,
+                "description": data["description"],
+            }
 
-        elif operation == "COTISATION":
+            operation = data["operation"]
 
-            t = TresorerieService.enregistrer_paiement(
-                user=request.user,
-                data={**base_data, "categorie": "COTISATION"}
-            )
-            transactions = [t]
+            if operation == "FULL":
+                TresorerieService.enregistrer_paiement(
+                    user=request.user,
+                    data={**base_data, "categorie": "ADHESION"}
+                )
+                TresorerieService.enregistrer_paiement(
+                    user=request.user,
+                    data={**base_data, "categorie": "COTISATION"}
+                )
 
-        elif operation == "ADHESION":
+            elif operation == "ADHESION":
+                TresorerieService.enregistrer_paiement(
+                    user=request.user,
+                    data={**base_data, "categorie": "ADHESION"}
+                )
 
-            t = TresorerieService.enregistrer_paiement(
-                user=request.user,
-                data={**base_data, "categorie": "ADHESION"}
-            )
-            transactions = [t]
+            else:
+                TresorerieService.enregistrer_paiement(
+                    user=request.user,
+                    data={**base_data, "categorie": "COTISATION"}
+                )
 
-        # -----------------------------
-        # RÉCUPÉRATION ÉTAT MEMBRE
-        # -----------------------------
-        last_transaction = transactions[-1]
-        user = last_transaction.membre
+            messages.success(request, "Enrôlement enregistré.")
 
-        membership = getattr(user, "adhesion", None)
+            return redirect("bo_enrolement_dashboard")
 
-        context["result"] = {
-            "transactions": transactions,
-            "user": user,
-            "membership": membership,
-            "cree_par": request.user,
-        }
+    else:
+        form = EnrolementPaiementForm()
 
     return render(
         request,
         "backoffice/tresorerie/tresorerie_form.html",
-        context
+        {"form": form}
     )
+
 
 @login_required
 def tresorerie_depense(request):
@@ -371,12 +403,13 @@ def tresorerie_depense(request):
         )
 
         context["success"] = f"Dépense #{transaction.id} enregistrée ✅"
-
+        return redirect("bo_transactions")
     return render(
         request,
         "backoffice/tresorerie/depense_form.html",
         context
     )
+
 
 @login_required
 def transactions_list(request):
@@ -691,6 +724,7 @@ def incidents_list(request):
         IncidentReview.objects
         .select_related(
             "consultant",
+            "enqueteur",
             "contact_request__mission",
             "feedback",
         )
@@ -710,7 +744,8 @@ def feedback_detail(request, feedback_id):
         Feedback.objects.select_related(
             "contact_request__mission",
             "contact_request__consultant",
-            "client"
+            "client",
+            "incident", 
         ),
         pk=feedback_id
     )
@@ -721,6 +756,90 @@ def feedback_detail(request, feedback_id):
         {"feedback": feedback}
     )
 
+@login_required
+def affecter_incident(request, incident_id):
+
+    incident = get_object_or_404(IncidentReview, pk=incident_id)
+
+    if incident.enqueteur:
+        messages.warning(request, "Incident déjà affecté.")
+        return redirect(
+            "bo_mission_detail",
+            mission_id=incident.contact_request.mission.id
+        )
+
+    if request.method == "POST":
+        form = AffecterIncidentForm(request.POST, instance=incident)
+
+        if form.is_valid():
+            incident = form.save(commit=False)
+            incident.statut = "ENQUETE"
+            incident.save(update_fields=["enqueteur", "statut"])
+
+            messages.success(request, "Incident affecté.")
+            return redirect(
+                "bo_mission_detail",
+                mission_id=incident.contact_request.mission.id
+            )
+    else:
+        form = AffecterIncidentForm(instance=incident)
+
+    return render(
+        request,
+        "backoffice/qualites/affecter_incident.html",
+        {"form": form, "incident": incident},
+    )
+
+@login_required
+def statuer_incident(request, incident_id):
+
+    incident = get_object_or_404(IncidentReview, pk=incident_id)
+
+    # sécurité enquêteur
+    if incident.enqueteur != request.user:
+        messages.error(request, "Vous n'êtes pas l'enquêteur assigné.")
+        return redirect(
+            "bo_mission_detail",
+            mission_id=incident.contact_request.mission.id
+        )
+
+    if request.method == "POST":
+        form = StatuerIncidentForm(request.POST, instance=incident)
+
+        if form.is_valid():
+            incident = form.save(commit=False)
+
+            decision = form.cleaned_data["decision"]
+            niveau = form.cleaned_data.get("niveau")
+
+            incident.decision = decision
+            incident.date_cloture = timezone.now()
+
+            if decision != "NON_LIEU":
+                incident.creer_signalement(
+                    niveau=niveau,
+                    commentaire=incident.rapport_enquete,
+                )
+            else:
+                incident.statut = "CLOTURE"
+                incident.save()
+
+            messages.success(request, "Incident clôturé.")
+            return redirect(
+                "bo_mission_detail",
+                mission_id=incident.contact_request.mission.id
+            )
+    else:
+        form = StatuerIncidentForm(instance=incident)
+
+    return render(
+        request,
+        "backoffice/qualites/enquete_incident.html",
+        {
+            "incident": incident,
+            "form": form,
+        },
+    )
 
 #-----------------------------
 #
@@ -997,23 +1116,32 @@ def organisation_form(request, organisation_id=None):
     organisation = None
 
     if organisation_id:
-        organisation = get_object_or_404(Organization, pk=organisation_id)
+        organisation = get_object_or_404(
+            Organization,
+            pk=organisation_id
+        )
 
     if request.method == "POST":
         form = OrganizationForm(request.POST, instance=organisation)
 
         if form.is_valid():
-            form.save()
-            return redirect("bo_organisations_list")
+            organisation = form.save()
 
+            messages.success(
+                request,
+                "Organisation enregistrée."
+            )
+
+            # 👉 redirection vers paiement
+            return redirect(
+                "bo_paiement_bureau_org",
+                organisation_id=organisation.id
+            )
     else:
         form = OrganizationForm(instance=organisation)
 
     return render(
         request,
         "backoffice/organisations/organisation_form.html",
-        {
-            "form": form,
-            "organisation": organisation,
-        }
+        {"form": form}
     )

@@ -22,7 +22,13 @@ Paiement enregistré pour {{ organisation.nom }} ✅
 <select name="organisation" class="select select-bordered w-full" required>
     <option value="">-- sélectionner --</option>
     {% for org in organisations %}
-        <option value="{{ org.id }}">{{ org.nom }}</option>
+       <option value="{{ org.id }}"
+{% if organisation_selected and organisation_selected.id == org.id %}
+selected
+{% endif %}
+>
+    {{ org.nom }}
+</option>
     {% endfor %}
 </select>
 

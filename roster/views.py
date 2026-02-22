@@ -1,110 +1,124 @@
-from time import timezone
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
-# Create your views here.
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import (
+    GenericAPIView,
+    ListAPIView,
+    RetrieveAPIView,
+)
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
-from django.shortcuts import get_object_or_404
-from rest_framework.generics import ListAPIView
-from rest_framework.permissions import AllowAny
-from rest_framework.generics import RetrieveAPIView
+
+from drf_spectacular.utils import extend_schema
 
 from roster.models import ConsultantProfile
-from roster.serializers import ConsultantPublicSerializer, ConsultantSerializer
 from roster.permissions import EstBureauOuSuperAdmin
+from roster.serializers import (
+    ConsultantSerializer,
+    ConsultantPublicSerializer,
+    MessageResponseSerializer,
+    MonProfilRosterResponseSerializer,
+)
 
 
-class SoumettreCandidatureView(APIView):
+# ===============================
+# SOUMETTRE CANDIDATURE
+# ===============================
+
+@extend_schema(tags=["Roster"])
+class SoumettreCandidatureView(GenericAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = ConsultantSerializer
 
     def post(self, request):
 
         user = request.user
 
-        # Vérifier adhésion active
-        if not hasattr(user, 'adhesion') or not user.adhesion.est_actif:
+        if not hasattr(user, "adhesion") or not user.adhesion.est_actif:
             return Response(
                 {"detail": "Adhésion non active."},
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_403_FORBIDDEN,
             )
 
         profil = getattr(user, "profil_roster", None)
 
         if profil:
-        
-            # autoriser seulement si refusé
             if profil.statut == "REFUSE":
                 profil.demander_reexamen(demandeur=user)
-                return Response(
-                    {"detail": "Demande de réexamen envoyée."},
-                    status=status.HTTP_200_OK
-                )
+                return Response({"detail": "Demande de réexamen envoyée."})
 
             return Response(
                 {"detail": "Une candidature est déjà en cours."},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        serializer = ConsultantSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=user, statut="SOUMIS")
 
-        if serializer.is_valid():
-            serializer.save(user=user, statut='SOUMIS')
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ValiderCandidatureView(APIView):
+# ===============================
+# VALIDER CANDIDATURE
+# ===============================
+
+@extend_schema(tags=["Roster"])
+class ValiderCandidatureView(GenericAPIView):
     permission_classes = [EstBureauOuSuperAdmin]
+    serializer_class = MessageResponseSerializer
 
     def post(self, request, pk):
 
         profil = get_object_or_404(ConsultantProfile, pk=pk)
 
-        if profil.statut not in ['SOUMIS', 'REFUSE']:
+        if profil.statut not in ["SOUMIS", "REFUSE"]:
             return Response(
                 {"detail": "Profil non soumis."},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         profil.valider(validateur=request.user)
 
         return Response(
-            {"detail": "Candidature validée."},
-            status=status.HTTP_200_OK
+            self.get_serializer(
+                {"detail": "Candidature validée."}
+            ).data
         )
 
-class MonProfilRosterView(APIView):
+
+# ===============================
+# MON PROFIL ROSTER
+# ===============================
+
+@extend_schema(tags=["Roster"])
+class MonProfilRosterView(GenericAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = MonProfilRosterResponseSerializer
 
     def get(self, request):
 
         try:
             profil = request.user.profil_roster
         except ConsultantProfile.DoesNotExist:
-            return Response({
-                "a_un_profil": False
-            })
-
-        # auto désactivation lazy
-        if (
-            profil.statut == "VALIDE"
-            and hasattr(request.user, "adhesion")
-            and not request.user.adhesion.est_actif
-            and profil.est_disponible
-        ):
-            profil.est_disponible = False
-            profil.save(update_fields=["est_disponible"])
+            return Response({"a_un_profil": False})
 
         serializer = ConsultantSerializer(profil)
 
-        return Response({
-            "a_un_profil": True,
-            "statut": profil.statut,
-            "est_consultant": request.user.role == 'CONSULTANT',
-            "profil": serializer.data
-        })
+        return Response(
+            {
+                "a_un_profil": True,
+                "statut": profil.statut,
+                "est_consultant": request.user.role == "CONSULTANT",
+                "profil": serializer.data,
+            }
+        )
+
+
+# ===============================
+# PUBLIC LIST
+# ===============================
 
 class ListeConsultantsPublicView(ListAPIView):
     permission_classes = [AllowAny]
@@ -112,7 +126,7 @@ class ListeConsultantsPublicView(ListAPIView):
 
     def get_queryset(self):
         return ConsultantProfile.objects.filter(
-            statut='VALIDE',
+            statut="VALIDE",
             est_disponible=True,
             user__adhesion__date_expiration__gte=timezone.now().date(),
             user__statut_qualite__in=["NORMAL", "SURVEILLANCE"],
@@ -122,14 +136,12 @@ class ListeConsultantsPublicView(ListAPIView):
 class DetailConsultantPublicView(RetrieveAPIView):
     permission_classes = [AllowAny]
     serializer_class = ConsultantPublicSerializer
-    lookup_field = 'pk'
 
     def get_queryset(self):
         return ConsultantProfile.objects.filter(
-            statut='VALIDE',
+            statut="VALIDE",
             est_disponible=True,
             user__adhesion__date_expiration__gte=timezone.now().date(),
-            user__role='CONSULTANT',
+            user__role="CONSULTANT",
             user__statut_qualite__in=["NORMAL", "SURVEILLANCE"],
         )
-    
