@@ -95,4 +95,15 @@ class ContactRequest(models.Model):
     
         return "OK"
     
+    def terminer(self):
+    
+        if self.statut != "MISSION_CONFIRME":
+            raise ValueError("Mission non active")
+    
+        self.statut = "MISSION_TERMINEE"
+        self.save()
+    
+        self.mission.statut = "FERMEE"
+        self.mission.save()
+        
         

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace AMEE | {% block title %}{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body class="min-h-screen bg-base-200/50">
+
+<div class="drawer lg:drawer-open">
+<input id="drawer" type="checkbox" class="drawer-toggle"/>
+
+<!-- ================= CONTENT ================= -->
+<div class="drawer-content flex flex-col">
+
+    <!-- Mobile navbar -->
+    <div class="navbar bg-base-100 lg:hidden shadow-sm">
+        <div class="flex-none">
+            <label for="drawer" class="btn btn-square btn-ghost">
+                <i class="fa-solid fa-bars"></i>
+            </label>
+        </div>
+        <div class="flex-1">
+            <span class="font-semibold">AMEE ESPACE</span>
+        </div>
+    </div>
+
+    <main class="p-6 max-w-7xl w-full mx-auto">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} mb-4 shadow-sm">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+
+    </main>
+</div>
+
+<!-- ================= SIDEBAR ================= -->
+<div class="drawer-side">
+<label for="drawer" class="drawer-overlay"></label>
+
+<ul class="menu p-4 w-80 min-h-full bg-base-100 border-r border-base-300 flex flex-col">
+
+    <!-- LOGO -->
+<li class="mb-8 px-4">
+
+<div class="flex items-center gap-3">
+
+    <!-- PHOTO -->
+    {% if member_profile and member_profile.photo %}
+        <img src="{{ member_profile.photo.url }}"
+             class="w-12 h-12 rounded-full object-cover border">
+    {% else %}
+        <div class="w-12 h-12 rounded-full bg-base-300 flex items-center justify-center">
+            <i class="fa-solid fa-user opacity-40"></i>
+        </div>
+    {% endif %}
+
+    <!-- USER INFO -->
+    <div class="flex flex-col">
+
+        <span class="font-semibold text-sm">
+            {{ request.user.get_full_name|default:request.user.email }}
+        </span>
+
+        <span class="badge {{ portal_badge_color }} badge-xs mt-1">
+            {{ portal_badge_label }}
+        </span>
+
+    </div>
+
+</div>
+
+</li>
+
+    <!-- NAVIGATION -->
+    <li>
+        <a href="{% url 'portal_dashboard' %}">
+            <i class="fa-solid fa-house w-5"></i>
+            Dashboard
+        </a>
+    </li>
+
+    
+    <li>  <a href="{% url 'member_profile' %}"> <i class="fa-solid fa-user w-5"></i> Mon Profil</a></li>
+    <li><a href="{% url 'membership_detail' %}"><i class="fa-solid fa-id-card w-5"></i> Membership</a></li>
+   
+    <li>
+         <a href="{% url 'resources_list' %}"> 
+            <i class="fa-solid fa-book w-5"></i>
+             Ressources
+                {% if cms_new_resources %}
+                <span class="badge badge-primary badge-sm ml-auto">
+                {{ cms_new_resources }}
+                </span>
+                {% endif %}
+            </a>
+    </li>
+   
+    <li>
+        <a href="{% url 'events_list' %}">
+             <i class="fa-solid fa-calendar-days w-5"></i>
+              Événements
+            {% if cms_new_events %}
+            <span class="badge badge-secondary badge-sm ml-auto">
+            {{ cms_new_events }}
+            </span>
+            {% endif %}
+
+        </a></li>
+   
+    <li><a href="{% url 'opportunities_list' %}"><i class="fa-solid fa-briefcase w-5"></i>Opportunités
+    {% if cms_new_opportunities %}
+<span class="badge badge-accent badge-sm ml-auto">
+{{ cms_new_opportunities }}
+</span>
+{% endif %}
+</a>
+    
+    </li>
+    
+    <!-- ================= CONSULTANT ================= -->
+<!-- CONSULTANT -->
+{% if est_consultant_valide %}
+<div class="divider uppercase text-xs font-semibold opacity-50 mt-6">
+Expertise
+</div>
+
+<li>
+<a href="{% url 'sollicitations_list' %}"
+   class="flex items-center gap-2">
+
+    <i class="fa-solid fa-envelope-open-text w-5"></i>
+    Mes sollicitations
+
+    {% if notif_consultant_solicitations %}
+        <span class="badge badge-error badge-sm">
+            {{ notif_consultant_solicitations }}
+        </span>
+    {% endif %}
+</a>
+</li>
+
+<li>
+<a href="{% url 'consultant_missions' %}"
+   class="flex items-center gap-2">
+
+<i class="fa-solid fa-handshake-angle w-5"></i>
+Mes missions
+</a>
+</li>
+{% endif %}
+
+    <!-- ================= CTA ROSTER ================= -->
+<!-- CTA ROSTER -->
+{% if not profil_roster %}
+<div class="mt-auto p-4 bg-primary/5 rounded-2xl border border-primary/10">
+<p class="text-xs mb-3 font-medium">
+Devenez consultant expert pour recevoir des missions.
+</p>
+
+<a href="{% url 'roster_postuler' %}" class="btn btn-primary btn-sm w-full">
+Rejoindre le Roster
+</a>
+</div>
+{% endif %}
+
+<!-- REFUSE -->
+{% if profil_roster and profil_roster.statut == "REFUSE" %}
+<div class="mt-6 p-4 bg-warning/10 rounded-xl border border-warning/20">
+<p class="text-xs font-medium mb-2">
+Votre candidature consultant a été refusée.
+</p>
+
+<a href="{% url 'roster_reexamen' %}"
+   class="btn btn-warning btn-xs w-full">
+Demander un réexamen
+</a>
+</div>
+{% endif %}
+
+    <!-- LOGOUT -->
+    <li class="mt-6">
+        <a href="{% url 'logout' %}" class="text-error">
+            <i class="fa-solid fa-power-off w-5"></i>
+            Déconnexion
+        </a>
+    </li>
+
+</ul>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,95 @@
+{% extends "base_espace.html" %}
+
+{% block content %}
+
+<div class="max-w-4xl mx-auto space-y-6">
+
+    <!-- Retour -->
+    <a href="{% url 'sollicitations_list' %}"
+       class="btn btn-ghost btn-sm">
+        ← Retour aux sollicitations
+    </a>
+
+    <!-- Titre -->
+    <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold">
+            {{ contact.mission.titre }}
+        </h1>
+
+        <div class="badge badge-warning">
+            En attente
+        </div>
+    </div>
+
+    <!-- Mission -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title">📌 Détails de la mission</h2>
+
+            <p><strong>Domaine :</strong> {{ contact.mission.domaine }}</p>
+
+            <p class="mt-2">
+                {{ contact.mission.description }}
+            </p>
+
+            {% if contact.duree_estimee_jours %}
+            <p class="mt-2">
+                <strong>Durée estimée :</strong>
+                {{ contact.duree_estimee_jours }} jours
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Client -->
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title">👤 Client</h2>
+
+            <p>
+                {{ contact.client.get_full_name|default:contact.client.email }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Message -->
+    {% if contact.message %}
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title">💬 Message du client</h2>
+            <p class="whitespace-pre-line">
+                {{ contact.message }}
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="card bg-base-200">
+        <div class="card-body">
+
+            <h2 class="card-title">Décision</h2>
+
+            <form method="post" class="flex gap-4">
+                {% csrf_token %}
+
+                <button name="action"
+                        value="accept"
+                        class="btn btn-success">
+                    ✅ Accepter la mission
+                </button>
+
+                <button name="action"
+                        value="refuse"
+                        class="btn btn-error">
+                    ❌ Refuser
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

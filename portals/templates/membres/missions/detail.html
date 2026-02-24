@@ -1,0 +1,141 @@
+{% extends "base_espace.html" %}
+{% block content %}
+
+<div class="max-w-5xl mx-auto space-y-6">
+
+<!-- ================= HEADER ================= -->
+
+<a href="{% url 'consultant_missions' %}" class="btn btn-ghost btn-sm">
+← Retour aux missions
+</a>
+
+<div class="flex justify-between items-center">
+    <h1 class="text-2xl font-bold">{{ mission.titre }}</h1>
+
+    {% if contact.statut == "MISSION_CONFIRME" %}
+        <span class="badge badge-primary">Mission en cours</span>
+    {% else %}
+        <span class="badge badge-success">Mission terminée</span>
+    {% endif %}
+</div>
+
+<!-- ================= RESUME RAPIDE ================= -->
+
+<div class="stats shadow w-full">
+
+    <div class="stat">
+        <div class="stat-title">Durée</div>
+        <div class="stat-value text-lg">
+            {{ mission.duree_estimee_jours|default:"—" }} jours
+        </div>
+    </div>
+
+    <div class="stat">
+        <div class="stat-title">Localisation</div>
+        <div class="stat-value text-lg">
+            {{ mission.localisation|default:"Non précisée" }}
+        </div>
+    </div>
+
+    <div class="stat">
+        <div class="stat-title">Budget</div>
+        <div class="stat-value text-lg">
+            {{ mission.budget_estime|default:"Confidentiel" }}
+        </div>
+    </div>
+
+</div>
+
+<!-- ================= DESCRIPTION ================= -->
+
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+<h2 class="card-title">📌 Contexte</h2>
+<p class="whitespace-pre-line">{{ mission.description }}</p>
+</div>
+</div>
+
+{% if mission.objectifs %}
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+<h2 class="card-title">🎯 Objectifs</h2>
+<p class="whitespace-pre-line">{{ mission.objectifs }}</p>
+</div>
+</div>
+{% endif %}
+
+{% if mission.livrables_attendus %}
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+<h2 class="card-title">📦 Livrables attendus</h2>
+<p class="whitespace-pre-line">{{ mission.livrables_attendus }}</p>
+</div>
+</div>
+{% endif %}
+
+<!-- ================= CLIENT ================= -->
+
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+<h2 class="card-title">👤 Client</h2>
+<p>{{ contact.client.get_full_name|default:contact.client.email }}</p>
+</div>
+</div>
+
+<!-- ================= DOCUMENTS ================= -->
+
+{% if mission.documents.all %}
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+
+<h2 class="card-title">📎 Documents mission</h2>
+
+<ul class="space-y-2">
+{% for doc in mission.documents.all %}
+<li class="flex justify-between items-center">
+
+<span>
+{{ doc.nom }}
+<span class="badge badge-outline">
+{{ doc.get_type_document_display }}
+</span>
+</span>
+
+<a href="{{ doc.fichier.url }}"
+class="btn btn-sm btn-outline"
+target="_blank">
+Télécharger
+</a>
+
+</li>
+{% endfor %}
+</ul>
+
+</div>
+</div>
+{% endif %}
+
+
+
+<!-- ================= ACTION ================= -->
+
+{% if contact.statut == "MISSION_CONFIRME" %}
+<div class="card bg-base-200">
+<div class="card-body">
+
+<h2 class="card-title">Clôturer la mission</h2>
+
+<form method="post">
+{% csrf_token %}
+<button name="action" value="terminer" class="btn btn-success">
+✅ Marquer comme terminée
+</button>
+</form>
+
+</div>
+</div>
+{% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base_espace.html" %}
+
+{% block content %}
+
+<div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3">
+        <i class="fa-solid fa-envelope-open-text text-2xl"></i>
+        <h1 class="text-2xl font-bold">Mes sollicitations</h1>
+    </div>
+
+    {% if sollicitations %}
+
+    <div class="overflow-x-auto">
+        <table class="table table-zebra">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Mission</th>
+                    <th>Date</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for contact in sollicitations %}
+                <tr>
+
+                    <td class="font-medium">
+                        {{ contact.client.get_full_name|default:contact.client.email }}
+                    </td>
+
+                    <td>
+                        {{ contact.mission.titre }}
+                    </td>
+
+                    <td>
+                        {{ contact.cree_le|date:"d M Y" }}
+                    </td>
+
+                    <td class="text-right">
+                        <a href="{% url 'consultant_sollicitation_detail' contact.id %}"
+                           class="btn btn-sm btn-primary">
+                            Voir détail
+                        </a>
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+
+        <div class="alert">
+            <span>Aucune sollicitation pour le moment.</span>
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

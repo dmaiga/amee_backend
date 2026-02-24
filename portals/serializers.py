@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ClientProfile
+from portals.models import ClientProfile
 from django.contrib.auth import get_user_model
 import secrets
 from django.core.mail import send_mail

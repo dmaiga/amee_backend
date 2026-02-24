@@ -1,0 +1,80 @@
+{% extends "base_espace.html" %}
+
+{% block content %}
+
+<div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3">
+        <i class="fa-solid fa-briefcase text-2xl"></i>
+        <h1 class="text-2xl font-bold">Mes missions</h1>
+    </div>
+
+    {% if missions %}
+
+    <div class="overflow-x-auto">
+        <table class="table table-zebra">
+
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Mission</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for contact in missions %}
+                <tr>
+
+                    <td class="font-medium">
+                        {{ contact.client.get_full_name|default:contact.client.email }}
+                    </td>
+
+                    <td>
+                        {{ contact.mission.titre }}
+                    </td>
+
+                    <td>
+                        {{ contact.cree_le|date:"d M Y" }}
+                    </td>
+
+                    <td>
+                        {% if contact.statut == "MISSION_CONFIRME" %}
+                            <span class="badge badge-primary">
+                                En cours
+                            </span>
+                        {% elif contact.statut == "MISSION_TERMINEE" %}
+                            <span class="badge badge-success">
+                                Terminée
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td class="text-right">
+                        <a href="{% url 'consultant_mission_detail' contact.id %}"
+                           class="btn btn-sm btn-outline">
+                            Voir détail
+                        </a>
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+
+    {% else %}
+
+        <div class="alert">
+            <span>Aucune mission pour le moment.</span>
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

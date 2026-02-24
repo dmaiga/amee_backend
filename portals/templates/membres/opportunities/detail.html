@@ -1,0 +1,58 @@
+{% extends "base_espace.html" %}
+{% block content %}
+
+<div class="max-w-3xl space-y-6">
+
+<a href="{% url 'opportunities_list' %}"
+   class="btn btn-ghost btn-sm">
+← Retour
+</a>
+
+<div class="card bg-base-100 shadow border border-base-300">
+<div class="card-body">
+
+<div class="flex justify-between items-center">
+<h1 class="text-2xl font-bold">
+{{ opportunity.titre }}
+</h1>
+
+<span class="badge badge-primary">
+{{ opportunity.get_type_display }}
+</span>
+</div>
+
+<p class="mt-4 whitespace-pre-line">
+{{ opportunity.description }}
+</p>
+
+{% if opportunity.date_limite %}
+<div class="alert alert-warning mt-4">
+Date limite : {{ opportunity.date_limite }}
+</div>
+{% endif %}
+
+<div class="flex gap-3 mt-6">
+
+{% if opportunity.fichier_joint %}
+<a href="{{ opportunity.fichier_joint.url }}"
+   class="btn btn-outline">
+Télécharger document
+</a>
+{% endif %}
+
+{% if opportunity.lien_externe %}
+<a href="{{ opportunity.lien_externe }}"
+   target="_blank"
+   class="btn btn-primary">
+Accéder à l’offre
+</a>
+{% endif %}
+
+</div>
+
+</div>
+</div>
+
+</div>
+
+{% endblock %}

@@ -82,7 +82,7 @@ INSTALLED_APPS = [
     'organizations',
     'backoffice',
 
-    'clients',
+    'portals',
 
 ]
 
@@ -109,7 +109,10 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'clients.context_processors.client_notifications',
+                'portals.context_processors.client_notifications',
+                "portals.context_processors.portal_state",
+                'portals.context_processors.cms_notifications',
+                 "portals.context_processors.consultant_notifications",
             ],
         },
     },
@@ -123,10 +126,9 @@ AUTH_USER_MODEL = 'accounts.User'
 # --- AUTHENTIFICATION REDIRECTIONS ---
 
 # URL vers laquelle on est renvoyé si on n'est pas connecté
-LOGIN_URL = 'login/'
+LOGIN_URL = '/portals/login/'
+LOGOUT_REDIRECT_URL = '/portals/login/'
 
-# URL après déconnexion
-LOGOUT_REDIRECT_URL = 'login/'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases

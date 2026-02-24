@@ -1,8 +1,7 @@
 from django import forms
 from missions.models import Mission
+from portals.models import ClientProfile
 
-from django import forms
-from missions.models import Mission
 
 class MissionCreateForm(forms.ModelForm):
     class Meta:
@@ -23,11 +22,6 @@ class MissionCreateForm(forms.ModelForm):
                 field.widget.attrs.update({"class": "textarea textarea-bordered w-full bg-base-100"})
             else:
                 field.widget.attrs.update({"class": "input input-bordered w-full bg-base-100"})
-
-
-from django import forms
-from clients.models import ClientProfile
-
 
 class ClientProfileForm(forms.ModelForm):
 

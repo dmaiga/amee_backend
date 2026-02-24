@@ -1,0 +1,121 @@
+{% extends "base_espace.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="space-y-10">
+
+    <!-- HEADER -->
+    <div>
+        <h1 class="text-2xl font-bold">
+            Bonjour {{ request.user.first_name|default:request.user.email }}
+        </h1>
+        <p class="text-sm opacity-70">
+            Vue d’ensemble de votre activité AMEE
+        </p>
+    </div>
+
+
+    <!-- ============================= -->
+    <!-- STATUT ADHÉSION -->
+    <!-- ============================= -->
+    <div class="card bg-base-100 shadow-sm border border-base-300">
+        <div class="card-body">
+
+            <div class="flex items-center justify-between">
+                <h2 class="card-title">Mon adhésion</h2>
+
+                {% if est_membre_actif %}
+                    <span class="badge badge-success">Active</span>
+                {% else %}
+                    <span class="badge badge-error">Inactive</span>
+                {% endif %}
+            </div>
+
+            {% if membership %}
+                <p class="text-sm opacity-70 mt-2">
+                    Expire le :
+                    <strong>{{ membership.date_expiration }}</strong>
+                </p>
+            {% endif %}
+
+        </div>
+    </div>
+
+
+    <!-- ============================= -->
+    <!-- KPI CONSULTANT -->
+    <!-- ============================= -->
+    {% if est_consultant_valide %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <div class="card bg-base-100 shadow-sm border border-base-300">
+            <div class="card-body">
+                <p class="text-sm opacity-60">Sollicitations reçues</p>
+                <p class="text-4xl font-bold">
+                    {{ nb_sollicitations|default:0 }}
+                </p>
+            </div>
+        </div>
+
+        <div class="card bg-base-100 shadow-sm border border-base-300">
+            <div class="card-body">
+                <p class="text-sm opacity-60">Missions actives</p>
+                <p class="text-4xl font-bold">
+                    {{ nb_missions_actives|default:0 }}
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- ============================= -->
+    <!-- CONTENU -->
+    <!-- ============================= -->
+    <div class="grid lg:grid-cols-2 gap-6">
+
+        <!-- RESSOURCES -->
+        <div class="card bg-base-100 shadow-sm border border-base-300">
+            <div class="card-body">
+                <h2 class="card-title">Dernières ressources</h2>
+
+                {% for res in derniere_ressources %}
+                    <div class="flex justify-between items-center border-b py-2">
+                        <span>{{ res.titre }}</span>
+                        <a href="{{ res.fichier.url }}" class="btn btn-xs btn-outline">
+                            Télécharger
+                        </a>
+                    </div>
+                {% empty %}
+                    <p class="text-sm opacity-60">Aucune ressource.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- OPPORTUNITÉS -->
+        <div class="card bg-base-100 shadow-sm border border-base-300">
+            <div class="card-body">
+                <h2 class="card-title">Opportunités</h2>
+
+                {% for opp in opportunites %}
+                    <div class="border-b py-2">
+                        <p class="font-semibold">{{ opp.titre }}</p>
+                        <p class="text-xs opacity-60">
+                            Date limite : {{ opp.date_limite }}
+                        </p>
+                    </div>
+                {% empty %}
+                    <p class="text-sm opacity-60">Aucune opportunité.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

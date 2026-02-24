@@ -1,0 +1,59 @@
+{% extends "base_espace.html" %}
+
+{% block content %}
+
+<div class="max-w-3xl space-y-8">
+
+<h1 class="text-2xl font-bold">
+Postuler comme consultant AMEE
+</h1>
+
+<div class="alert">
+Votre profil membre a été utilisé pour pré-remplir votre candidature.
+</div>
+
+<form method="post"
+      enctype="multipart/form-data"
+      class="card bg-base-100 shadow border border-base-300">
+
+{% csrf_token %}
+
+<div class="card-body space-y-6">
+
+<label class="form-control">
+<span class="label-text">Domaine d’expertise</span>
+{{ form.domaine_expertise }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Années d'expérience</span>
+{{ form.annees_experience }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Type d’intervention</span>
+{{ form.eligibilite_option }}
+</label>
+
+<label class="form-control">
+<span class="label-text">CV</span>
+{{ form.cv_document }}
+</label>
+
+<div class="flex justify-between items-center">
+<span>Disponible pour missions</span>
+{{ form.est_disponible }}
+</div>
+
+<div class="pt-4">
+<button class="btn btn-primary">
+Soumettre ma candidature
+</button>
+</div>
+
+</div>
+</form>
+
+</div>
+
+{% endblock %}

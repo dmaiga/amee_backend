@@ -1,0 +1,48 @@
+{% extends "base_espace.html" %}
+{% block content %}
+
+<h1 class="text-2xl font-bold mb-6">
+Opportunités professionnelles
+</h1>
+
+<div class="grid md:grid-cols-2 gap-6">
+
+{% for o in opportunities %}
+<div class="card bg-base-100 shadow border border-base-300">
+
+<div class="card-body">
+
+<div class="flex justify-between">
+<h2 class="card-title">{{ o.titre }}</h2>
+
+<span class="badge badge-outline">
+{{ o.get_type_display }}
+</span>
+</div>
+
+<p class="text-sm opacity-70">
+{{ o.description|truncatewords:25 }}
+</p>
+
+{% if o.date_limite %}
+<p class="text-xs opacity-60">
+Date limite : {{ o.date_limite }}
+</p>
+{% endif %}
+
+<div class="card-actions justify-end mt-4">
+<a href="{% url 'opportunity_detail' o.id %}"
+   class="btn btn-primary btn-sm">
+Voir détail
+</a>
+</div>
+
+</div>
+</div>
+{% empty %}
+<p>Aucune opportunité disponible.</p>
+{% endfor %}
+
+</div>
+
+{% endblock %}

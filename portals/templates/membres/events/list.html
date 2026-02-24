@@ -1,0 +1,49 @@
+{% extends "base_espace.html" %}
+{% block content %}
+
+<h1 class="text-2xl font-bold mb-6">
+Événements & Formations
+</h1>
+
+<div class="space-y-6">
+
+{% for e in events %}
+<div class="card bg-base-100 shadow border border-base-300">
+
+<div class="card-body">
+
+<div class="flex justify-between items-center">
+<h2 class="card-title">{{ e.titre }}</h2>
+
+<span class="badge badge-primary">
+{{ e.get_type_display }}
+</span>
+</div>
+
+<p class="opacity-70">
+{{ e.contenu|truncatewords:35 }}
+</p>
+
+{% if e.date_publication %}
+<p class="text-sm opacity-60">
+Publié le {{ e.date_publication|date:"d M Y" }}
+</p>
+{% endif %}
+
+{% if e.lien_externe %}
+<a href="{{ e.lien_externe }}"
+   target="_blank"
+   class="btn btn-outline btn-sm mt-3">
+Voir plus
+</a>
+{% endif %}
+
+</div>
+</div>
+{% empty %}
+<p>Aucun événement pour le moment.</p>
+{% endfor %}
+
+</div>
+
+{% endblock %}

@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView
-from django.db.models import Count,Q
+from django.db.models import Count,Q,Exists, OuterRef
 from django.views.generic import CreateView
 from django.urls import reverse
 from django.utils import timezone
@@ -12,12 +12,19 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.utils.timesince import timesince
 from django.contrib import messages
-from django.db.models import Exists, OuterRef
+
 from django.db import IntegrityError
+from django.contrib.auth import logout
+from django.contrib.auth import authenticate, login
+
+from portals.decorators import portal_access_required
+from portals.mixins import PortalAccessMixin
+ 
 
 # --- DJANGO REST FRAMEWORK ---
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny
+from portals.serializers import ClientRegistrationSerializer
 
 
 
@@ -25,23 +32,90 @@ from rest_framework.permissions import AllowAny
 from accounts.models import User
 from roster.models import ConsultantProfile
 from missions.models import Mission, MissionDocument
-from missions.forms import MissionCreateForm
-from clients.serializers import ClientRegistrationSerializer
-from clients.decorators import client_required
-
 from interactions.models import ContactRequest
-from quality_control.forms import FeedbackForm
 from quality_control.models import Feedback
-from clients.forms import ClientProfileForm
+from memberships.models import MemberProfile
+from cms.models import Opportunity,Resource,Article
+
+from roster.forms import ConsultantProfileForm
+from memberships.forms import MemberProfileForm
+from missions.forms import MissionCreateForm
+from quality_control.forms import FeedbackForm
+from portals.forms import ClientProfileForm
  
+
+from django.db.models import Q
+
+# ==========================================
+# 1. AUTHENTIFICATION COMMUNE
+# ==========================================
 
 class ClientRegistrationAPIView(CreateAPIView):
     serializer_class = ClientRegistrationSerializer
     permission_classes = [AllowAny]
 
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+
+def plateforme_login(request):
+    if request.user.is_authenticated:
+        # Évite que quelqu'un déjà connecté ne repasse par le login
+        return redirect_user_by_role(request.user)
+
+    if request.method == "POST":
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+
+        user = authenticate(request, email=email, password=password)
+
+        if user:
+            login(request, user)
+            return redirect_user_by_role(user)
+        
+        return render(
+            request, 
+            "auth/login.html", 
+            {"error": "Identifiants invalides"}
+        )
+
+    return render(request, "auth/login.html")
+
+def redirect_user_by_role(user):
+    """
+    Fonction utilitaire pour centraliser la logique de redirection
+    """
+    # 1. Le client va sur son interface dédiée
+    if user.role == "CLIENT":
+        return redirect("client-dashboard")
+
+    # 2. Les Membres et Consultants vont sur le portail unique /espace/
+
+    if user.role in ["CONSULTANT", "MEMBER"]:
+        return redirect("portal_dashboard")
+
+    # 3. Le Staff (Admin, Compta, etc.) va vers le Backoffice
+    if user.is_staff or user.role in ["ADMIN", "BUREAU", "SECRETARIAT"]:
+        return redirect("bo_dashboard")
+
+    # Fallback par défaut
+    return redirect("login")
+
+def plateforme_logout(request):
+    logout(request)
+    return redirect("login")
+  
+# ###########################################
+#
+# 2. ESPACE CLIENT (Institutions/Recruteurs)
+#
+# ###########################################
+
+# ==========================================
+#  CLIENT DASHBBOARD
+# ==========================================
 
 @login_required
-@client_required
+@portal_access_required("client")
 def client_dashboard(request):
 
     missions = (
@@ -101,9 +175,13 @@ def client_dashboard(request):
         },
     )
 
-##
+# ================================
+#  Gestion des Missions (Besoins)
+#=================================
 
-class ClientMissionCreateView(LoginRequiredMixin, CreateView):
+class ClientMissionCreateView(PortalAccessMixin,LoginRequiredMixin, CreateView):
+  
+    access_level = "client"
     model = Mission
     form_class = MissionCreateForm
     template_name = "clients/missions/create_mission.html"
@@ -118,7 +196,9 @@ class ClientMissionCreateView(LoginRequiredMixin, CreateView):
             kwargs={"pk": self.object.id},
         )
     
-class ClientMissionListView(LoginRequiredMixin, ListView):
+class ClientMissionListView(PortalAccessMixin,LoginRequiredMixin, ListView):
+    
+    access_level = "client"
     template_name = "clients/missions/liste_missions.html"
     context_object_name = "missions"
 
@@ -130,7 +210,9 @@ class ClientMissionListView(LoginRequiredMixin, ListView):
             .order_by("-cree_le")
         )
 
-class ClientMissionDetailView(LoginRequiredMixin, DetailView):
+class ClientMissionDetailView(PortalAccessMixin,LoginRequiredMixin, DetailView):
+   
+    access_level = "client"
     template_name = "clients/missions/detail_mission.html"
     model = Mission
     context_object_name = "mission"
@@ -192,8 +274,8 @@ class ClientMissionDetailView(LoginRequiredMixin, DetailView):
             )
         )
 
-
 @login_required
+@portal_access_required("client")
 def mission_add_document(request, mission_id):
 
     mission = get_object_or_404(
@@ -214,9 +296,13 @@ def mission_add_document(request, mission_id):
 
     return redirect("client_mission_detail", pk=mission.id)
 
-##
-
-class ExpertListView(LoginRequiredMixin, ListView):
+# ================================
+#  Roster & Experts (Vue Client)
+#=================================
+   
+class ExpertListView(PortalAccessMixin,LoginRequiredMixin, ListView):
+    
+    access_level = "client"
     template_name = "clients/experts/liste_experts.html"
     context_object_name = "experts"
 
@@ -263,12 +349,10 @@ class ExpertListView(LoginRequiredMixin, ListView):
             )
 
         return queryset
+   
+class ClientExpertDetailView(PortalAccessMixin,LoginRequiredMixin, DetailView):
     
-from django.db.models import Exists, OuterRef, Count
-from interactions.models import ContactRequest
-
-
-class ClientExpertDetailView(LoginRequiredMixin, DetailView):
+    access_level = "client"
     template_name = "clients/experts/detail_expert.html"
     context_object_name = "expert"
     model = ConsultantProfile
@@ -318,10 +402,13 @@ class ClientExpertDetailView(LoginRequiredMixin, DetailView):
 
         return context
 
-##
 
+# ==========================================
+# Interactions & Collaborations
+# ==========================================
 
 @login_required
+@portal_access_required("client")
 def request_contact_client(request):
 
     if request.method != "POST":
@@ -359,8 +446,8 @@ def request_contact_client(request):
 
     return redirect("client_mission_detail", pk=mission.id)
 
-
 @login_required
+@portal_access_required("client")
 def client_collaborations(request):
 
     contacts = (
@@ -404,10 +491,8 @@ def client_collaborations(request):
         },
     )
 
-
-
-
 @login_required
+@portal_access_required("client")
 def relancer_consultant(request, pk):
 
     contact = get_object_or_404(
@@ -473,9 +558,12 @@ Equipe AMEE
 
     return redirect("client_collaborations")
 
-
+# ==========================================
+# Qualité (Feedback Client)
+# ==========================================
 
 @login_required
+@portal_access_required("client")
 def donner_feedback(request, pk):
 
     contact = get_object_or_404(
@@ -518,9 +606,8 @@ def donner_feedback(request, pk):
         }
     )
 
-
-
 @login_required
+@portal_access_required("client")
 def client_feedback_list(request):
 
     feedbacks = (
@@ -540,6 +627,7 @@ def client_feedback_list(request):
     )
 
 @login_required
+@portal_access_required("client")
 def client_feedback_detail(request, pk):
 
     feedback = get_object_or_404(
@@ -554,11 +642,12 @@ def client_feedback_detail(request, pk):
         {"feedback": feedback},
     )
 
-#
-#
-#
+# ======================================
+#  Paramètres
+# ======================================
 
 @login_required
+@portal_access_required("client")
 def client_profile_settings(request):
 
     profile = request.user.client_profile
@@ -577,4 +666,451 @@ def client_profile_settings(request):
         request,
         "clients/profile/settings.html",
         {"form": form},
+    )
+
+# ==========================================
+# 3. ESPACE MEMBRE  / CONSULTANT
+# ==========================================
+@login_required
+@portal_access_required("member")
+def portal_dashboard(request):
+
+    user = request.user
+    context = {}
+
+    # -------------------------
+    # ADHESION
+    # -------------------------
+    adhesion = getattr(user, "adhesion", None)
+
+    context["membership"] = adhesion
+    context["est_membre_actif"] = (
+        adhesion.est_actif if adhesion else False
+    )
+
+    # -------------------------
+    # CONSULTANT
+    # -------------------------
+    profil = getattr(user, "profil_roster", None)
+
+    context["profil_roster"] = profil
+    context["est_consultant_valide"] = (
+        profil.est_actif_roster if profil else False
+    )
+
+    # -------------------------
+    # KPI CONSULTANT
+    # -------------------------
+    if context["est_consultant_valide"]:
+        context["nb_sollicitations"] = ContactRequest.objects.filter(
+            consultant=user,
+            statut="ENVOYE"
+        ).count()
+
+    # -------------------------
+    # CMS
+    # -------------------------
+    context["derniere_ressources"] = Resource.objects.order_by("-cree_le")[:3]
+    context["opportunites"] = Opportunity.objects.order_by("-date_limite")[:3]
+
+    return render(request, "membres/dashboard.html", context)
+
+# ===============
+# Profil Member
+# ===============
+
+
+@login_required
+@portal_access_required("member")
+def member_profile(request):
+
+    member_profile, _ = MemberProfile.objects.get_or_create(
+        user=request.user
+    )
+
+    consultant_profile = getattr(request.user, "profil_roster", None)
+
+    member_form = MemberProfileForm(instance=member_profile)
+
+    # -----------------------------
+    # PERMISSION EDIT CONSULTANT
+    # -----------------------------
+    can_edit_consultant = False
+
+    if consultant_profile:
+        can_edit_consultant = consultant_profile.statut in [
+            "BROUILLON",
+            "REFUSE",
+            "VALIDE",
+            
+        ]
+
+    # ---------------- POST MEMBER ONLY ----------------
+    if request.method == "POST" and "save_member" in request.POST:
+
+        member_form = MemberProfileForm(
+            request.POST,
+            request.FILES,
+            instance=member_profile
+        )
+
+        if member_form.is_valid():
+            member_form.save()
+            messages.success(request, "Profil membre mis à jour.")
+            return redirect("member_profile")
+
+    return render(
+        request,
+        "membres/profile/profile.html",
+        {
+            "member_form": member_form,
+            "consultant_profile": consultant_profile,
+            "can_edit_consultant": can_edit_consultant,
+        }
+    )
+
+# ===============
+# Roster Member
+# ===============
+
+@login_required
+@portal_access_required("member")
+def roster_reexamen(request):
+
+    profil = getattr(request.user, "profil_roster", None)
+
+    if not profil or profil.statut != "REFUSE":
+        return redirect("portal_dashboard")
+
+    if request.method == "POST":
+
+        motif = request.POST.get("motif")
+
+        profil.demander_reexamen(
+            demandeur=request.user,
+            motif=motif
+        )
+
+        messages.success(
+            request,
+            "Votre demande de réexamen a été envoyée."
+        )
+
+        return redirect("portal_dashboard")
+
+    return render(
+        request,
+        "membres/roster/reexamen.html",
+        {"profil": profil}
+    )
+
+@login_required
+@portal_access_required("member")
+def roster_postuler(request):
+
+    profil, _ = ConsultantProfile.objects.get_or_create(
+        user=request.user
+    )
+
+    form = ConsultantProfileForm(
+        request.POST or None,
+        request.FILES or None,
+        instance=profil
+    )
+
+    if request.method == "POST" and form.is_valid():
+        consultant = form.save(commit=False)
+        consultant.statut = "SOUMIS"
+        consultant.save()
+
+        messages.success(request, "Candidature envoyée.")
+        return redirect("member_profile")
+
+    return render(request, "membres/roster/postuler.html", {"form": form})
+
+@login_required
+@portal_access_required("member")
+def roster_edit_profile(request):
+
+    profil = getattr(request.user, "profil_roster", None)
+
+    if not profil:
+        return redirect("member_profile")
+
+    # verrou pendant review
+    if profil.statut == "SOUMIS":
+        messages.warning(
+            request,
+            "Votre dossier est en cours d’évaluation."
+        )
+        return redirect("member_profile")
+
+    form = ConsultantProfileForm(
+        request.POST or None,
+        request.FILES or None,
+        instance=profil
+    )
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+
+        messages.success(
+            request,
+            "Profil consultant mis à jour."
+        )
+
+        return redirect("member_profile")
+
+    return render(
+        request,
+        "membres/profile/edit_consultant_profile.html",
+        {
+            "form": form,
+            "profil": profil,
+        }
+    )
+
+# ===============
+#  Membership
+# ===============
+
+from tresorerie.models import Transaction
+from django.utils import timezone
+
+
+@login_required
+@portal_access_required("member")
+def membership_detail(request):
+
+    adhesion = getattr(request.user, "adhesion", None)
+
+    paiements = Transaction.objects.filter(
+        membre=request.user,
+        statut="VALIDEE",
+        categorie__in=["ADHESION", "COTISATION"],
+    ).order_by("-date_transaction")
+
+    statut = "INACTIF"
+    expiration_proche = False
+
+    if adhesion and adhesion.est_actif:
+        statut = "ACTIF"
+
+        if adhesion.date_expiration:
+            delta = adhesion.date_expiration - timezone.now().date()
+            expiration_proche = delta.days <= 30
+
+    return render(
+        request,
+           "membres/membership/detail.html",
+        {
+            "adhesion": adhesion,
+            "paiements": paiements,
+            "statut": statut,
+            "expiration_proche": expiration_proche,
+        },
+    )
+
+
+@login_required
+@portal_access_required("member")
+def resources_list(request):
+
+    ressources = Resource.objects.all().order_by("-cree_le")
+
+    # si ressource réservée → membre actif seulement
+    if not getattr(request.user, "adhesion", None) or not request.user.adhesion.est_actif:
+        ressources = ressources.filter(reserve_aux_membres=False)
+
+    return render(
+        request,
+        "membres/resources/list.html",
+        {
+            "ressources": ressources,
+        },
+    )
+
+
+
+@login_required
+@portal_access_required("member")
+def events_list(request):
+
+    events = Article.objects.filter(
+        type__in=["EVENEMENT", "FORMATION"],
+        publie=True,
+    ).order_by("-date_publication")
+
+    return render(
+        request,
+        "membres/events/list.html",
+        {
+            "events": events,
+        },
+    )
+
+
+
+
+@login_required
+@portal_access_required("member")
+def opportunities_list(request):
+
+    opportunities = Opportunity.objects.filter(
+        publie=True
+    ).order_by("-cree_le")
+
+    return render(
+        request,
+        "membres/opportunities/list.html",
+        {
+            "opportunities": opportunities,
+        }
+    )
+
+@login_required
+@portal_access_required("member")
+def opportunity_detail(request, pk):
+
+    opportunity = get_object_or_404(
+        Opportunity,
+        pk=pk,
+        publie=True
+    )
+
+    return render(
+        request,
+        "membres/opportunities/detail.html",
+        {
+            "opportunity": opportunity,
+        }
+    )
+
+
+@login_required
+@portal_access_required("consultant")
+def sollicitations_list(request):
+
+    sollicitations = (
+        ContactRequest.objects
+        .filter(
+            consultant=request.user,
+            statut="ENVOYE"
+        )
+        .select_related("mission", "client")
+        .order_by("-cree_le")
+    )
+
+    return render(
+        request,
+        "membres/sollicitations/list.html",
+        {"sollicitations": sollicitations}
+    )
+
+@login_required
+@portal_access_required("consultant")
+def sollicitation_detail(request, pk):
+
+    contact = get_object_or_404(
+        ContactRequest,
+        pk=pk,
+        consultant=request.user
+    )
+
+    if request.method == "POST":
+
+        action = request.POST.get("action")
+
+        if action == "accept":
+            contact.statut = "MISSION_CONFIRME"
+
+        elif action == "refuse":
+            contact.statut = "REFUSE"
+
+        contact.save()
+        return redirect("consultant_solicitations")
+
+    return render(
+        request,
+       "membres/sollicitations/detail.html",
+        {"contact": contact}
+    )
+
+
+@login_required
+@portal_access_required("consultant")
+def consultant_missions(request):
+
+    missions = (
+        ContactRequest.objects
+        .filter(
+            consultant=request.user,
+            statut__in=[
+                "MISSION_CONFIRME",
+                "MISSION_TERMINEE"
+            ]
+        )
+        .select_related("mission", "client")
+        .order_by("-cree_le")
+    )
+
+    return render(
+        request,
+        "membres/missions/list.html",
+        {"missions": missions}
+    )
+
+
+# membres/views.py
+
+
+@login_required
+@portal_access_required("consultant")
+def mission_detail(request, pk):
+
+    contact = get_object_or_404(
+        ContactRequest.objects.select_related(
+            "mission",
+            "client"
+        ).prefetch_related(
+            "mission__documents"
+        ),
+        pk=pk,
+        consultant=request.user
+    )
+
+    # sécurité
+    if contact.statut not in [
+        "MISSION_CONFIRME",
+        "MISSION_TERMINEE"
+    ]:
+        return redirect("consultant_missions")
+
+    # ACTIONS
+    if request.method == "POST":
+
+        action = request.POST.get("action")
+
+        if action == "terminer":
+            try:
+                contact.terminer()
+                messages.success(
+                    request,
+                    "Mission marquée comme terminée."
+                )
+            except ValueError:
+                messages.warning(
+                    request,
+                    "Impossible de terminer cette mission."
+                )
+
+            return redirect("consultant_mission_detail", pk=contact.pk)
+
+    return render(
+        request,
+        "membres/missions/detail.html",
+        {
+            "contact": contact,
+            "mission": contact.mission,
+        }
     )

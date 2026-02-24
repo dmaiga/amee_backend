@@ -39,7 +39,7 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema')),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema')),
     
-    path('', RedirectView.as_view(url='/backoffice/login/', permanent=True)),
+    path('', RedirectView.as_view(url='/portals/login/', permanent=True)),
     path('api/auth/login/', LoginView.as_view()),
     path('api/auth/refresh/', TokenRefreshView.as_view()),
     path('api/auth/register/', RegisterView.as_view(), name='register'),
@@ -52,8 +52,8 @@ urlpatterns = [
     path("api/quality/", include("quality_control.urls")),
     path("api/cms/", include("cms.urls")),
 
-    path("api/clients/", include("clients.urls")),
-    path("client/", include("clients.urls")),
+    path("api/portals/", include("portals.urls")),
+    path("portals/", include("portals.urls")),
     path("backoffice/", include("backoffice.urls")),
 
 ]

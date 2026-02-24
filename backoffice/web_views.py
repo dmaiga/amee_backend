@@ -44,55 +44,37 @@ from backoffice.forms import OrganizationForm
 from datetime import timedelta
 from django.utils import timezone
 
-
+from backoffice.service_paiement import PaiementService
 from tresorerie.services import TresorerieService
 from django.contrib.auth import logout
+from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from portals.models import ClientProfile
+import secrets
+import string
+
+import uuid
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+
+from django.contrib.auth import get_user_model
+
+from tresorerie.forms import EnrolementPaiementForm
+
+User = get_user_model()
 
 #-----------------------------
 #
 #-----------------------------
 
-def plateforme_login(request):
-
-    if request.method == "POST":
-
-        email = request.POST.get("email")
-        password = request.POST.get("password")
-
-        user = authenticate(
-            request,
-            email=email,
-            password=password
-        )
-
-        if user:
-            login(request, user)
-
-            # 🔥 ROUTAGE INTELLIGENT
-            if user.role == "CLIENT":
-                return redirect("client-dashboard")
-
-            if user.role == "CONSULTANT":
-                return redirect("consultant-dashboard")  # futur
-
-            # fallback = backoffice
-            return redirect("bo_dashboard")
-        
-
-        return render(
-            request,
-            "backoffice/login.html",
-            {"error": "Identifiants invalides"}
-        )
-
-    return render(request, "backoffice/login.html")
-
-def plateforme_logout(request):
-    logout(request)
-    return redirect("login")
-    
+ 
 @login_required
 def dashboard(request):
     now = timezone.now()
@@ -224,26 +206,8 @@ def enrolement_dashboard(request):
 @login_required
 def paiement_bureau(request, organisation_id=None):
 
-    organisations = Organization.objects.filter(
-        est_actif=True
-    ).order_by("nom")
+    organisations = Organization.objects.filter(est_actif=True).order_by("nom")
 
-    organisation_selected = None
-
-    if organisation_id:
-        organisation_selected = get_object_or_404(
-            Organization,
-            pk=organisation_id
-        )
-
-    context = {
-        "organisations": organisations,
-        "organisation_selected": organisation_selected,
-    }
-
-    # =====================================================
-    # POST : ENREGISTREMENT PAIEMENT
-    # =====================================================
     if request.method == "POST":
 
         organisation = get_object_or_404(
@@ -251,152 +215,73 @@ def paiement_bureau(request, organisation_id=None):
             pk=request.POST.get("organisation")
         )
 
-        operation = request.POST.get("operation")
-        montant = int(request.POST.get("montant"))
-        description = request.POST.get("description")
+        PaiementService.payer_organisation(
+            user=request.user,
+            organisation=organisation,
+            operation=request.POST.get("operation"),
+            montant=int(request.POST.get("montant")),
+            description=request.POST.get("description"),
+        )
 
-        today = timezone.now().date()
-
-        base_data = {
-            "type_transaction": "ENTREE",
-            "montant": montant,
-            "description": description,
-            "date_transaction": today,
-            "organization": organisation,
-        }
-
-        transactions = []
-
-        # -----------------------------
-        # ADHESION INITIALE
-        # -----------------------------
-        if operation in ["FULL", "ADHESION"]:
-
-            transactions.append(
-                TresorerieService.enregistrer_paiement(
-                    user=request.user,
-                    data={**base_data, "categorie": "ADHESION"}
-                )
-            )
-
-            organisation.est_affilie = True
-            organisation.date_affiliation = today
-            organisation.date_expiration = today + timedelta(days=365)
-
-        # -----------------------------
-        # COTISATION / RENOUVELLEMENT
-        # -----------------------------
-        if operation in ["FULL", "COTISATION"]:
-
-            transactions.append(
-                TresorerieService.enregistrer_paiement(
-                    user=request.user,
-                    data={**base_data, "categorie": "COTISATION"}
-                )
-            )
-
-            base_date = organisation.date_expiration or today
-
-            if base_date < today:
-                base_date = today
-
-            organisation.date_expiration = base_date + timedelta(days=365)
-
-        # sauvegarde organisation
-        organisation.save()
-
-        context.update({
-            "success": True,
-            "transactions": transactions,
-            "organisation": organisation,
-        })
-
+        messages.success(request, "Paiement enregistré.")
         return redirect("bo_enrolement_dashboard")
 
-    # =====================================================
-    # GET
-    # =====================================================
     return render(
         request,
         "backoffice/tresorerie/paiement_bureau.html",
-        context
+        {"organisations": organisations}
     )
 
 @login_required
 def tresorerie_paiement(request):
 
-    if request.method == "POST":
-        form = EnrolementPaiementForm(request.POST)
+    if request.method == "GET":
+        token = str(uuid.uuid4())
+        request.session["paiement_token"] = token
 
-        if form.is_valid():
+        return render(
+            request,
+            "backoffice/tresorerie/tresorerie_form.html",
+            {
+                "form": EnrolementPaiementForm(),
+                "paiement_token": token,
+            },
+        )
 
-            data = form.cleaned_data
+    form = EnrolementPaiementForm(request.POST)
 
-            # -------------------------
-            # CREATE OR UPDATE USER
-            # -------------------------
-            user, created = User.objects.get_or_create(
-                email=data["email"],
-                defaults={
-                    "first_name": data["first_name"],
-                    "last_name": data["last_name"],
-                    "phone": data["phone"],
-                    "organization": data["organization"],
-                    "role": "MEMBER",
-                }
-            )
+    if not form.is_valid():
+        return render(request,
+                      "backoffice/tresorerie/tresorerie_form.html",
+                      {"form": form})
 
-            # update infos si déjà existant
-            if not created:
-                user.first_name = data["first_name"]
-                user.last_name = data["last_name"]
-                user.phone = data["phone"]
-                user.organization = data["organization"]
-                user.save()
+    # anti double
+    if request.POST.get("paiement_token") != request.session.get("paiement_token"):
+        messages.warning(request, "Paiement déjà traité.")
+        return redirect("bo_enrolement_dashboard")
 
-            base_data = {
-                "type_transaction": "ENTREE",
-                "montant": data["montant"],
-                "email_payeur": user.email,
-                "description": data["description"],
-            }
+    data = form.cleaned_data
 
-            operation = data["operation"]
-
-            if operation == "FULL":
-                TresorerieService.enregistrer_paiement(
-                    user=request.user,
-                    data={**base_data, "categorie": "ADHESION"}
-                )
-                TresorerieService.enregistrer_paiement(
-                    user=request.user,
-                    data={**base_data, "categorie": "COTISATION"}
-                )
-
-            elif operation == "ADHESION":
-                TresorerieService.enregistrer_paiement(
-                    user=request.user,
-                    data={**base_data, "categorie": "ADHESION"}
-                )
-
-            else:
-                TresorerieService.enregistrer_paiement(
-                    user=request.user,
-                    data={**base_data, "categorie": "COTISATION"}
-                )
-
-            messages.success(request, "Enrôlement enregistré.")
-
-            return redirect("bo_enrolement_dashboard")
-
-    else:
-        form = EnrolementPaiementForm()
-
-    return render(
-        request,
-        "backoffice/tresorerie/tresorerie_form.html",
-        {"form": form}
+    membre, _ = User.objects.update_or_create(
+        email=data["email"],
+        defaults={
+            "first_name": data["first_name"],
+            "last_name": data["last_name"],
+            "phone": data["phone"],
+            "organization": data["organization"],
+            "role": "MEMBER",
+        }
     )
+
+    PaiementService.payer_membre(
+        user=request.user,
+        membre=membre,
+        operation=data["operation"],
+        data=data,
+    )
+
+    messages.success(request, "Enrôlement enregistré.")
+    return redirect("bo_enrolement_dashboard")
 
 
 @login_required
@@ -559,11 +444,6 @@ def membre_detail(request, user_id):
         "backoffice/membres/membre_detail.html",
         context
     )
-
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from clients.models import ClientProfile
 
 
 @login_required

@@ -27,7 +27,10 @@ class ConsultantProfile(models.Model):
 
     # -------- Infos minimales AMEE --------
     domaine_expertise = models.CharField(max_length=255)
-    annees_experience = models.IntegerField()
+    annees_experience = models.IntegerField(
+        null=True,
+        blank=True
+    )
 
     cv_document = models.FileField(
         upload_to="roster/cv/",

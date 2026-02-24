@@ -1,6 +1,6 @@
 from django.urls import path, include
 from .web_views import (
-    plateforme_login,plateforme_logout, dashboard, demander_feedback, feedback_detail, feedback_detail, membres_list, missions_list, 
+   dashboard, demander_feedback, feedback_detail, feedback_detail, membres_list, missions_list, 
     roster_detail, roster_list, tresorerie_paiement, 
     membre_detail, roster_decision,mission_detail,
     transactions_list,transaction_detail,
@@ -12,8 +12,6 @@ from backoffice import views, web_views
 
 urlpatterns = [
     # --- AUTHENTIFICATION & ACCÈS ---
-    path("login/", plateforme_login, name="login"),
-    path("logout/", plateforme_logout, name="logout"),
     path("dashboard/", dashboard, name="bo_dashboard"),
 
     # --- TRÉSORERIE (Source de vérité financière) ---

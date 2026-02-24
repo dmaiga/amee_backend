@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ClientProfile
+from portals.models import ClientProfile
 
 
 @admin.register(ClientProfile)

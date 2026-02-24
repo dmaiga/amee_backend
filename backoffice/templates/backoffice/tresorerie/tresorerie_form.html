@@ -11,7 +11,8 @@
     <form method="post" class="card bg-base-100 shadow">
 
         <div class="card-body space-y-4">
-            {% csrf_token %}
+{% csrf_token %}
+<input type="hidden" name="paiement_token" value="{{ paiement_token }}">
 
             <!-- IDENTITE -->
             <div class="divider">Identité du membre</div>
@@ -40,34 +41,54 @@
 
             <!-- ORGANISATION -->
             <div>
-                <label class="label">{{ form.organization.label }}</label>
-                {{ form.organization }}
+<label class="label">
+    <span class="label-text">Organisation (optionnel)</span>
+</label>
+{{ form.organization }}
             </div>
 
 
             <!-- PAIEMENT -->
-            <div class="divider">Paiement</div>
+<div class="divider">Paiement</div>
 
-            <div>
-                <label class="label">{{ form.operation.label }}</label>
-                {{ form.operation }}
-            </div>
+<div>
+    <label class="label">
+        <span class="label-text">Type d'opération</span>
+    </label>
+    {{ form.operation }}
+</div>
 
-            <div>
-                <label class="label">{{ form.montant.label }}</label>
-                {{ form.montant }}
-            </div>
+<div class="grid md:grid-cols-2 gap-4">
 
-            <div>
-                <label class="label">{{ form.description.label }}</label>
-                {{ form.description }}
-            </div>
+    <div>
+        <label class="label">
+            <span class="label-text">Montant adhésion</span>
+        </label>
+        {{ form.montant_adhesion }}
+    </div>
+
+    <div>
+        <label class="label">
+            <span class="label-text">Montant cotisation</span>
+        </label>
+        {{ form.montant_cotisation }}
+    </div>
+
+</div>
+
+<div>
+    <label class="label">
+        <span class="label-text">Description</span>
+    </label>
+    {{ form.description }}
+</div>
 
             <!-- SUBMIT -->
             <div class="pt-4">
-                <button class="btn btn-success w-full">
-                    ✅ Enregistrer et valider
-                </button>
+<button id="submitBtn" class="btn btn-success w-full">
+    ✅ Enregistrer et valider
+</button>
+
             </div>
 
         </div>
@@ -118,5 +139,12 @@
 {% endif %}
 
 </div>
+
+<script>
+document.querySelector("form").addEventListener("submit", function(){
+    document.getElementById("submitBtn").disabled = true;
+    document.getElementById("submitBtn").classList.add("loading");
+});
+</script>
 
 {% endblock %}

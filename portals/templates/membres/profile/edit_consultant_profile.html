@@ -1,0 +1,170 @@
+{% extends "base_espace.html" %}
+{% block content %}
+
+<div class="max-w-3xl space-y-8">
+
+<h1 class="text-2xl font-bold">Mon profil</h1>
+
+<!-- ================= PROFIL MEMBRE ================= -->
+
+<form method="post" enctype="multipart/form-data"
+      class="card bg-base-100 shadow border border-base-300">
+
+{% csrf_token %}
+
+<div class="card-body space-y-6">
+
+<h2 class="card-title">Informations personnelles</h2>
+
+<div class="flex items-center gap-4">
+{% if member_form.instance.photo %}
+    <img src="{{ member_form.instance.photo.url }}"
+         class="w-20 h-20 rounded-full object-cover border">
+{% else %}
+    <div class="w-20 h-20 rounded-full bg-base-300 flex items-center justify-center">
+        <i class="fa-solid fa-user opacity-40"></i>
+    </div>
+{% endif %}
+
+<div class="flex-1">
+<label class="form-control">
+<span class="label-text">Photo de profil</span>
+{{ member_form.photo }}
+</label>
+</div>
+</div>
+
+<label class="form-control">
+<span class="label-text">Téléphone</span>
+{{ member_form.telephone }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Organisation</span>
+{{ member_form.organisation }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Fonction</span>
+{{ member_form.fonction }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Secteur</span>
+{{ member_form.secteur }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Présentation</span>
+{{ member_form.bio }}
+</label>
+
+<button name="save_member" class="btn btn-primary">
+Enregistrer profil
+</button>
+
+</div>
+</form>
+
+<!-- ================= NON CONSULTANT ================= -->
+
+{% if not consultant_profile %}
+<div class="alert alert-info mt-6">
+<p class="font-medium">
+Rejoignez le roster AMEE pour recevoir des missions comme consultant expert.
+</p>
+
+<a href="{% url 'roster_postuler' %}"
+   class="btn btn-primary btn-sm mt-3">
+Devenir consultant
+</a>
+</div>
+{% endif %}
+
+<!-- ================= CONSULTANT ================= -->
+
+{% if consultant_profile %}
+
+<div class="card bg-base-100 shadow border border-base-300 mt-10">
+<div class="card-body space-y-5">
+
+<h2 class="card-title">Profil consultant</h2>
+
+<!-- ===== STATUT ===== -->
+
+{% if consultant_profile.statut == "SOUMIS" %}
+<div class="alert alert-warning">
+Votre candidature est en cours d’évaluation par AMEE.
+</div>
+
+{% elif consultant_profile.statut == "REFUSE" %}
+<div class="alert alert-error space-y-3">
+
+<p class="font-semibold">
+Votre candidature n’a pas été retenue.
+</p>
+
+{% if consultant_profile.motif_refus %}
+<p class="text-sm">
+Motif : <strong>{{ consultant_profile.motif_refus }}</strong>
+</p>
+{% endif %}
+
+<div class="flex gap-2 flex-wrap">
+<a href="{% url 'roster_edit_profile' %}" class="btn btn-warning btn-sm">
+Corriger mon dossier
+</a>
+
+<a href="{% url 'roster_reexamen' %}" class="btn btn-outline btn-sm">
+Demander un réexamen
+</a>
+
+<a href="{% url 'roster_postuler' %}" class="btn btn-ghost btn-sm">
+Repostuler
+</a>
+</div>
+
+</div>
+
+{% elif consultant_profile.statut == "VALIDE" %}
+<div class="alert alert-success">
+Votre profil consultant est actif.
+</div>
+{% endif %}
+
+<!-- ===== INFOS LECTURE SEULE ===== -->
+
+<div class="grid gap-2 text-sm">
+
+<p><strong>Domaine :</strong>
+{{ consultant_profile.domaine_expertise|default:"—" }}</p>
+
+<p><strong>Expérience :</strong>
+{{ consultant_profile.annees_experience|default:"—" }} ans</p>
+
+<p><strong>Type :</strong>
+{{ consultant_profile.get_eligibilite_option_display }}</p>
+
+<p><strong>Disponible :</strong>
+{% if consultant_profile.est_disponible %}Oui{% else %}Non{% endif %}
+</p>
+
+</div>
+
+<!-- ===== EDIT BUTTON ===== -->
+
+{% if can_edit_consultant %}
+<a href="{% url 'roster_edit_profile' %}"
+   class="btn btn-secondary mt-4">
+Modifier mon profil consultant
+</a>
+{% endif %}
+
+</div>
+</div>
+
+{% endif %}
+
+</div>
+
+{% endblock %}

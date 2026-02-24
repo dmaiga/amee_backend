@@ -40,7 +40,7 @@ class Transaction(models.Model):
     montant = models.DecimalField(max_digits=12, decimal_places=0)
 
     description = models.TextField(blank=True)
-    date_transaction = models.DateField()
+    date_transaction = models.DateField(default=timezone.now)
 
     organization = models.ForeignKey(
         "organizations.Organization",
@@ -80,19 +80,11 @@ class Transaction(models.Model):
     # MOTEUR MÉTIER MEMBERSHIP
     # =====================================================
     def save(self, *args, **kwargs):
-    
-        ancien_statut = None
-    
-        if self.pk:
-            ancien_statut = (
-                Transaction.objects
-                .filter(pk=self.pk)
-                .values_list("statut", flat=True)
-                .first()
-            )
-    
-        # sécurité métier
-        # Email obligatoire uniquement pour adhésion INDIVIDUELLE
+
+        # -----------------------------
+        # Sécurité métier minimale
+        # -----------------------------
+        # Adhésion individuelle → email obligatoire
         if (
             self.categorie == "ADHESION"
             and not self.organization_id
@@ -101,13 +93,5 @@ class Transaction(models.Model):
             raise ValueError(
                 "Une adhésion individuelle nécessite un email payeur."
             )
+
         super().save(*args, **kwargs)
-    
-        # Déclenche uniquement BROUILLON → VALIDEE
-        if (
-            self.statut == "VALIDEE"
-            and ancien_statut == "BROUILLON"
-        ):
-            from .services import process_membership_payment
-            process_membership_payment(self)
-    

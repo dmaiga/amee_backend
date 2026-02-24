@@ -1,0 +1,107 @@
+{% extends "base_espace.html" %}
+{% block content %}
+
+<div class="max-w-5xl space-y-8">
+
+<h1 class="text-2xl font-bold">Mon adhésion AMEE</h1>
+
+<!-- ================= STATUT ================= -->
+
+<div class="card bg-base-100 shadow border border-base-300">
+<div class="card-body">
+
+<div class="flex justify-between items-center">
+
+<h2 class="card-title">Statut</h2>
+
+{% if statut == "ACTIF" %}
+<span class="badge badge-success">Actif</span>
+{% else %}
+<span class="badge badge-error">Inactif</span>
+{% endif %}
+
+</div>
+
+{% if adhesion %}
+<p class="mt-2">
+Expire le :
+<strong>{{ adhesion.date_expiration }}</strong>
+</p>
+{% endif %}
+
+</div>
+</div>
+
+<!-- ================= RAPPEL ================= -->
+
+{% if expiration_proche %}
+<div class="alert alert-warning">
+Votre adhésion expire bientôt. Pensez à renouveler.
+</div>
+{% endif %}
+
+<!-- ================= HISTORIQUE ================= -->
+
+<div class="card bg-base-100 shadow border border-base-300">
+<div class="card-body">
+
+<h2 class="card-title">Historique des paiements</h2>
+
+{% if paiements %}
+<div class="overflow-x-auto">
+
+<table class="table">
+<thead>
+<tr>
+<th>Date</th>
+<th>Montant</th>
+<th>Categorie</th>
+<th>Payer avec</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tbody>
+
+{% for paiement in paiements %}
+<tr>
+
+<td>
+{{ paiement.date_transaction|date:"d M Y" }}
+</td>
+
+<td class="font-medium">
+{{ paiement.montant }} FCFA
+</td>
+
+<td>
+<span class="badge badge-outline">
+{{ paiement.get_categorie_display }}
+</span>
+</td>
+
+<td>
+{% if paiement.cree_par %}
+    {{ paiement.cree_par.get_full_name|default:paiement.cree_par.email }}
+{% else %}
+    —
+{% endif %}
+</td>
+
+</tr>
+{% endfor %}
+
+</tbody></table>
+
+</div>
+{% else %}
+<p class="opacity-60">Aucun paiement enregistré.</p>
+{% endif %}
+
+</div>
+</div>
+
+</div>
+
+{% endblock %}

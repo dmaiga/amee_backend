@@ -1,0 +1,44 @@
+{% extends "base_espace.html" %}
+{% block content %}
+
+<h1 class="text-2xl font-bold mb-6">Ressources AMEE</h1>
+
+<div class="grid md:grid-cols-2 gap-6">
+
+{% for r in ressources %}
+<div class="card bg-base-100 shadow border border-base-300">
+
+<div class="card-body">
+
+<span class="badge badge-outline w-fit">
+{{ r.get_categorie_display }}
+</span>
+
+<h2 class="card-title">{{ r.titre }}</h2>
+
+<p class="text-sm opacity-70">
+{{ r.description|truncatewords:20 }}
+</p>
+
+<div class="flex justify-between items-center mt-4">
+
+<span class="text-xs opacity-60">
+{{ r.telechargements }} téléchargements
+</span>
+
+<a href="{{ r.fichier.url }}"
+   class="btn btn-primary btn-sm">
+Télécharger
+</a>
+
+</div>
+
+</div>
+</div>
+{% empty %}
+<p>Aucune ressource disponible.</p>
+{% endfor %}
+
+</div>
+
+{% endblock %}
