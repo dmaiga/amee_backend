@@ -26,10 +26,18 @@ SECRET_KEY = 'django-insecure-&f9wk0&o0-j#^)zr(qwvol^i(_#t@-y9z0!=m@4b-t4skqdq4-
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.onrender.com",
+    "http://*.onrender.com",
+    "https://amee-backend.onrender.com",
+    "https://amee-web-site.web.app",
+]
 CORS_ALLOW_ALL_ORIGINS = True 
+CORS_ALLOW_CREDENTIALS = True
 
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 from datetime import timedelta
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
