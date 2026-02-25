@@ -6,6 +6,9 @@ echo "🚀 Initialisation AMEE Backend..."
 # ==============================
 # MIGRATIONS
 # ==============================
+
+echo "🧱 Génération des migrations..."
+python manage.py makemigrations --noinput || true
 echo "📦 Application des migrations..."
 python manage.py migrate --noinput
 
