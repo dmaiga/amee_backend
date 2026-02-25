@@ -9,21 +9,21 @@ echo "🚀 Initialisation AMEE Backend..."
 
 # Vérifier si des migrations manquent
 echo "🔍 Vérification des migrations manquantes..."
-if ! python manage.py makemigrations --check --dry-run; then
+if ! uv run  manage.py makemigrations --check --dry-run; then
     echo "⚠️ Aucune migration trouvée, génération en cours..."
-    python manage.py makemigrations --noinput
+    uv run manage.py makemigrations --noinput
 fi
 
 # Appliquer les migrations
 echo "📦 Application des migrations..."
-python manage.py migrate --noinput
+uv run manage.py migrate --noinput
 
 # ==============================
 # SUPERUSER AUTO (si absent)
 # ==============================
 echo "👤 Vérification du superuser..."
 
-python manage.py shell << END
+uv run manage.py shell << END
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
@@ -45,11 +45,11 @@ END
 # STATIC FILES
 # ==============================
 echo "📂 Collecte des fichiers statiques..."
-python manage.py collectstatic --noinput
+uv run manage.py collectstatic --noinput
 
 # ==============================
 # LANCEMENT SERVEUR
 # ==============================
 echo "🚀 Lancement Gunicorn..."
 
-exec python manage.py runserver 0.0.0.0:8000
+exec uv run manage.py runserver 0.0.0.0:8000
