@@ -66,11 +66,17 @@
                     <h2 class="font-bold text-lg leading-tight group-hover:text-primary transition-colors">
                         {{ expert.user.get_full_name }}
                     </h2>
-                    <p class="text-sm font-semibold text-primary/80">{{ expert.domaine_expertise }}</p>
+                    <p class="text-sm font-semibold text-primary/80">{{ expert.public_profile.titre_professionnel }}</p>
                     <p class="text-[10px] uppercase tracking-wider font-bold opacity-40 mt-1">
                         {{ expert.annees_experience }} ans d'expérience
                     </p>
+
                 </div>
+                 {% if expert.public_profile.niveau_seniorite %}
+<div class="badge badge-outline text-[10px] font-bold">
+    {{ expert.public_profile.get_niveau_seniorite_display }}
+</div>
+{% endif %}
             </div>
 
             <div class="flex flex-wrap gap-2 mb-4">
@@ -95,6 +101,9 @@
             <p class="text-sm opacity-70 line-clamp-3 min-h-[4.5rem]">
                 {{ expert.public_profile.resume_public|default:"Aucune description disponible." }}
             </p>
+            <p class="text-xs opacity-60 mt-2">
+    {{ expert.public_profile.secteurs_experience|truncatechars:60 }}
+</p>
 
             <div class="grid grid-cols-2 gap-2 mt-6 py-3 border-t border-b border-base-100 bg-base-50/50 rounded-lg px-2 text-[11px]">
                 <div class="flex items-center gap-2">
@@ -103,15 +112,12 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <i data-lucide="map-pin" class="w-3 h-3 opacity-40"></i>
-                    <span class="font-medium truncate">{{ expert.public_profile.localisation|default:"Distance" }}</span>
+                    <span class="font-medium truncate">{{ expert.public_profile.pays_residence }}</span>
                 </div>
             </div>
 
             <div class="card-actions justify-between items-center mt-6">
-                <a href="{% url 'client_expert_detail' expert.id %}{% if request.GET.mission %}?mission={{ request.GET.mission }}{% endif %}" 
-                   class="btn btn-ghost btn-sm text-primary font-bold">
-                    Profil détaillé
-                </a>
+
                 
                 <a href="{% url 'client_expert_detail' expert.id %}" class="btn btn-primary btn-sm px-6 shadow-md">
                     Contacter

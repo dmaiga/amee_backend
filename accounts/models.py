@@ -5,9 +5,21 @@ import uuid
 from django.utils.text import slugify
 
 from quality_control.models import Feedback
+    
+from django.utils.text import slugify
+import os
 
 
 
+import uuid
+import os
+from django.utils.text import slugify
+
+
+def member_avatar_path(instance, filename):
+    ext = filename.split(".")[-1]
+    filename = f"{slugify(instance.email)}_{uuid.uuid4().hex[:8]}.{ext}"
+    return os.path.join("avatars/members/", filename)
 # =====================================================
 # Custom User Manager (LOGIN PAR EMAIL)
 # =====================================================
@@ -96,7 +108,14 @@ class User(AbstractUser):
         related_name="membres"
     )
 
+    photo = models.ImageField(
+        upload_to=member_avatar_path,
+        null=True,
+        blank=True
+    )
 
+    secondary_phone = models.CharField(max_length=30, blank=True)
+ 
     external_id = models.UUIDField(
         default=uuid.uuid4,
         editable=False,

@@ -1,0 +1,87 @@
+{% extends "base_espace.html" %}
+
+{% block content %}
+
+<div class="max-w-3xl space-y-8">
+
+<h1 class="text-2xl font-bold">Modifier mon profil</h1>
+
+<form method="post"
+      enctype="multipart/form-data"
+      class="card bg-base-100 shadow border border-base-300">
+
+{% csrf_token %}
+
+<div class="card-body space-y-6">
+
+<h2 class="card-title">Informations personnelles</h2>
+
+<!-- ================= PHOTO ================= -->
+<div class="flex items-center gap-4">
+
+    {% if user.photo %}
+        <img src="{{ user.photo.url }}"
+             class="w-20 h-20 rounded-full object-cover border">
+    {% else %}
+        <div class="w-20 h-20 rounded-full bg-base-300 flex items-center justify-center">
+            <i class="fa-solid fa-user opacity-40"></i>
+        </div>
+    {% endif %}
+
+    <div class="flex-1">
+        <label class="form-control">
+            <span class="label-text">Photo de profil</span>
+            {{ form.photo }}
+        </label>
+    </div>
+
+</div>
+
+<!-- ================= NOM ================= -->
+<div class="grid md:grid-cols-2 gap-4">
+
+    <label class="form-control">
+        <span class="label-text">Prénom</span>
+        {{ form.first_name }}
+    </label>
+
+    <label class="form-control">
+        <span class="label-text">Nom</span>
+        {{ form.last_name }}
+    </label>
+
+</div>
+
+<!-- ================= TELEPHONES ================= -->
+
+<label class="form-control">
+    <span class="label-text">Téléphone officiel</span>
+    {{ form.phone }}
+</label>
+
+<label class="form-control">
+    <span class="label-text">Téléphone secondaire</span>
+    {{ form.secondary_phone }}
+</label>
+
+<!-- ================= ACTIONS ================= -->
+
+<div class="flex justify-between items-center pt-4">
+
+    <a href="{% url 'member_profile' %}"
+       class="btn btn-ghost">
+        Annuler
+    </a>
+
+    <button type="submit" class="btn btn-primary">
+        Enregistrer les modifications
+    </button>
+
+</div>
+
+</div>
+</form>
+
+</div>
+
+{% endblock %}

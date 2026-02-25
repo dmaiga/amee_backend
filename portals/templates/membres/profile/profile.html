@@ -1,196 +1,85 @@
 {% extends "base_espace.html" %}
 
 {% block content %}
+<div class="max-w-4xl mx-auto py-8">
 
-<div class="max-w-3xl space-y-8">
-
-<h1 class="text-2xl font-bold">Mon profil</h1>
-
-<!-- ================= PROFIL MEMBRE ================= -->
-
-<form method="post"
-      enctype="multipart/form-data"
-      class="card bg-base-100 shadow border border-base-300">
-
-{% csrf_token %}
-
-<div class="card-body space-y-6">
-
-<h2 class="card-title">Informations personnelles</h2>
-
-<!-- PHOTO -->
-<div class="flex items-center gap-4">
-
-    {% if member_form.instance.photo %}
-        <img src="{{ member_form.instance.photo.url }}"
-             class="w-20 h-20 rounded-full object-cover border">
-    {% else %}
-        <div class="w-20 h-20 rounded-full bg-base-300 flex items-center justify-center">
-            <i class="fa-solid fa-user opacity-40"></i>
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-10 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+            <h3 class="text-blue-800 font-bold uppercase text-xs tracking-wider">Expertise & Missions</h3>
+            <p class="text-sm text-blue-600 mt-1">Gérez votre parcours consultant et vos mises en relation.</p>
         </div>
-    {% endif %}
-
-    <div class="flex-1">
-        <label class="form-control">
-            <span class="label-text">Photo de profil</span>
-            {{ member_form.photo }}
-        </label>
+        <div>
+            {% if consultant_profile %}
+                <a href="{% url 'roster_dashboard' %}" class="btn btn-primary btn-sm normal-case">
+                    Espace Consultant →
+                </a>
+            {% else %}
+                <a href="{% url 'roster_postuler' %}" class="btn btn-success btn-sm text-white normal-case">
+                    Devenir Consultant
+                </a>
+            {% endif %}
+        </div>
     </div>
 
+    <div class="flex flex-col md:flex-row items-center md:items-start gap-8 border-b border-base-200 pb-10">
+        <div class="avatar placeholder">
+            <div class="bg-neutral text-neutral-content rounded-lg w-24 shadow-sm">
+                {% if user.photo %}
+                    <img src="{{ user.photo.url }}" alt="Profil" />
+                {% else %}
+                    <span class="text-2xl font-bold">{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="flex-1 text-center md:text-left">
+            <h1 class="text-3xl font-extrabold text-base-content">{{ user.first_name }} {{ user.last_name }}</h1>
+            <p class="text-sm font-medium opacity-60 mt-1 uppercase tracking-widest">Membre AMEE</p>
+            
+            <div class="mt-6 flex flex-wrap justify-center md:justify-start gap-3">
+                <a href="{% url 'edit_profile' %}" class="btn btn-outline btn-sm">Modifier mes infos</a>
+                <div class="badge badge-lg badge-ghost font-bold text-[10px] uppercase">ID: {{ user.id_membre_association|default:"En attente" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mt-10">
+        
+        <div class="space-y-6">
+            <h4 class="font-bold text-xs uppercase tracking-widest opacity-50 border-l-4 border-primary pl-3">Coordonnées</h4>
+            
+            <div class="space-y-4 text-sm">
+                <div>
+                    <label class="block opacity-50 text-[10px] uppercase font-black">Email Professionnel</label>
+                    <p class="font-semibold">{{ user.email }}</p>
+                </div>
+                <div>
+                    <label class="block opacity-50 text-[10px] uppercase font-black">Téléphone</label>
+                    <p class="font-semibold">{{ user.phone|default:"—" }}</p>
+                </div>
+                <div>
+                    <label class="block opacity-50 text-[10px] uppercase font-black">Organisation</label>
+                    <p class="font-semibold">{{ user.organization|default:"Indépendant" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <h4 class="font-bold text-xs uppercase tracking-widest opacity-50 border-l-4 border-success pl-3">Adhésion AMEE</h4>
+            
+            <div class="card bg-base-100 border border-base-200 shadow-sm">
+                <div class="card-body p-6">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold">Statut Annuel</span>
+                        <div class="badge badge-success text-white font-bold">ACTIF</div>
+                    </div>
+                    <p class="text-xs opacity-60 mt-4 leading-relaxed">
+                        Votre adhésion est valide. Vous avez accès à l'annuaire complet et aux ressources du réseau.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
-
-<label class="form-control">
-<span class="label-text">Téléphone</span>
-{{ member_form.telephone }}
-</label>
-
-<label class="form-control">
-<span class="label-text">Organisation</span>
-{{ member_form.organisation }}
-</label>
-
-<label class="form-control">
-<span class="label-text">Fonction</span>
-{{ member_form.fonction }}
-</label>
-
-<label class="form-control">
-<span class="label-text">Secteur</span>
-{{ member_form.secteur }}
-</label>
-
-<label class="form-control">
-<span class="label-text">Présentation</span>
-{{ member_form.bio }}
-</label>
-
-<button name="save_member" class="btn btn-primary">
-Enregistrer profil
-</button>
-
-</div>
-</form>
-
-
-<!-- ================= MEMBRE NON CONSULTANT ================= -->
-
-{% if not consultant_profile %}
-
-<div class="alert alert-info mt-6">
-<div>
-<p class="font-medium">
-Rejoignez le roster AMEE pour recevoir des missions comme consultant expert.
-</p>
-
-<a href="{% url 'roster_postuler' %}"
-   class="btn btn-primary btn-sm mt-3">
-    Devenir consultant
-</a>
-</div>
-</div>
-
-{% endif %}
-
-
-
-<!-- ================= SECTION CONSULTANT ================= -->
-
-{% if consultant_profile %}
-
-<div class="card bg-base-100 shadow border border-base-300 mt-10">
-<div class="card-body space-y-4">
-
-<h2 class="card-title">Profil consultant</h2>
-
-<!-- STATUT -->
-{% if consultant_profile.statut == "SOUMIS" %}
-<div class="alert alert-warning">
-Candidature en cours d’évaluation par AMEE.
-</div>
-{% elif consultant_profile.statut == "REFUSE" %}
-
-<div class="alert alert-error">
-<div class="space-y-2">
-
-<p class="font-semibold">
-Votre candidature n’a pas été retenue pour le moment.
-</p>
-
-{% if consultant_profile.motif_refus %}
-<p class="text-sm opacity-80">
-Motif AMEE :
-<strong>{{ consultant_profile.motif_refus }}</strong>
-</p>
-{% endif %}
-
-<p class="text-sm">
-Vous pouvez soit corriger votre dossier, soit demander un réexamen si
-vous estimez que votre candidature reste pertinente.
-</p>
-
-<div class="flex gap-3 mt-3 flex-wrap">
-
-<a href="{% url 'roster_edit_profile' %}"
-   class="btn btn-warning btn-sm">
-Corriger mon dossier
-</a>
-
-<a href="{% url 'roster_reexamen' %}"
-   class="btn btn-outline btn-sm">
-Demander un réexamen
-</a>
-
-<a href="{% url 'roster_postuler' %}"
-   class="btn btn-ghost btn-sm">
-Repostuler
-</a>
-
-</div>
-
-</div>
-</div>
-
-
-{% elif consultant_profile.statut == "VALIDE" %}
-<div class="alert alert-success">
-Profil consultant actif.
-</div>
-{% endif %}
-
-<!-- LECTURE SEULE -->
-<div class="grid gap-3 text-sm">
-
-<p><strong>Domaine :</strong>
-{{ consultant_profile.domaine_expertise|default:"—" }}</p>
-
-<p><strong>Expérience :</strong>
-{{ consultant_profile.annees_experience|default:"—" }} ans</p>
-
-<p><strong>Type :</strong>
-{{ consultant_profile.get_eligibilite_option_display }}</p>
-
-<p><strong>Disponible :</strong>
-{% if consultant_profile.est_disponible %}
-Oui
-{% else %}
-Non
-{% endif %}
-</p>
-
-</div>
-
-<!-- BOUTON EDIT -->
-{% if can_edit_consultant %}
-<a href="{% url 'roster_edit_profile' %}"
-   class="btn btn-secondary mt-4">
-Modifier mon profil consultant
-</a>
-{% endif %}
-</div>
-</div>
-
-{% endif %}
-
-</div>
-
 {% endblock %}

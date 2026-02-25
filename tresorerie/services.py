@@ -77,35 +77,36 @@ def appliquer_transaction(transaction):
     # -----------------------------
     # ADHESION = existence seulement
     # -----------------------------
+    # -----------------------------
+    # ADHESION = onboarding membre
+    # -----------------------------
     if transaction.categorie == "ADHESION":
-
+    
         membership, _ = Membership.objects.get_or_create(user=user)
-
-        envoyer_email = False
+    
+        is_new_member = False
         temp_password = None
-
-        # ID membre
+    
+        # Création ID membre (sert de déclencheur onboarding)
         if not user.id_membre_association:
             user.id_membre_association = generate_member_id()
-            envoyer_email = True
-
-        # password initial
-        if not user.has_usable_password():
-            #temp_password = secrets.token_urlsafe(8)
+            is_new_member = True
+    
+        # password initial uniquement pour nouveau membre
+        if is_new_member:
             temp_password = "changeMe"
-            
             user.set_password(temp_password)
-            envoyer_email = True
-
+    
+        # rôle garanti
         user.role = "MEMBER"
         user.save()
-
-        # ✅ envoi email UNE SEULE FOIS
-        if envoyer_email and temp_password:
+    
+        # email envoyé UNE seule fois
+        if is_new_member:
             envoyer_email_enrolement(user, temp_password)
-
+    
         return
-
+    
     # -----------------------------
     # COTISATION = ACTIVATION UNIQUE
     # -----------------------------

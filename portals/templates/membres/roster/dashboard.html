@@ -1,0 +1,91 @@
+{% extends "base_espace.html" %}
+
+{% block content %}
+
+<div class="max-w-3xl space-y-8">
+
+<h1 class="text-2xl font-bold">Espace Consultant AMEE</h1>
+
+{% if not profil %}
+
+<div class="card bg-base-100 shadow border border-base-300">
+<div class="card-body">
+
+<h2 class="card-title">Devenir consultant</h2>
+
+<p>
+Rejoignez le roster AMEE pour recevoir des missions et
+mettre votre expertise à disposition.
+</p>
+
+<a href="{% url 'roster_postuler' %}"
+   class="btn btn-primary mt-4">
+    Commencer ma candidature
+</a>
+
+</div>
+</div>
+
+{% else %}
+
+<div class="card bg-base-100 shadow border border-base-300">
+<div class="card-body space-y-4">
+
+<h2 class="card-title">Statut de votre candidature</h2>
+
+{% if profil.statut == "BROUILLON" %}
+<div class="alert alert-info">
+Votre dossier est en cours de préparation.
+</div>
+
+<a href="{% url 'roster_edit_profile' %}"
+   class="btn btn-primary">
+Continuer mon dossier
+</a>
+
+{% elif profil.statut == "SOUMIS" %}
+<div class="alert alert-warning">
+Votre candidature est en cours d’évaluation.
+</div>
+
+{% elif profil.statut == "REFUSE" %}
+<div class="alert alert-error">
+Votre candidature a été refusée.
+</div>
+
+{% if profil.motif_refus %}
+<p class="text-sm">
+Motif : <strong>{{ profil.motif_refus }}</strong>
+</p>
+{% endif %}
+
+<div class="flex gap-3 flex-wrap">
+<a href="{% url 'roster_edit_profile' %}" class="btn btn-warning btn-sm">
+Corriger mon dossier
+</a>
+
+<a href="{% url 'roster_reexamen' %}" class="btn btn-outline btn-sm">
+Demander réexamen
+</a>
+</div>
+
+{% elif profil.statut == "VALIDE" %}
+<div class="alert alert-success">
+Vous êtes consultant AMEE actif.
+</div>
+
+<a href="{% url 'roster_edit_profile' %}"
+   class="btn btn-secondary">
+Modifier mon profil consultant
+</a>
+
+{% endif %}
+
+</div>
+</div>
+
+{% endif %}
+
+</div>
+
+{% endblock %}

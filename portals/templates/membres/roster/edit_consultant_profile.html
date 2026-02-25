@@ -1,0 +1,136 @@
+{% extends "base_espace.html" %}
+{% block content %}
+
+<div class="max-w-3xl">
+
+<h1 class="text-2xl font-bold mb-6">
+Modifier mon profil consultant
+</h1>
+
+<form method="post" enctype="multipart/form-data"
+      class="card bg-base-100 shadow border border-base-300">
+
+{% csrf_token %}
+
+<div class="card-body space-y-8">
+
+<!-- ================= IDENTITÉ EXPERT ================= -->
+<div class="space-y-4">
+<h2 class="font-semibold text-lg">Présentation professionnelle</h2>
+
+<label class="form-control">
+<span class="label-text">Titre professionnel</span>
+{{ form.titre_professionnel }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Résumé</span>
+{{ form.resume_public }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Niveau séniorité</span>
+{{ form.niveau_seniorite }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Statut professionnel</span>
+{{ form.statut_professionnel }}
+</label>
+</div>
+
+
+<!-- ================= EXPERTISE ================= -->
+<div class="space-y-4">
+<h2 class="font-semibold text-lg">Expertise</h2>
+
+<label class="form-control">
+<span class="label-text">Domaines d’expertise</span>
+{{ form.domaines_expertise }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Secteurs d’expérience</span>
+{{ form.secteurs_experience }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Expérience géographique</span>
+{{ form.experience_geographique }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Langues de travail</span>
+{{ form.langues }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Certifications</span>
+{{ form.certifications }}
+</label>
+</div>
+
+
+<!-- ================= LOCALISATION ================= -->
+<div class="space-y-4">
+<h2 class="font-semibold text-lg">Localisation</h2>
+
+<label class="form-control">
+<span class="label-text">Nationalité</span>
+{{ form.nationalite }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Pays de résidence</span>
+{{ form.pays_residence }}
+</label>
+</div>
+
+
+<!-- ================= DOCUMENTS ================= -->
+<div class="space-y-4">
+<h2 class="font-semibold text-lg">Documents & liens</h2>
+
+<label class="form-control">
+<span class="label-text">CV public</span>
+{{ form.cv_public }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Lien CV externe</span>
+{{ form.lien_cv }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Profil LinkedIn</span>
+{{ form.lien_linkedin }}
+</label>
+</div>
+
+
+<!-- ================= DISPONIBILITÉ ================= -->
+<div class="space-y-4">
+<h2 class="font-semibold text-lg">Disponibilité</h2>
+
+<label class="form-control">
+<span class="label-text">Statut de disponibilité</span>
+{{ form.statut_disponibilite }}
+</label>
+
+<label class="form-control cursor-pointer flex items-center gap-4">
+<span class="label-text">Autoriser la publication dans le roster</span>
+{{ form.consentement_publication }}
+</label>
+</div>
+
+
+<button class="btn btn-primary w-full mt-4">
+Enregistrer les modifications
+</button>
+
+</div>
+</form>
+
+</div>
+
+{% endblock %}

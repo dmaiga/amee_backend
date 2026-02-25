@@ -44,11 +44,13 @@ urlpatterns = [
     
     
     path("espace/profile/", member_profile, name="member_profile"),
+    path("espace/edit_profile/", edit_profile, name="edit_profile"),
     
+    path("espace/roster/", roster_dashboard, name="roster_dashboard"),
+    path("espace/roster/postuler/", roster_postuler, name="roster_postuler"),
+    path("espace/roster/editer/", roster_edit_profile, name="roster_edit_profile"),
     path("espace/roster/reexamen/", roster_reexamen, name="roster_reexamen"),
-    path("roster/postuler/", roster_postuler, name="roster_postuler"),
-    path("roster/editer/",roster_edit_profile, name="roster_edit_profile",),
-    
+
     path("espace/membership/",membership_detail, name="membership_detail",),
 
     path("espace/resources/",resources_list, name="resources_list",),

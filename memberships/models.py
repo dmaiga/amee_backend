@@ -81,7 +81,7 @@ class MemberProfile(models.Model):
     )
 
     telephone = models.CharField(max_length=30, blank=True)
-    organisation = models.CharField(max_length=255, blank=True)
+ 
     fonction = models.CharField(max_length=255, blank=True)
     secteur = models.CharField(max_length=255, blank=True)
     bio = models.TextField(blank=True)

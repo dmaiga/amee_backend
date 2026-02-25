@@ -232,6 +232,7 @@ def paiement_bureau(request, organisation_id=None):
         {"organisations": organisations}
     )
 
+
 @login_required
 def tresorerie_paiement(request):
 
@@ -416,7 +417,10 @@ def membres_list(request):
 def membre_detail(request, user_id):
 
     user = get_object_or_404(
-        User.objects.select_related("adhesion"),
+        User.objects.select_related(
+            "adhesion",
+            "profil_roster"
+        ),
         pk=user_id
     )
 
@@ -427,16 +431,11 @@ def membre_detail(request, user_id):
         .first()
     )
 
-    try:
-        roster_profile = user.profil_roster
-    except ConsultantProfile.DoesNotExist:
-        roster_profile = None
-
     context = {
         "membre": user,
         "membership": getattr(user, "adhesion", None),
         "derniere_transaction": derniere_transaction,
-        "roster_profile": roster_profile,
+        "roster_profile": getattr(user, "profil_roster", None),
     }
 
     return render(
@@ -444,7 +443,6 @@ def membre_detail(request, user_id):
         "backoffice/membres/membre_detail.html",
         context
     )
-
 
 @login_required
 def clients_list(request):

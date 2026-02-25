@@ -30,15 +30,15 @@ from portals.serializers import ClientRegistrationSerializer
 
 # --- APPS LOCALES (AMEE) ---
 from accounts.models import User
-from roster.models import ConsultantProfile
+from roster.models import ConsultantProfile,ConsultantPublicProfile
 from missions.models import Mission, MissionDocument
 from interactions.models import ContactRequest
 from quality_control.models import Feedback
 from memberships.models import MemberProfile
 from cms.models import Opportunity,Resource,Article
 
-from roster.forms import ConsultantProfileForm
-from memberships.forms import MemberProfileForm
+from roster.forms import ConsultantApplicationForm,ConsultantPublicProfileForm
+from memberships.forms import MemberProfileForm,MemberEditForm
 from missions.forms import MissionCreateForm
 from quality_control.forms import FeedbackForm
 from portals.forms import ClientProfileForm
@@ -724,54 +724,57 @@ def portal_dashboard(request):
 @portal_access_required("member")
 def member_profile(request):
 
-    member_profile, _ = MemberProfile.objects.get_or_create(
-        user=request.user
-    )
-
     consultant_profile = getattr(request.user, "profil_roster", None)
-
-    member_form = MemberProfileForm(instance=member_profile)
-
-    # -----------------------------
-    # PERMISSION EDIT CONSULTANT
-    # -----------------------------
-    can_edit_consultant = False
-
-    if consultant_profile:
-        can_edit_consultant = consultant_profile.statut in [
-            "BROUILLON",
-            "REFUSE",
-            "VALIDE",
-            
-        ]
-
-    # ---------------- POST MEMBER ONLY ----------------
-    if request.method == "POST" and "save_member" in request.POST:
-
-        member_form = MemberProfileForm(
-            request.POST,
-            request.FILES,
-            instance=member_profile
-        )
-
-        if member_form.is_valid():
-            member_form.save()
-            messages.success(request, "Profil membre mis à jour.")
-            return redirect("member_profile")
 
     return render(
         request,
         "membres/profile/profile.html",
         {
-            "member_form": member_form,
+            "user": request.user,
             "consultant_profile": consultant_profile,
-            "can_edit_consultant": can_edit_consultant,
         }
+    )
+
+@login_required
+@portal_access_required("member")
+def edit_profile(request):
+
+    if request.method == "POST":
+        form = MemberEditForm(request.POST, request.FILES, instance=request.user)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profil mis à jour.")
+            return redirect("member_profile")
+
+    else:
+        form = MemberEditForm(instance=request.user)
+
+    return render(
+        request,
+        "membres/profile/edit_profile.html",
+        {"form": form}
     )
 
 # ===============
 # Roster Member
 # ===============
+
+@login_required
+@portal_access_required("member")
+def roster_dashboard(request):
+
+    profil = getattr(request.user, "profil_roster", None)
+
+    context = {
+        "profil": profil,
+    }
+
+    return render(
+        request,
+        "membres/roster/dashboard.html",
+        context
+    )
 
 @login_required
 @portal_access_required("member")
@@ -863,7 +866,50 @@ def roster_edit_profile(request):
 
     return render(
         request,
-        "membres/profile/edit_consultant_profile.html",
+        "membres/roster/edit_consultant_profile.html",
+        {
+            "form": form,
+            "profil": profil,
+        }
+    )
+
+
+@login_required
+@portal_access_required("member")
+def roster_edit_profile(request):
+
+    profil = getattr(request.user, "profil_roster", None)
+
+    if not profil or profil.statut != "VALIDE":
+        messages.warning(
+            request,
+            "Votre profil consultant n’est pas encore actif."
+        )
+        return redirect("roster_dashboard")
+
+    public_profile, _ = ConsultantPublicProfile.objects.get_or_create(
+        consultant=profil
+    )
+
+    form = ConsultantPublicProfileForm(
+        request.POST or None,
+        request.FILES or None,
+        instance=public_profile
+    )
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+
+        messages.success(
+            request,
+            "Profil consultant mis à jour."
+        )
+
+        return redirect("roster_dashboard")
+
+    return render(
+        request,
+        "membres/roster/edit_consultant_profile.html",
         {
             "form": form,
             "profil": profil,
@@ -1028,7 +1074,7 @@ def sollicitation_detail(request, pk):
             contact.statut = "REFUSE"
 
         contact.save()
-        return redirect("consultant_solicitations")
+        return redirect("sollicitations_list")
 
     return render(
         request,

@@ -1,24 +1,20 @@
 {% extends "base_espace.html" %}
-
 {% block content %}
 
-<div class="max-w-3xl space-y-8">
+<div class="max-w-3xl">
 
-<h1 class="text-2xl font-bold">
-Postuler comme consultant AMEE
+<h1 class="text-2xl font-bold mb-6">
+Postuler au roster AMEE
 </h1>
 
-<div class="alert">
-Votre profil membre a été utilisé pour pré-remplir votre candidature.
-</div>
-
-<form method="post"
-      enctype="multipart/form-data"
+<form method="post" enctype="multipart/form-data"
       class="card bg-base-100 shadow border border-base-300">
 
 {% csrf_token %}
 
 <div class="card-body space-y-6">
+
+<h2 class="card-title">Dossier de candidature</h2>
 
 <label class="form-control">
 <span class="label-text">Domaine d’expertise</span>
@@ -26,30 +22,45 @@ Votre profil membre a été utilisé pour pré-remplir votre candidature.
 </label>
 
 <label class="form-control">
-<span class="label-text">Années d'expérience</span>
+<span class="label-text">Années d’expérience</span>
 {{ form.annees_experience }}
 </label>
 
 <label class="form-control">
-<span class="label-text">Type d’intervention</span>
+<span class="label-text">Type d’éligibilité</span>
 {{ form.eligibilite_option }}
 </label>
 
 <label class="form-control">
-<span class="label-text">CV</span>
+<span class="label-text">CV pour évaluation</span>
 {{ form.cv_document }}
 </label>
 
-<div class="flex justify-between items-center">
-<span>Disponible pour missions</span>
-{{ form.est_disponible }}
-</div>
+<div class="divider">Profil expert (visible clients)</div>
 
-<div class="pt-4">
-<button class="btn btn-primary">
-Soumettre ma candidature
+<label class="form-control">
+<span class="label-text">Titre professionnel</span>
+{{ form.titre_professionnel }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Résumé professionnel</span>
+{{ form.resume_public }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Domaines expertise</span>
+{{ form.domaines_expertise }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Langues</span>
+{{ form.langues }}
+</label>
+
+<button class="btn btn-primary w-full">
+Envoyer ma candidature
 </button>
-</div>
 
 </div>
 </form>
