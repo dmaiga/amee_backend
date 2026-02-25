@@ -6,9 +6,17 @@ echo "🚀 Initialisation AMEE Backend..."
 # ==============================
 # MIGRATIONS
 # ==============================
+echo "🧱 Reset migration state (mode MVP)..."
+
+# supprimer anciennes migrations générées dynamiquement
+find . -path "*/migrations/*.py" -not -name "__init__.py" -delete || true
+find . -path "*/migrations/*.pyc" -delete || true
+
 
 echo "🧱 Génération des migrations..."
+
 python manage.py makemigrations --noinput || true
+
 echo "📦 Application des migrations..."
 python manage.py migrate --noinput
 
