@@ -25,8 +25,12 @@ SECRET_KEY = 'django-insecure-&f9wk0&o0-j#^)zr(qwvol^i(_#t@-y9z0!=m@4b-t4skqdq4-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 CORS_ALLOW_ALL_ORIGINS = True 
+
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+
 from datetime import timedelta
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
