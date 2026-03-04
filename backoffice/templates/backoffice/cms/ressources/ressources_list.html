@@ -11,6 +11,50 @@
     </a>
 </div>
 
+<form method="get" class="card bg-base-100 shadow mb-4">
+<div class="card-body grid md:grid-cols-4 gap-4">
+
+    <!-- Recherche -->
+    <input
+        type="text"
+        name="q"
+        value="{{ search }}"
+        placeholder="Rechercher une ressource..."
+        class="input input-bordered w-full">
+
+    <!-- Catégorie -->
+    <select name="categorie" class="select select-bordered">
+        <option value="">Toutes catégories</option>
+
+        {% for key,label in categories %}
+        <option value="{{ key }}"
+            {% if selected_categorie == key %}selected{% endif %}>
+            {{ label }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <!-- Accès -->
+    <select name="acces" class="select select-bordered">
+        <option value="">Tous accès</option>
+        <option value="public"
+            {% if selected_acces == "public" %}selected{% endif %}>
+            Public
+        </option>
+
+        <option value="membres"
+            {% if selected_acces == "membres" %}selected{% endif %}>
+            Membres uniquement
+        </option>
+    </select>
+
+    <button class="btn btn-outline">
+        Filtrer
+    </button>
+
+</div>
+</form>
+
 <table class="table table-hover">
 <thead>
 <tr>

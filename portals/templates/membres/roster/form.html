@@ -1,0 +1,255 @@
+{% extends "base_espace.html" %}
+{% block content %}
+
+<div class="max-w-4xl mx-auto space-y-6">
+
+<!-- ================= HEADER ================= -->
+
+<div class="flex justify-between items-center">
+
+    <div>
+        <h1 class="text-3xl font-bold">
+            {% if profil.statut == "BROUILLON" %}
+                Postuler au roster AMEE
+            {% elif profil.statut == "REFUSE" %}
+                Corriger ma candidature
+            {% elif profil.statut == "VALIDE" %}
+                Mettre à jour mon profil consultant
+            {% else %}
+                Mon dossier roster
+            {% endif %}
+        </h1>
+
+        <p class="text-sm opacity-60">
+            Complétez votre dossier pour évaluation par le bureau.
+        </p>
+    </div>
+
+    {% if profil.statut == "REFUSE" %}
+        <div class="badge badge-error badge-lg">
+            Dossier refusé
+        </div>
+    {% else %}
+        <div class="badge badge-info badge-lg">
+            {{ profil.get_statut_display }}
+        </div>
+    {% endif %}
+</div>
+
+{% if profil.motif_refus %}
+<div class="alert alert-error">
+    <div>
+        <strong>Motif du refus :</strong><br>
+        {{ profil.motif_refus }}
+    </div>
+</div>
+{% endif %}
+
+{% if form.non_field_errors %}
+<div class="alert alert-error">
+    {{ form.non_field_errors }}
+</div>
+{% endif %}
+
+<!-- ================= FORM ================= -->
+
+<form method="post" enctype="multipart/form-data"
+      class="card bg-base-100 border border-base-300 shadow-xl">
+
+{% csrf_token %}
+
+<div class="card-body space-y-10">
+
+<!-- ================= ELIGIBILITE ================= -->
+
+<section class="space-y-4">
+<h2 class="text-lg font-semibold border-b pb-2">
+Éligibilité AMEE
+</h2>
+
+<label class="form-control">
+<span class="label-text">Option d’éligibilité</span>
+{{ form.eligibilite_option }}
+</label>
+
+<div class="grid md:grid-cols-2 gap-4">
+
+<label class="form-control">
+<span class="label-text">Diplôme principal</span>
+{{ form.diplome_principal_domaine }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Année diplôme</span>
+{{ form.annee_diplome_principal }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Autre diplôme</span>
+{{ form.autre_diplome_pertinent }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Année autre diplôme</span>
+{{ form.annee_autre_diplome }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Années expérience EES</span>
+{{ form.annees_experience_ees }}
+</label>
+
+</div>
+
+<label class="form-control">
+<span class="label-text">Attestations / Certifications</span>
+{{ form.attestations }}
+</label>
+
+<label class="form-control">
+<span class="label-text">CV pour évaluation</span>
+{{ form.cv_document }}
+</label>
+
+</section>
+
+<!-- ================= PROFIL CONSULTANT ================= -->
+
+<section class="space-y-4">
+<h2 class="text-lg font-semibold border-b pb-2">
+Profil consultant
+</h2>
+
+<label class="form-control">
+<span class="label-text">Titre professionnel</span>
+{{ form.titre_professionnel }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Résumé professionnel</span>
+{{ form.resume_public }}
+</label>
+
+<div class="grid md:grid-cols-2 gap-4">
+<label class="form-control">
+<span class="label-text">Niveau seniorité</span>
+{{ form.niveau_seniorite }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Statut professionnel</span>
+{{ form.statut_professionnel }}
+</label>
+</div>
+
+<label class="form-control">
+<span class="label-text">Domaines d’expertise</span>
+{{ form.domaines_expertise }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Secteurs d’expérience</span>
+{{ form.secteurs_experience }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Expérience géographique</span>
+{{ form.experience_geographique }}
+</label>
+
+<div class="grid md:grid-cols-2 gap-4">
+<label class="form-control">
+<span class="label-text">Langues</span>
+{{ form.langues }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Certifications</span>
+{{ form.certifications }}
+</label>
+</div>
+
+</section>
+
+<!-- ================= LIENS ================= -->
+
+<section class="space-y-4">
+<h2 class="text-lg font-semibold border-b pb-2">
+Liens professionnels
+</h2>
+
+<div class="grid md:grid-cols-2 gap-4">
+<label class="form-control">
+<span class="label-text">CV public</span>
+{{ form.cv_public }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Lien CV</span>
+{{ form.lien_cv }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Profil LinkedIn</span>
+{{ form.lien_linkedin }}
+</label>
+</div>
+
+</section>
+
+<!-- ================= CONSENTEMENT ================= -->
+
+<div class="flex items-center justify-between bg-base-200 p-4 rounded-lg">
+<span class="font-medium">
+Autoriser la publication dans le roster après validation
+</span>
+{{ form.consentement_publication }}
+</div>
+
+<button class="btn btn-primary btn-lg w-full">
+Enregistrer mon dossier
+</button>
+
+</div>
+</form>
+
+</div>
+
+<!-- ================= JS ELIGIBILITE ================= -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const select = document.getElementById("id_eligibilite_option");
+
+    const option1Fields = [
+        "id_diplome_principal_domaine",
+        "id_annee_diplome_principal"
+    ];
+
+    const option2Fields = [
+        "id_autre_diplome_pertinent",
+        "id_annee_autre_diplome"
+    ];
+
+    function toggleFields() {
+
+        const value = select.value;
+
+        option1Fields.forEach(id => {
+            const el = document.getElementById(id)?.closest(".form-control");
+            if (el) el.style.display = (value === "OPTION1") ? "block" : "none";
+        });
+
+        option2Fields.forEach(id => {
+            const el = document.getElementById(id)?.closest(".form-control");
+            if (el) el.style.display = (value === "OPTION2") ? "block" : "none";
+        });
+    }
+
+    toggleFields();
+    select.addEventListener("change", toggleFields);
+});
+</script>
+
+{% endblock %}

@@ -2,13 +2,16 @@
 
 {% block content %}
 
-<div class="max-w-2xl">
+<div class="max-w-3xl mx-auto p-6 space-y-6">
+ 
 
     <h1 class="text-2xl font-semibold mb-6">
-        💰 Enrôlement & Paiement membre
+         Enrôlement & Paiement membre
     </h1>
 
-    <form method="post" class="card bg-base-100 shadow">
+<form method="post"
+      enctype="multipart/form-data"
+      class="card bg-base-100 shadow">
 
         <div class="card-body space-y-4">
 {% csrf_token %}
@@ -38,6 +41,47 @@
                 <label class="label">{{ form.phone.label }}</label>
                 {{ form.phone }}
             </div>
+
+
+
+<div class="divider">Éligibilité membre</div>
+            <div>
+                <label class="label">
+                    <span class="label-text">Option d’éligibilité</span>
+                </label>
+                {{ form.eligibilite_option }}
+            </div>
+<div class="grid md:grid-cols-2 gap-4">
+
+    <div>
+        <label class="label">
+            <span class="label-text">Niveau du diplôme</span>
+        </label>
+        {{ form.diplome_niveau }}
+    </div>
+
+    <div>
+        <label class="label">
+            <span class="label-text">Intitulé du diplôme</span>
+        </label>
+        {{ form.diplome_intitule }}
+    </div>
+
+</div>
+
+<div>
+    <label class="label">
+        <span class="label-text">Diplôme (scan)</span>
+    </label>
+    {{ form.diplome_document }}
+</div>
+            <div>
+                <label class="label">
+                    <span class="label-text">CV du membre</span>
+                </label>
+                {{ form.cv_document }}
+            </div>
+
 
             <!-- ORGANISATION -->
             <div>
@@ -86,7 +130,7 @@
             <!-- SUBMIT -->
             <div class="pt-4">
 <button id="submitBtn" class="btn btn-success w-full">
-    ✅ Enregistrer et valider
+     Enregistrer et valider
 </button>
 
             </div>
@@ -102,7 +146,7 @@
     <div class="card-body">
 
         <h2 class="card-title">
-            ✅ Opération réussie
+             Opération réussie
         </h2>
 
         <p>
@@ -120,7 +164,7 @@
 
         {% if result.membership and result.membership.est_actif %}
             <p class="font-semibold">
-                🌿 Membership ACTIF
+                 Membership ACTIF
             </p>
 
             <p>
@@ -129,7 +173,7 @@
             </p>
         {% else %}
             <p class="text-warning font-semibold">
-                ⏳ Cotisation requise pour activation
+                 Cotisation requise pour activation
             </p>
         {% endif %}
 

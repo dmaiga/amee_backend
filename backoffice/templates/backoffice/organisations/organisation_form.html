@@ -1,23 +1,80 @@
 {% extends "backoffice/base.html" %}
 {% block content %}
 
-<div class="max-w-2xl mx-auto p-6">
+<div class="max-w-3xl mx-auto p-6 space-y-6">
 
-<h2 class="text-xl font-semibold mb-4">
+<h2 class="text-xl font-semibold">
 {% if organisation %}Modifier{% else %}Créer{% endif %} un bureau
 </h2>
 
-<form method="post" class="card bg-base-100 shadow">
-<div class="card-body space-y-4">
+<form method="post"
+      enctype="multipart/form-data"
+      class="space-y-6">
 
 {% csrf_token %}
+
+<!-- ========================= -->
+<!-- 1️⃣ INFORMATIONS BUREAU -->
+<!-- ========================= -->
+
+<div class="card bg-base-100 shadow">
+<div class="card-body space-y-4">
+
+<h3 class="font-semibold">Informations générales</h3>
+
 {{ form.as_p }}
 
-<button class="btn btn-primary">
+</div>
+</div>
+
+<!-- ========================= -->
+<!-- 2️⃣ PAIEMENT ADHÉSION -->
+<!-- ========================= -->
+
+{% if not organisation %}
+<div class="card bg-base-100 shadow">
+<div class="card-body space-y-4">
+
+<h3 class="font-semibold">
+Paiement d’affiliation
+</h3>
+
+<div>
+<label class="label">
+<span class="label-text">Type d’opération</span>
+</label>
+{{ paiement_form.operation }}
+</div>
+
+<div>
+<label class="label">
+<span class="label-text">Montant adhésion</span>
+</label>
+{{ paiement_form.montant_adhesion }}
+</div>
+
+<div>
+<label class="label">
+<span class="label-text">Montant cotisation (si FULL)</span>
+</label>
+{{ paiement_form.montant_cotisation }}
+</div>
+
+<div>
+<label class="label">
+<span class="label-text">Description</span>
+</label>
+{{ paiement_form.description }}
+</div>
+
+</div>
+</div>
+{% endif %}
+
+<button class="btn btn-primary w-full font-semibold">
 Enregistrer
 </button>
 
-</div>
 </form>
 
 </div>

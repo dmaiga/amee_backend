@@ -37,14 +37,14 @@ class PortalAccessMixin:
         # -------------------
         if self.access_level in ["member", "consultant"]:
 
-            adhesion = getattr(user, "adhesion", None)
+            adhesion = getattr(user, "membership", None)
 
             if not adhesion or not adhesion.est_actif:
                 messages.error(
                     request,
                     "Votre adhésion n'est pas active."
                 )
-                return redirect("portal-dashboard")
+                return redirect("portal_dashboard")
 
         # -------------------
         # CONSULTANT
@@ -58,6 +58,6 @@ class PortalAccessMixin:
                     request,
                     "Accès réservé aux consultants validés."
                 )
-                return redirect("portal-dashboard")
+                return redirect("portal_dashboard")
 
         return super().dispatch(request, *args, **kwargs)

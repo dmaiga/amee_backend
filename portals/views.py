@@ -19,7 +19,9 @@ from django.contrib.auth import authenticate, login
 
 from portals.decorators import portal_access_required
 from portals.mixins import PortalAccessMixin
- 
+from django.db.models import Count, Sum
+from django.utils import timezone
+
 
 # --- DJANGO REST FRAMEWORK ---
 from rest_framework.generics import CreateAPIView
@@ -30,20 +32,20 @@ from portals.serializers import ClientRegistrationSerializer
 
 # --- APPS LOCALES (AMEE) ---
 from accounts.models import User
-from roster.models import ConsultantProfile,ConsultantPublicProfile
-from missions.models import Mission, MissionDocument
+from roster.models import ConsultantProfile
+from missions.models import Mission, MissionDocument,MissionApplication
 from interactions.models import ContactRequest
 from quality_control.models import Feedback
-from memberships.models import MemberProfile
+
 from cms.models import Opportunity,Resource,Article
 
-from roster.forms import ConsultantApplicationForm,ConsultantPublicProfileForm
-from memberships.forms import MemberProfileForm,MemberEditForm
-from missions.forms import MissionCreateForm
+from roster.forms import ConsultantApplicationForm
+
+from missions.forms import MissionCreateForm,MissionApplicationForm
+
 from quality_control.forms import FeedbackForm
 from portals.forms import ClientProfileForm
- 
-
+from memberships.forms import MemberEditForm
 from django.db.models import Q
 
 # ==========================================
@@ -188,6 +190,8 @@ class ClientMissionCreateView(PortalAccessMixin,LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.client = self.request.user
+        if form.instance.type_publication == "PUBLIQUE":
+            form.instance.publie_le = timezone.now()
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -196,8 +200,23 @@ class ClientMissionCreateView(PortalAccessMixin,LoginRequiredMixin, CreateView):
             kwargs={"pk": self.object.id},
         )
     
-class ClientMissionListView(PortalAccessMixin,LoginRequiredMixin, ListView):
-    
+@login_required
+@portal_access_required("client")
+def mission_close(request, pk):
+
+    mission = get_object_or_404(
+        Mission,
+        pk=pk,
+        client=request.user
+    )
+
+    mission.statut = "TERMINEE"
+    mission.save()
+
+    return redirect("client_mission_detail", pk=pk)
+
+class ClientMissionListView(PortalAccessMixin, LoginRequiredMixin, ListView):
+
     access_level = "client"
     template_name = "clients/missions/liste_missions.html"
     context_object_name = "missions"
@@ -206,9 +225,31 @@ class ClientMissionListView(PortalAccessMixin,LoginRequiredMixin, ListView):
         return (
             Mission.objects
             .filter(client=self.request.user)
-            .annotate(nb_contacts=Count("contacts"))
+            .annotate(
+                nb_contacts=Count("contacts"),
+                nb_applications=Count("applications")
+            )
             .order_by("-cree_le")
         )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        missions = context["missions"]
+
+        context["today"] = timezone.now().date()
+
+        # total candidatures
+        context["total_applications"] = sum(
+            mission.nb_applications for mission in missions
+        )
+
+        # missions actives
+        context["missions_actives"] = missions.filter(statut="ACTIVE").count()
+
+        return context
+
+
 
 class ClientMissionDetailView(PortalAccessMixin,LoginRequiredMixin, DetailView):
    
@@ -221,7 +262,7 @@ class ClientMissionDetailView(PortalAccessMixin,LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
 
         mission = self.object
-
+       
         historique = []
 
         # création mission
@@ -262,6 +303,12 @@ class ClientMissionDetailView(PortalAccessMixin,LoginRequiredMixin, DetailView):
             reverse=True
         )
 
+        applications = mission.applications.select_related("consultant")
+
+        context["applications"] = applications
+        context["applications_attente"] = applications.filter(statut="EN_ATTENTE")
+        context["applications_retenues"] = applications.filter(statut="RETENU")
+        context["applications_refusees"] = applications.filter(statut="REFUSE")
         return context
 
     def get_queryset(self):
@@ -273,6 +320,27 @@ class ClientMissionDetailView(PortalAccessMixin,LoginRequiredMixin, DetailView):
                 "contacts__consultant",
             )
         )
+
+@login_required
+@portal_access_required("client")
+def detail_postulation_consultant(request, pk):
+
+    application = get_object_or_404(
+        MissionApplication.objects.select_related("consultant"),
+        pk=pk,
+        mission__client=request.user
+    )
+
+    return render(
+        request,
+        "clients/missions/detail_postulation_consultant.html",
+        {
+            "application": application,
+            "consultant": application.consultant,
+            "mission": application.mission,
+        }
+    )
+
 
 @login_required
 @portal_access_required("client")
@@ -296,6 +364,27 @@ def mission_add_document(request, mission_id):
 
     return redirect("client_mission_detail", pk=mission.id)
 
+@login_required
+@portal_access_required("client")
+def application_update_status(request, pk, action):
+
+    application = get_object_or_404(
+        MissionApplication,
+        pk=pk,
+        mission__client=request.user
+    )
+
+    if action == "retenu":
+        application.statut = "RETENU"
+    elif action == "refuse":
+        application.statut = "REFUSE"
+
+    application.save()
+
+    return redirect("client_mission_detail", pk=application.mission.pk) 
+
+
+
 # ================================
 #  Roster & Experts (Vue Client)
 #=================================
@@ -318,14 +407,14 @@ class ExpertListView(PortalAccessMixin,LoginRequiredMixin, ListView):
 
         queryset = (
             ConsultantProfile.objects
-            .select_related("user", "public_profile")
+            .select_related("user")
             .annotate(
                 deja_collabore=Exists(collaborations)
             )
             .filter(
                 statut="VALIDE",
                 est_disponible=True,
-                user__adhesion__isnull=False,
+                user__membership__isnull=False,
                 user__statut_qualite__in=["NORMAL", "SURVEILLANCE"],
             )
             .order_by("-deja_collabore", "-date_validation")
@@ -370,7 +459,7 @@ class ClientExpertDetailView(PortalAccessMixin,LoginRequiredMixin, DetailView):
 
         return (
             ConsultantProfile.objects
-            .select_related("user", "public_profile")
+            .select_related("user")
             .annotate(
                 deja_collabore=Exists(collaborations)
             )
@@ -437,6 +526,7 @@ def request_contact_client(request):
             consultant=profil.user,
             mission=mission,
             message=message,
+            initie_par="CLIENT",
         )
     except IntegrityError:
         messages.warning(
@@ -671,6 +761,7 @@ def client_profile_settings(request):
 # ==========================================
 # 3. ESPACE MEMBRE  / CONSULTANT
 # ==========================================
+
 @login_required
 @portal_access_required("member")
 def portal_dashboard(request):
@@ -681,7 +772,7 @@ def portal_dashboard(request):
     # -------------------------
     # ADHESION
     # -------------------------
-    adhesion = getattr(user, "adhesion", None)
+    adhesion = getattr(user, "membership", None)
 
     context["membership"] = adhesion
     context["est_membre_actif"] = (
@@ -701,12 +792,17 @@ def portal_dashboard(request):
     # -------------------------
     # KPI CONSULTANT
     # -------------------------
+
     if context["est_consultant_valide"]:
         context["nb_sollicitations"] = ContactRequest.objects.filter(
             consultant=user,
             statut="ENVOYE"
         ).count()
 
+        context["nb_missions_actives"] = ContactRequest.objects.filter(
+            consultant=user,
+            statut="MISSION_CONFIRME"
+        ).count()
     # -------------------------
     # CMS
     # -------------------------
@@ -716,9 +812,80 @@ def portal_dashboard(request):
     return render(request, "membres/dashboard.html", context)
 
 # ===============
+# MISSION 
+# ===============
+class ConsultantMissionListView(PortalAccessMixin,LoginRequiredMixin, ListView):
+    access_level = "member"
+    template_name = "membres/missions/liste_missions_publiques.html"
+    context_object_name = "missions"
+
+    def get_queryset(self):
+        return Mission.objects.filter(
+            type_publication="PUBLIQUE",
+            statut="ACTIVE",
+        ).order_by("-publie_le")
+
+class ConsultantMissionDetailView(
+    PortalAccessMixin,
+    LoginRequiredMixin,
+    DetailView
+):
+    access_level = "member"
+    model = Mission
+    template_name = "membres/missions/detail_mission.html"
+    context_object_name = "mission"
+
+    def get_queryset(self):
+        return Mission.objects.filter(
+            type_publication="PUBLIQUE",
+            statut="ACTIVE",
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        mission = self.object
+
+        application = MissionApplication.objects.filter(
+            mission=mission,
+            consultant=self.request.user
+        ).first()
+
+        context["application"] = application
+        context["form"] = MissionApplicationForm()
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        mission = self.object
+
+        # vérifier si déjà postulé
+        if MissionApplication.objects.filter(
+            mission=mission,
+            consultant=request.user
+        ).exists():
+            messages.warning(request, "Vous avez déjà postulé.")
+            return redirect("consultant_mission_detail", pk=mission.pk)
+
+        form = MissionApplicationForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            application = form.save(commit=False)
+            application.mission = mission
+            application.consultant = request.user
+            application.save()
+
+            messages.success(request, "Votre candidature a été envoyée.")
+            return redirect("consultant_mission_detail", pk=mission.pk)
+
+        # si form invalide → réafficher page avec erreurs
+        context = self.get_context_data()
+        context["form"] = form
+        return self.render_to_response(context)
+# ===============
 # Profil Member
 # ===============
-
 
 @login_required
 @portal_access_required("member")
@@ -809,107 +976,30 @@ def roster_reexamen(request):
 
 @login_required
 @portal_access_required("member")
-def roster_postuler(request):
+def roster_profile(request):
 
     profil, _ = ConsultantProfile.objects.get_or_create(
         user=request.user
     )
 
-    form = ConsultantProfileForm(
+    form = ConsultantApplicationForm(
         request.POST or None,
         request.FILES or None,
         instance=profil
     )
 
     if request.method == "POST" and form.is_valid():
-        consultant = form.save(commit=False)
-        consultant.statut = "SOUMIS"
-        consultant.save()
-
-        messages.success(request, "Candidature envoyée.")
-        return redirect("member_profile")
-
-    return render(request, "membres/roster/postuler.html", {"form": form})
-
-@login_required
-@portal_access_required("member")
-def roster_edit_profile(request):
-
-    profil = getattr(request.user, "profil_roster", None)
-
-    if not profil:
-        return redirect("member_profile")
-
-    # verrou pendant review
-    if profil.statut == "SOUMIS":
-        messages.warning(
-            request,
-            "Votre dossier est en cours d’évaluation."
-        )
-        return redirect("member_profile")
-
-    form = ConsultantProfileForm(
-        request.POST or None,
-        request.FILES or None,
-        instance=profil
-    )
-
-    if request.method == "POST" and form.is_valid():
-        form.save()
+        form.save(request.user)
 
         messages.success(
             request,
-            "Profil consultant mis à jour."
+            "Votre dossier a été enregistré."
         )
-
         return redirect("member_profile")
 
     return render(
         request,
-        "membres/roster/edit_consultant_profile.html",
-        {
-            "form": form,
-            "profil": profil,
-        }
-    )
-
-
-@login_required
-@portal_access_required("member")
-def roster_edit_profile(request):
-
-    profil = getattr(request.user, "profil_roster", None)
-
-    if not profil or profil.statut != "VALIDE":
-        messages.warning(
-            request,
-            "Votre profil consultant n’est pas encore actif."
-        )
-        return redirect("roster_dashboard")
-
-    public_profile, _ = ConsultantPublicProfile.objects.get_or_create(
-        consultant=profil
-    )
-
-    form = ConsultantPublicProfileForm(
-        request.POST or None,
-        request.FILES or None,
-        instance=public_profile
-    )
-
-    if request.method == "POST" and form.is_valid():
-        form.save()
-
-        messages.success(
-            request,
-            "Profil consultant mis à jour."
-        )
-
-        return redirect("roster_dashboard")
-
-    return render(
-        request,
-        "membres/roster/edit_consultant_profile.html",
+        "membres/roster/form.html",
         {
             "form": form,
             "profil": profil,
@@ -1058,7 +1148,8 @@ def sollicitations_list(request):
 def sollicitation_detail(request, pk):
 
     contact = get_object_or_404(
-        ContactRequest,
+        ContactRequest.objects.select_related("mission")
+        .prefetch_related("mission__documents"),
         pk=pk,
         consultant=request.user
     )
@@ -1078,7 +1169,7 @@ def sollicitation_detail(request, pk):
 
     return render(
         request,
-       "membres/sollicitations/detail.html",
+        "membres/sollicitations/detail.html",
         {"contact": contact}
     )
 
@@ -1160,3 +1251,5 @@ def mission_detail(request, pk):
             "mission": contact.mission,
         }
     )
+
+

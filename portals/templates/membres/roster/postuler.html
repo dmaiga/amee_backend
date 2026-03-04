@@ -1,7 +1,7 @@
 {% extends "base_espace.html" %}
 {% block content %}
 
-<div class="max-w-3xl">
+<div class="max-w-3xl mx-auto">
 
 <h1 class="text-2xl font-bold mb-6">
 Postuler au roster AMEE
@@ -12,31 +12,116 @@ Postuler au roster AMEE
 
 {% csrf_token %}
 
-<div class="card-body space-y-6">
+<div class="card-body space-y-8">
 
-<h2 class="card-title">Dossier de candidature</h2>
+<!-- ================================================= -->
 
-<label class="form-control">
-<span class="label-text">Domaine d’expertise</span>
-{{ form.domaine_expertise }}
-</label>
+<!-- ELIGIBILITE AMEE -->
 
-<label class="form-control">
-<span class="label-text">Années d’expérience</span>
-{{ form.annees_experience }}
-</label>
+<!-- ================================================= -->
+
+<h2 class="card-title">Éligibilité AMEE</h2>
 
 <label class="form-control">
 <span class="label-text">Type d’éligibilité</span>
 {{ form.eligibilite_option }}
 </label>
 
+<!-- OPTION 1 -->
+<div id="option1-fields" class="grid md:grid-cols-2 gap-4">
+    <label class="form-control">
+        <span class="label-text">Diplôme principal (Option 1)</span>
+        {{ form.diplome_principal_domaine }}
+    </label>
+
+    <label class="form-control">
+        <span class="label-text">Année d’obtention</span>
+        {{ form.annee_diplome_principal }}
+    </label>
+</div>
+
+<!-- OPTION 2 -->
+<div id="option2-fields" class="grid md:grid-cols-2 gap-4">
+    <label class="form-control">
+        <span class="label-text">Autre diplôme pertinent (Option 2)</span>
+        {{ form.autre_diplome_pertinent }}
+    </label>
+
+    <label class="form-control">
+        <span class="label-text">Année autre diplôme</span>
+        {{ form.annee_autre_diplome }}
+    </label>
+</div>
+
+
+<!-- ================================================= -->
+
+<!-- EXPERIENCE -->
+
+<!-- ================================================= -->
+<div class="divider">Expertise professionnelle</div>
+
+<label class="form-control">
+<span class="label-text">Secteurs d’expérience</span>
+{{ form.secteurs_experience }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Expérience géographique</span>
+{{ form.experience_geographique }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Certifications professionnelles</span>
+{{ form.certifications }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Lien CV (Drive / site)</span>
+{{ form.lien_cv }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Profil LinkedIn</span>
+{{ form.lien_linkedin }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Disponibilité actuelle</span>
+{{ form.statut_disponibilite }}
+</label>
+<div class="divider">Expérience professionnelle</div>
+
+<label class="form-control">
+<span class="label-text">Années d’expérience EES</span>
+{{ form.annees_experience_ees }}
+</label>
+
+<label class="form-control">
+<span class="label-text">Attestations / Certifications</span>
+{{ form.attestations }}
+</label>
+
+<!-- ================================================= -->
+
+<!-- DOCUMENT -->
+
+<!-- ================================================= -->
+
+<div class="divider">Documents</div>
+
 <label class="form-control">
 <span class="label-text">CV pour évaluation</span>
 {{ form.cv_document }}
 </label>
 
-<div class="divider">Profil expert (visible clients)</div>
+<!-- ================================================= -->
+
+<!-- PROFIL EXPERT -->
+
+<!-- ================================================= -->
+
+<div class="divider">Profil expert (visible après validation)</div>
 
 <label class="form-control">
 <span class="label-text">Titre professionnel</span>
@@ -49,16 +134,23 @@ Postuler au roster AMEE
 </label>
 
 <label class="form-control">
-<span class="label-text">Domaines expertise</span>
+<span class="label-text">Domaines d’expertise</span>
 {{ form.domaines_expertise }}
 </label>
 
 <label class="form-control">
-<span class="label-text">Langues</span>
+<span class="label-text">Langues de travail</span>
 {{ form.langues }}
 </label>
 
-<button class="btn btn-primary w-full">
+<label class="form-control flex items-center gap-3">
+{{ form.consentement_publication }}
+<span class="label-text">
+J’accepte d’apparaître dans le roster AMEE si ma candidature est validée.
+</span>
+</label>
+
+<button class="btn btn-primary w-full mt-6">
 Envoyer ma candidature
 </button>
 
@@ -66,5 +158,36 @@ Envoyer ma candidature
 </form>
 
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
 
+    const select = document.getElementById("id_eligibilite_option");
+    const option1 = document.getElementById("option1-fields");
+    const option2 = document.getElementById("option2-fields");
+
+    function toggleFields() {
+
+        const value = select.value;
+
+        if (value === "OPTION1") {
+            option1.style.display = "grid";
+            option2.style.display = "none";
+        }
+        else if (value === "OPTION2") {
+            option1.style.display = "none";
+            option2.style.display = "grid";
+        }
+        else {
+            option1.style.display = "none";
+            option2.style.display = "none";
+        }
+    }
+
+    // au chargement
+    toggleFields();
+
+    // au changement
+    select.addEventListener("change", toggleFields);
+});
+</script>
 {% endblock %}

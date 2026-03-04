@@ -4,61 +4,101 @@
 
 <div class="max-w-6xl mx-auto space-y-6">
 
-    <!-- Header -->
-    <div class="flex items-center gap-3">
-        <i class="fa-solid fa-envelope-open-text text-2xl"></i>
-        <h1 class="text-2xl font-bold">Mes sollicitations</h1>
+<!-- HEADER -->
+<div class="flex items-center gap-3">
+    <i class="fa-solid fa-briefcase text-2xl"></i>
+    <div>
+        <h1 class="text-2xl font-bold">Opportunités reçues</h1>
+        <p class="text-sm opacity-70">
+            Analysez les missions proposées avant d'accepter une mise en relation.
+        </p>
+    </div>
+</div>
+
+
+{% if sollicitations %}
+
+<div class="grid md:grid-cols-2 gap-6">
+
+{% for contact in sollicitations %}
+
+<div class="card bg-base-100 shadow hover:shadow-lg transition border border-base-200">
+
+<div class="card-body space-y-4">
+
+<!-- TITRE -->
+<div>
+    <h2 class="card-title text-lg">
+        {{ contact.mission.titre }}
+    </h2>
+
+    <div class="badge badge-outline">
+        {{ contact.mission.domaine }}
+    </div>
+</div>
+
+
+<!-- DESCRIPTION -->
+<p class="text-sm opacity-80 line-clamp-3">
+    {{ contact.mission.description|truncatewords:30 }}
+</p>
+
+
+<!-- META MISSION -->
+<div class="grid grid-cols-3 gap-3 text-xs">
+
+<div class="bg-base-200 p-3 rounded-lg text-center">
+    <div class="opacity-60">Durée</div>
+    <div class="font-semibold">
+        {{ contact.mission.duree_estimee_jours|default:"—" }} j
+    </div>
+</div>
+
+<div class="bg-base-200 p-3 rounded-lg text-center">
+    <div class="opacity-60">Budget</div>
+    <div class="font-semibold">
+        {{ contact.mission.budget_estime|default:"—" }}
+    </div>
+</div>
+
+<div class="bg-base-200 p-3 rounded-lg text-center">
+    <div class="opacity-60">Lieu</div>
+    <div class="font-semibold">
+        {{ contact.mission.localisation|default:"Remote" }}
+    </div>
+</div>
+
+</div>
+
+
+<!-- FOOTER -->
+<div class="flex justify-between items-center pt-3 border-t">
+
+    <div class="text-xs opacity-60">
+        Reçue le {{ contact.cree_le|date:"d M Y" }}
     </div>
 
-    {% if sollicitations %}
+    <a href="{% url 'consultant_sollicitation_detail' contact.id %}"
+       class="btn btn-sm btn-primary">
+        Analyser la mission →
+    </a>
 
-    <div class="overflow-x-auto">
-        <table class="table table-zebra">
-            <thead>
-                <tr>
-                    <th>Client</th>
-                    <th>Mission</th>
-                    <th>Date</th>
-                    <th></th>
-                </tr>
-            </thead>
+</div>
 
-            <tbody>
-                {% for contact in sollicitations %}
-                <tr>
+</div>
+</div>
 
-                    <td class="font-medium">
-                        {{ contact.client.get_full_name|default:contact.client.email }}
-                    </td>
+{% endfor %}
 
-                    <td>
-                        {{ contact.mission.titre }}
-                    </td>
+</div>
 
-                    <td>
-                        {{ contact.cree_le|date:"d M Y" }}
-                    </td>
+{% else %}
 
-                    <td class="text-right">
-                        <a href="{% url 'consultant_sollicitation_detail' contact.id %}"
-                           class="btn btn-sm btn-primary">
-                            Voir détail
-                        </a>
-                    </td>
+<div class="alert">
+    <span>Aucune opportunité pour le moment.</span>
+</div>
 
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    {% else %}
-
-        <div class="alert">
-            <span>Aucune sollicitation pour le moment.</span>
-        </div>
-
-    {% endif %}
+{% endif %}
 
 </div>
 

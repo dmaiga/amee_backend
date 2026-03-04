@@ -113,7 +113,7 @@
                     <span>FINANCE</span>
                 </li>
                 <li><a href="{% url 'bo_enrolement_dashboard' %}" class="{% if request.resolver_match.url_name == 'bo_enrolement_dashboard' %}active{% endif %}">
-                    <i data-lucide="credit-card" class="w-4 h-4"></i> Enroulement & Paiements
+                    <i data-lucide="credit-card" class="w-4 h-4"></i> Paiements
                 </a></li>
                 <li><a href="{% url 'bo_transactions' %}" class="{% if request.resolver_match.url_name == 'bo_transactions' %}active{% endif %}">
                     <i data-lucide="refresh-cw" class="w-4 h-4"></i> Transactions
@@ -140,7 +140,7 @@
                 </a></li>
 
                 <li><a href="{% url 'bo_roster' %}" class="{% if 'roster' in request.path %}active{% endif %}">
-                    <i data-lucide="clipboard-check" class="w-4 h-4"></i> Validation Roster
+                    <i data-lucide="clipboard-check" class="w-4 h-4"></i> Expert Roster
                     {% if roster_pending_count %}<span class="badge badge-warning badge-sm ml-auto">{{ roster_pending_count }}</span>{% endif %}
                 </a></li>
                 <li><a href="{% url 'bo_missions' %}" class="{% if 'mission' in request.path %}active{% endif %}">

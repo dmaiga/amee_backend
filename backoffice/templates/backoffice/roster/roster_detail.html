@@ -1,172 +1,275 @@
 {% extends "backoffice/base.html" %}
-
 {% block content %}
 
-<div class="text-sm breadcrumbs mb-4 text-gray-500">
+<div data-theme="business" class="min-h-screen p-6 space-y-8">
+
+<!-- ================= BREADCRUMB ================= -->
+<div class="text-sm breadcrumbs opacity-70">
     <ul>
-        <li><a href="{% url 'bo_roster' %}">Roster</a></li>
+        <li><a href="{% url 'bo_roster' %}" class="link link-hover">Roster</a></li>
         <li>Dossier #{{ profil.id }}</li>
     </ul>
 </div>
 
-<div class="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
-    <div class="flex items-center gap-4">
+
+<!-- ================= HEADER ================= -->
+<div class="flex flex-wrap justify-between items-center gap-6">
+
+    <div class="flex items-center gap-5">
         <div class="avatar placeholder">
-            <div class="bg-neutral text-neutral-content rounded-full w-16 shadow-lg">
-                <span class="text-xl">{{ profil.user.email|slice:":1"|upper }}</span>
+            <div class="bg-primary text-primary-content rounded-xl w-20">
+                <span class="text-2xl font-bold">
+                    {{ profil.user.email|slice:":1"|upper }}
+                </span>
             </div>
         </div>
+
         <div>
-            <h1 class="text-3xl font-bold text-gray-800">{{ profil.user.get_full_name|default:profil.user.email }}</h1>
-            <p class="text-sm opacity-60 italic">Membre depuis le {{ profil.user.date_joined|date:"d M Y" }}</p>
+            <h1 class="text-3xl font-black">
+                {{ profil.user.get_full_name|default:profil.user.email }}
+            </h1>
+
+            <div class="text-sm opacity-60">
+                Consultant #{{ profil.id }}
+                • {{ profil.user.id_membre_association|default:"ID non généré" }}
+            </div>
         </div>
     </div>
-    
-    <div class="flex flex-col items-end gap-2">
-        {% if profil.statut == "SOUMIS" %}
-            <span class="badge badge-warning badge-lg gap-2 p-4 font-bold animate-pulse">⏳ EN ATTENTE</span>
-        {% elif profil.statut == "VALIDE" %}
-            <span class="badge badge-success badge-lg gap-2 p-4 text-white font-bold">✅ VALIDÉ</span>
-        {% else %}
-            <span class="badge badge-error badge-lg gap-2 p-4 text-white font-bold">❌ REFUSÉ</span>
-        {% endif %}
-        
-        {% if profil.user.adhesion.est_actif %}
-            <span class="text-[10px] font-black text-success uppercase tracking-widest">● Adhésion AMEE Active</span>
-        {% else %}
-            <span class="text-[10px] font-black text-error uppercase tracking-widest">○ Adhésion Inactive / Non-payée</span>
-        {% endif %}
+
+    <div class="badge badge-lg
+        {% if profil.statut == 'VALIDE' %}badge-success
+        {% elif profil.statut == 'REFUSE' %}badge-error
+        {% else %}badge-warning{% endif %}">
+        {{ profil.get_statut_display }}
     </div>
+
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-    <div class="lg:col-span-2 space-y-6">
-        
-        <div class="card bg-base-100 shadow-sm border border-base-200">
-            <div class="card-body">
-                <div class="flex justify-between items-center border-b pb-4 mb-4">
-                    <h2 class="card-title text-gray-600 uppercase text-xs tracking-widest">Expertise Professionnelle</h2>
-                    <span class="badge badge-outline">{{ profil.annees_experience }} ans d'exp.</span>
-                </div>
+<!-- ================= QUICK STATS ================= -->
+<div class="stats shadow w-full">
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="label text-xs font-bold opacity-50 uppercase">Domaine principal</label>
-                        <p class="font-semibold text-lg">{{ profil.domaine_expertise }}</p>
-                    </div>
-                    <div>
-                        <label class="label text-xs font-bold opacity-50 uppercase">ID Membre</label>
-                        <p class="font-mono text-primary">{{ profil.user.id_membre_association|default:"NON GÉNÉRÉ" }}</p>
-                    </div>
-                </div>
-
-                <div class="mt-6">
-                    <label class="label text-xs font-bold opacity-50 uppercase">Résumé du parcours</label>
-                    <div class="bg-base-200/50 p-4 rounded-xl text-sm leading-relaxed text-gray-700 italic border-l-4 border-primary">
-                        "{{ profil.resume_profil }}"
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card bg-base-100 shadow-sm border border-base-200">
-            <div class="card-body">
-                <h2 class="card-title text-gray-600 uppercase text-xs tracking-widest mb-6">Fil des décisions</h2>
-                
-                <ul class="timeline timeline-vertical timeline-compact">
-                    {% for h in profil.historique.all|dictsortreversed:"cree_le" %}
-                    <li>
-                        <hr/>
-                        <div class="timeline-middle">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 {% if h.nouveau_statut == 'VALIDE' %}text-success{% elif h.nouveau_statut == 'REFUSE' %}text-error{% else %}text-info{% endif %}"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
-                        </div>
-                        <div class="timeline-end mb-6 ml-4">
-                            <time class="font-mono italic text-xs opacity-50">{{ h.cree_le|date:"d M Y @ H:i" }}</time>
-                            <div class="text-sm font-black">{{ h.nouveau_statut }}</div>
-                            <div class="text-xs opacity-70">Décidé par : {{ h.decision_par.get_full_name|default:h.decision_par.email }}</div>
-                            {% if h.motif %}
-                                <div class="mt-2 p-2 bg-error/10 border-l-2 border-error text-error text-xs italic">
-                                    {{ h.motif }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        <hr/>
-                    </li>
-                    {% empty %}
-                        <p class="text-xs opacity-40 italic">Aucune action enregistrée pour le moment.</p>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
+  <div class="stat">
+    <div class="stat-title">Expérience EES</div>
+    <div class="stat-value text-primary">
+        {{ profil.annees_experience_ees|default:"—" }}
     </div>
+    <div class="stat-desc">années</div>
+  </div>
 
-    <div class="space-y-6">
-        <div class="card bg-base-100 shadow-xl border-t-4 border-primary sticky top-6">
-            <div class="card-body">
-                <h2 class="card-title text-sm uppercase opacity-50 mb-4">Actions de validation</h2>
-
-                {% if profil.statut == "SOUMIS" %}
-                    <form method="post" action="{% url 'bo_roster_decision' profil.id %}" class="space-y-4">
-                        {% csrf_token %}
-                        
-                        <div id="action-buttons" class="space-y-2">
-                            <button name="action" value="valider" class="btn btn-success btn-block shadow-md">
-                                ✅ Valider l'expert
-                            </button>
-                            
-                            <button type="button" onclick="showRefusArea()" class="btn btn-outline btn-error btn-block">
-                                ❌ Refuser le dossier
-                            </button>
-                        </div>
-
-                        <div id="zone-refus" class="hidden animate-in fade-in duration-300">
-                            <div class="form-control mb-4">
-                                <label class="label font-bold text-xs text-error">MOTIF DU REFUS</label>
-                                <textarea name="motif_refus" id="motif_refus" class="textarea textarea-error w-full h-32 bg-base-200" placeholder="L'expert doit justifier de 5 ans d'expérience..."></textarea>
-                            </div>
-                            <div class="flex gap-2">
-                                <button type="button" onclick="hideRefusArea()" class="btn btn-ghost flex-1 btn-sm font-bold">Annuler</button>
-                                <button name="action" value="refuser" class="btn btn-error flex-1 btn-sm text-white">Confirmer</button>
-                            </div>
-                        </div>
-                    </form>
-                {% else %}
-                    <div class="alert bg-base-200 border-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6 opacity-40"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <div class="text-xs opacity-60 font-medium">Le statut actuel est définitif. Pour modifier, contactez l'administrateur.</div>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-        
-        <div class="card bg-primary text-primary-content shadow-lg">
-            <div class="card-body p-6">
-                <h3 class="font-bold text-sm">Contacter l'expert</h3>
-                <p class="text-xs opacity-80 mb-4 text-justify">Besoin de précisions sur le CV ou les diplômes ?</p>
-                <a href="mailto:{{ profil.user.email }}" class="btn btn-sm btn-secondary no-animation">✉️ Envoyer un Email</a>
-            </div>
-        </div>
+  <div class="stat">
+    <div class="stat-title">Disponibilité</div>
+    <div class="stat-value text-sm">
+        {{ profil.get_statut_professionnel_display|default:"—" }}
     </div>
+  </div>
+
+  <div class="stat">
+    <div class="stat-title">Publication roster</div>
+    <div class="stat-value text-sm">
+        {% if profil.consentement_publication %}
+            ✅ Autorisée
+        {% else %}
+            ❌ Non autorisée
+        {% endif %}
+    </div>
+  </div>
+
 </div>
 
-<script>
-const actionButtons = document.getElementById("action-buttons");
-const zoneRefus = document.getElementById("zone-refus");
-const textArea = document.getElementById("motif_refus");
 
-function showRefusArea() {
-    actionButtons.classList.add("hidden");
-    zoneRefus.classList.remove("hidden");
-    textArea.setAttribute("required", "required");
-    textArea.focus();
-}
+<!-- ================= MAIN GRID ================= -->
+<div class="grid lg:grid-cols-3 gap-8">
 
-function hideRefusArea() {
-    actionButtons.classList.remove("hidden");
-    zoneRefus.classList.add("hidden");
-    textArea.removeAttribute("required");
-}
-</script>
+<!-- ================= DOSSIER ================= -->
+<div class="lg:col-span-2 space-y-6">
+
+<!-- ELIGIBILITE -->
+<div class="card bg-base-100 shadow border">
+<div class="card-body">
+<h2 class="card-title text-primary">Éligibilité</h2>
+
+<div class="grid md:grid-cols-3 gap-6 mt-4">
+
+<div>
+<label class="text-xs opacity-60">Option</label>
+<p class="font-bold">
+{{ profil.get_eligibilite_option_display|default:"—" }}
+</p>
+</div>
+
+<div>
+<label class="text-xs opacity-60">Diplôme principal</label>
+<p>{{ profil.diplome_principal_domaine|default:"—" }}</p>
+<small>{{ profil.annee_diplome_principal }}</small>
+</div>
+
+<div>
+<label class="text-xs opacity-60">Autre diplôme</label>
+<p>
+{{ profil.autre_diplome_pertinent|default:"—" }}
+</p>
+</div>
+
+</div>
+</div>
+</div>
+
+
+<!-- EXPERTISE -->
+<div class="card bg-base-100 shadow border">
+<div class="card-body">
+<h2 class="card-title text-primary">Expertise</h2>
+
+<div class="grid md:grid-cols-2 gap-6 mt-4">
+
+<div>
+<label class="text-xs opacity-60">Domaines</label>
+<p>{{ profil.domaines_expertise|linebreaks }}</p>
+</div>
+
+<div>
+<label class="text-xs opacity-60">Secteurs</label>
+<p>{{ profil.secteurs_experience|linebreaks }}</p>
+</div>
+
+<div>
+<label class="text-xs opacity-60">Zones géographiques</label>
+<p>{{ profil.experience_geographique|linebreaks }}</p>
+</div>
+
+<div>
+<label class="text-xs opacity-60">Langues</label>
+<p>{{ profil.langues|default:"—" }}</p>
+</div>
+
+</div>
+
+{% if profil.certifications %}
+<div class="mt-6">
+<label class="text-xs opacity-60">Certifications</label>
+<div class="bg-base-200 p-4 rounded-lg">
+{{ profil.certifications|linebreaks }}
+</div>
+</div>
+{% endif %}
+
+</div>
+</div>
+
+
+<!-- DOCUMENTS -->
+<div class="card bg-base-100 shadow border">
+<div class="card-body">
+<h2 class="card-title text-primary">Documents</h2>
+
+<div class="flex flex-wrap gap-3 mt-4">
+
+{% if profil.cv_document %}
+<a href="{{ profil.cv_document.url }}" target="_blank"
+   class="btn btn-primary btn-sm">
+Voir CV soumis
+</a>
+{% endif %}
+
+{% if profil.lien_linkedin %}
+<a href="{{ profil.lien_linkedin }}" target="_blank"
+   class="btn btn-outline btn-info btn-sm">
+LinkedIn
+</a>
+{% endif %}
+
+</div>
+</div>
+</div>
+
+
+<!-- HISTORIQUE -->
+<div class="card bg-base-100 shadow border">
+<div class="card-body">
+<h2 class="card-title text-primary">Historique des décisions</h2>
+
+<div class="overflow-x-auto mt-4">
+<table class="table table-sm">
+<thead>
+<tr>
+<th>Date</th>
+<th>Statut</th>
+<th>Décideur</th>
+<th>Motif</th>
+</tr>
+</thead>
+<tbody>
+{% for h in profil.historique.all|dictsortreversed:"cree_le" %}
+<tr>
+<td>{{ h.cree_le|date:"d/m/Y H:i" }}</td>
+<td class="font-bold">{{ h.nouveau_statut }}</td>
+<td>{{ h.decision_par }}</td>
+<td class="text-xs italic">{{ h.motif|default:"—" }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+</div>
+</div>
+
+</div>
+
+
+<!-- ================= SIDEBAR DECISION ================= -->
+<div class="space-y-6">
+
+<div class="card bg-neutral text-neutral-content shadow-xl sticky top-6">
+<div class="card-body">
+
+<h2 class="card-title text-sm uppercase">Validation AMEE</h2>
+
+{% if profil.statut == "SOUMIS" %}
+<form method="post" action="{% url 'bo_roster_decision' profil.id %}" class="space-y-3">
+{% csrf_token %}
+
+<button name="action" value="valider"
+        class="btn btn-success w-full font-bold">
+Approuver l'expert
+</button>
+
+<textarea name="motif_refus"
+          class="textarea textarea-bordered w-full"
+          placeholder="Motif du refus (si nécessaire)"></textarea>
+
+<button name="action" value="refuser"
+        class="btn btn-error w-full">
+Refuser
+</button>
+
+</form>
+{% else %}
+<div class="alert bg-base-100/20 border-none text-xs">
+Statut actuel : <strong>{{ profil.get_statut_display }}</strong>
+</div>
+{% endif %}
+
+</div>
+</div>
+
+
+<div class="card bg-base-100 border">
+<div class="card-body">
+<h3 class="font-bold text-sm">Contacter l’expert</h3>
+
+<a href="mailto:{{ profil.user.email }}"
+   class="btn btn-secondary btn-sm w-full mt-3">
+Envoyer un email
+</a>
+
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
 
 {% endblock %}

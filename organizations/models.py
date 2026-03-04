@@ -13,8 +13,17 @@ class Organization(models.Model):
     siege= models.CharField(max_length=255, blank=True)
     est_actif = models.BooleanField(default=True)
 
+    representant_nom = models.CharField(max_length=255, blank=True)
+    representant_fonction = models.CharField(max_length=255, blank=True)
+    representant_email = models.EmailField(blank=True)
+
+    logo = models.ImageField(upload_to="organisations/logos/", blank=True, null=True)
+
     cree_le = models.DateTimeField(auto_now_add=True)
     est_affilie = models.BooleanField(default=False)
+    
+    date_activation = models.DateField(null=True, blank=True)
+   
     date_affiliation = models.DateField(null=True, blank=True)
     date_expiration = models.DateField(null=True, blank=True)
     

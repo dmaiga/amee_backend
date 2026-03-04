@@ -1,206 +1,228 @@
 <!DOCTYPE html>
 <html lang="fr" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Espace AMEE | {% block title %}{% endblock %}</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet"/>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<title>Espace AMEE | {% block title %}{% endblock %}</title>
+
+<link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+body{
+    font-size:15px;
+    line-height:1.6;
+}
+
+/* Sidebar scroll indépendante */
+.sidebar-scroll{
+    overflow-y:auto;
+    height:100vh;
+}
+
+/* Espacement menu */
+.menu li > a{
+    padding-top:.65rem;
+    padding-bottom:.65rem;
+}
+
+/* Lien actif */
+.menu li a.active{
+    background-color:oklch(var(--p)/0.12);
+    color:oklch(var(--p));
+    font-weight:600;
+}
+</style>
+
 </head>
 
-<body class="min-h-screen bg-base-200/50">
+<body class="bg-base-200 min-h-screen text-base-content">
 
-<div class="drawer lg:drawer-open">
+<div class="drawer lg:drawer-open min-h-screen">
 <input id="drawer" type="checkbox" class="drawer-toggle"/>
 
 <!-- ================= CONTENT ================= -->
-<div class="drawer-content flex flex-col">
+<div class="drawer-content flex flex-col min-h-screen">
 
-    <!-- Mobile navbar -->
-    <div class="navbar bg-base-100 lg:hidden shadow-sm">
-        <div class="flex-none">
-            <label for="drawer" class="btn btn-square btn-ghost">
-                <i class="fa-solid fa-bars"></i>
-            </label>
-        </div>
-        <div class="flex-1">
-            <span class="font-semibold">AMEE ESPACE</span>
-        </div>
-    </div>
+<!-- MOBILE NAVBAR -->
+<div class="navbar bg-base-100 border-b lg:hidden">
+<label for="drawer" class="btn btn-ghost btn-square">
+<i class="fa-solid fa-bars"></i>
+</label>
 
-    <main class="p-6 max-w-7xl w-full mx-auto">
-
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} mb-4 shadow-sm">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        {% block content %}{% endblock %}
-
-    </main>
+<div class="font-semibold">
+AMEE — Espace membre
 </div>
+</div>
+
+<!-- MAIN -->
+<main class="flex-1 p-6 md:p-8 max-w-6xl mx-auto w-full">
+
+{% if messages %}
+<div class="toast toast-top toast-end z-50">
+{% for message in messages %}
+<div class="alert alert-success shadow auto-dismiss">
+{{ message }}
+</div>
+{% endfor %}
+</div>
+{% endif %}
+
+{% block content %}{% endblock %}
+
+</main>
+
+</div>
+
 
 <!-- ================= SIDEBAR ================= -->
 <div class="drawer-side">
 <label for="drawer" class="drawer-overlay"></label>
 
-<ul class="menu p-4 w-80 min-h-full bg-base-100 border-r border-base-300 flex flex-col">
+<aside class="w-72 bg-base-100 border-r flex flex-col sidebar-scroll">
 
-    <!-- LOGO -->
-<li class="mb-8 px-4">
+<!-- USER HEADER -->
+<div class="p-5 border-b flex items-center gap-3">
 
-<div class="flex items-center gap-3">
+{% if request.user.photo %}
+<img src="{{ request.user.photo.url }}"
+class="w-11 h-11 rounded-full object-cover">
+{% else %}
+<div class="w-11 h-11 rounded-full bg-base-200 flex items-center justify-center">
+<i class="fa-solid fa-user opacity-40"></i>
+</div>
+{% endif %}
 
-    <!-- PHOTO -->
-    {% if member_profile and member_profile.photo %}
-        <img src="{{ member_profile.photo.url }}"
-             class="w-12 h-12 rounded-full object-cover border">
-    {% else %}
-        <div class="w-12 h-12 rounded-full bg-base-300 flex items-center justify-center">
-            <i class="fa-solid fa-user opacity-40"></i>
-        </div>
-    {% endif %}
+<div class="overflow-hidden">
+<p class="font-semibold text-sm truncate">
+{{ request.user.get_full_name|default:request.user.email }}
+</p>
 
-    <!-- USER INFO -->
-    <div class="flex flex-col">
-
-        <span class="font-semibold text-sm">
-            {{ request.user.get_full_name|default:request.user.email }}
-        </span>
-
-        <span class="badge {{ portal_badge_color }} badge-xs mt-1">
-            {{ portal_badge_label }}
-        </span>
-
-    </div>
+<span class="badge {{ portal_badge_color }} badge-xs">
+{{ portal_badge_label }}
+</span>
+</div>
 
 </div>
 
+
+<!-- NAVIGATION -->
+<ul class="menu p-4 text-[15px]">
+
+<li class="menu-title text-xs font-semibold opacity-60">
+Général
 </li>
 
-    <!-- NAVIGATION -->
-    <li>
-        <a href="{% url 'portal_dashboard' %}">
-            <i class="fa-solid fa-house w-5"></i>
-            Dashboard
-        </a>
-    </li>
+<li><a href="{% url 'portal_dashboard' %}">
+<i class="fa-solid fa-house w-5"></i> Dashboard
+</a></li>
 
-    
-    <li>  <a href="{% url 'member_profile' %}"> <i class="fa-solid fa-user w-5"></i> Mon Profil</a></li>
-    <li><a href="{% url 'membership_detail' %}"><i class="fa-solid fa-id-card w-5"></i> Membership</a></li>
-   
-    <li>
-         <a href="{% url 'resources_list' %}"> 
-            <i class="fa-solid fa-book w-5"></i>
-             Ressources
-                {% if cms_new_resources %}
-                <span class="badge badge-primary badge-sm ml-auto">
-                {{ cms_new_resources }}
-                </span>
-                {% endif %}
-            </a>
-    </li>
-   
-    <li>
-        <a href="{% url 'events_list' %}">
-             <i class="fa-solid fa-calendar-days w-5"></i>
-              Événements
-            {% if cms_new_events %}
-            <span class="badge badge-secondary badge-sm ml-auto">
-            {{ cms_new_events }}
-            </span>
-            {% endif %}
+<li><a href="{% url 'member_profile' %}">
+<i class="fa-solid fa-user w-5"></i> Mon profil
+</a></li>
 
-        </a></li>
-   
-    <li><a href="{% url 'opportunities_list' %}"><i class="fa-solid fa-briefcase w-5"></i>Opportunités
-    {% if cms_new_opportunities %}
-<span class="badge badge-accent badge-sm ml-auto">
-{{ cms_new_opportunities }}
+<li><a href="{% url 'membership_detail' %}">
+<i class="fa-solid fa-id-card w-5"></i> Adhésion
+</a></li>
+
+
+<li class="menu-title text-xs font-semibold opacity-60 mt-4">
+Contenu
+</li>
+
+<li>
+<a href="{% url 'resources_list' %}">
+<i class="fa-solid fa-folder w-5"></i>
+Ressources
+{% if cms_new_resources %}
+<span class="badge badge-primary badge-sm ml-auto">
+{{ cms_new_resources }}
 </span>
 {% endif %}
 </a>
-    
-    </li>
-    
-    <!-- ================= CONSULTANT ================= -->
-<!-- CONSULTANT -->
+</li>
+
+<li>
+<a href="{% url 'events_list' %}">
+<i class="fa-solid fa-calendar w-5"></i>
+Événements
+</a>
+</li>
+
+<li>
+<a href="{% url 'opportunities_list' %}">
+<i class="fa-solid fa-briefcase w-5"></i>
+Opportunités
+</a>
+</li>
+
+
 {% if est_consultant_valide %}
-<div class="divider uppercase text-xs font-semibold opacity-50 mt-6">
-Expertise
-</div>
+<li class="menu-title text-xs font-semibold opacity-60 mt-4">
+Consultant
+</li>
 
 <li>
-<a href="{% url 'sollicitations_list' %}"
-   class="flex items-center gap-2">
-
-    <i class="fa-solid fa-envelope-open-text w-5"></i>
-    Mes sollicitations
-
-    {% if notif_consultant_solicitations %}
-        <span class="badge badge-error badge-sm">
-            {{ notif_consultant_solicitations }}
-        </span>
-    {% endif %}
+<a href="{% url 'sollicitations_list' %}">
+<i class="fa-solid fa-envelope w-5"></i>
+Sollicitations
+{% if notif_consultant_solicitations %}
+<span class="badge badge-error badge-sm ml-auto">
+{{ notif_consultant_solicitations }}
+</span>
+{% endif %}
+</a>
+</li>
+<li>
+<a href="{% url 'consultant_mission_list' %}">
+<i class="fa-solid fa-handshake w-5"></i>
+Missions
 </a>
 </li>
 
 <li>
-<a href="{% url 'consultant_missions' %}"
-   class="flex items-center gap-2">
-
-<i class="fa-solid fa-handshake-angle w-5"></i>
-Mes missions
+<a href="{% url 'consultant_missions' %}">
+<i class="fa-solid fa-handshake w-5"></i>
+Collaborations
 </a>
 </li>
 {% endif %}
-
-    <!-- ================= CTA ROSTER ================= -->
-<!-- CTA ROSTER -->
-{% if not profil_roster %}
-<div class="mt-auto p-4 bg-primary/5 rounded-2xl border border-primary/10">
-<p class="text-xs mb-3 font-medium">
-Devenez consultant expert pour recevoir des missions.
-</p>
-
-<a href="{% url 'roster_postuler' %}" class="btn btn-primary btn-sm w-full">
-Rejoindre le Roster
-</a>
-</div>
-{% endif %}
-
-<!-- REFUSE -->
-{% if profil_roster and profil_roster.statut == "REFUSE" %}
-<div class="mt-6 p-4 bg-warning/10 rounded-xl border border-warning/20">
-<p class="text-xs font-medium mb-2">
-Votre candidature consultant a été refusée.
-</p>
-
-<a href="{% url 'roster_reexamen' %}"
-   class="btn btn-warning btn-xs w-full">
-Demander un réexamen
-</a>
-</div>
-{% endif %}
-
-    <!-- LOGOUT -->
-    <li class="mt-6">
-        <a href="{% url 'logout' %}" class="text-error">
-            <i class="fa-solid fa-power-off w-5"></i>
-            Déconnexion
-        </a>
-    </li>
 
 </ul>
+
+
+<!-- FOOTER -->
+<div class="mt-auto p-4 border-t">
+<a href="{% url 'logout' %}"
+class="btn btn-ghost btn-sm w-full text-error">
+<i class="fa-solid fa-right-from-bracket"></i>
+Déconnexion
+</a>
+</div>
+
+</aside>
 </div>
 
 </div>
+
+
+<script>
+/* Auto dismiss messages */
+setTimeout(()=>{
+document.querySelectorAll('.auto-dismiss')
+.forEach(el=>el.remove());
+},3000);
+
+/* Active menu link */
+document.querySelectorAll('.menu a').forEach(link=>{
+if(link.href === window.location.href){
+link.classList.add('active');
+}
+});
+</script>
+
 </body>
 </html>

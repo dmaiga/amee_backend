@@ -3,7 +3,7 @@
 {% block content %}
 
 <h1 class="text-2xl font-semibold mb-6">
-🧾 Validation Consultants (Roster)
+ Validation Consultants (Roster)
 </h1>
 
 <!-- FILTRE -->
@@ -35,55 +35,106 @@
         <tr>
             <th>Membre</th>
             <th>Domaine</th>
-            <th>Expérience</th>
+            <th>Parcours académique</th>
             <th>Statut</th>
             <th></th>
         </tr>
     </thead>
 
-    <tbody>
+<tbody>
 
-    {% for profil in profils %}
-        <tr>
+{% for profil in profils %}
+<tr>
 
-            <td>
-                <b>{{ profil.user.id_membre_association }}</b><br>
-                <span class="opacity-70 text-sm">
-                    {{ profil.user.email }}
-                </span>
-            </td>
+    <!-- IDENTITE -->
+    <td>
+        <div class="font-medium">
+            {{ profil.user.get_full_name }}
+        </div>
 
-            <td>{{ profil.domaine_expertise }}</td>
+        <div class="text-xs opacity-60">
+            {{ profil.user.id_membre_association }}
+        </div>
 
-            <td>{{ profil.annees_experience }} ans</td>
+        <div class="text-xs opacity-60">
+            {{ profil.user.email }}
+        </div>
+    </td>
 
-            <td>
-                {% if profil.statut == "VALIDE" %}
-                    <span class="badge badge-success">Validé</span>
-                {% elif profil.statut == "SOUMIS" %}
-                    <span class="badge badge-warning">En attente</span>
-                {% else %}
-                    <span class="badge badge-error">Refusé</span>
-                {% endif %}
-            </td>
+    <!-- EXPERTISE -->
+    <td>
+        <div>{{ profil.domaines_expertise|truncatewords:5 }}</div>
 
-            <td>
-                <a href="{% url 'bo_roster_detail' profil.id %}"
-                   class="btn btn-sm btn-outline">
-                   Voir dossier
-                </a>
-            </td>
+        {% if profil.user.organization %}
+        <div class="text-xs opacity-60">
+            {{ profil.user.organization.nom }}
+        </div>
+        {% endif %}
+    </td>
 
-        </tr>
-    {% empty %}
-        <tr>
-            <td colspan="5" class="text-center opacity-60">
-                Aucun dossier.
-            </td>
-        </tr>
-    {% endfor %}
+    <!-- EXPERIENCE -->
+<td class="text-sm space-y-1">
 
-    </tbody>
+    {% if profil.diplome_principal_domaine %}
+        <div class="font-medium">
+            {{ profil.diplome_principal_domaine }}
+        </div>
+
+        {% if profil.annee_diplome_principal %}
+            <div class="text-xs opacity-60">
+                {{ profil.annee_diplome_principal }}
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% if profil.autre_diplome_pertinent %}
+        <div class="text-xs opacity-70 mt-1">
+            + {{ profil.autre_diplome_pertinent }}
+            {% if profil.annee_autre_diplome %}
+                ({{ profil.annee_autre_diplome }})
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if not profil.diplome_principal_domaine and not profil.autre_diplome_pertinent %}
+        <span class="opacity-40">—</span>
+    {% endif %}
+
+</td>
+
+    <!-- STATUT -->
+    <td class="space-y-1">
+
+        {% if profil.statut == "VALIDE" %}
+            <span class="badge badge-success">Validé</span>
+        {% elif profil.statut == "SOUMIS" %}
+            <span class="badge badge-warning">À valider</span>
+        {% else %}
+            <span class="badge badge-error">Refusé</span>
+        {% endif %}
+
+        
+
+    </td>
+
+    <!-- ACTION -->
+    <td class="text-right">
+        <a href="{% url 'bo_roster_detail' profil.id %}"
+           class="btn btn-sm btn-primary btn-outline">
+           Voir dossier
+        </a>
+    </td>
+
+</tr>
+{% empty %}
+<tr>
+<td colspan="5" class="text-center opacity-60 py-6">
+Aucun dossier consultant.
+</td>
+</tr>
+{% endfor %}
+
+</tbody>
 
 </table>
 

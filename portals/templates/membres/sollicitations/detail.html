@@ -2,93 +2,206 @@
 
 {% block content %}
 
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="max-w-5xl mx-auto space-y-8">
 
-    <!-- Retour -->
-    <a href="{% url 'sollicitations_list' %}"
-       class="btn btn-ghost btn-sm">
-        ← Retour aux sollicitations
+<!-- ================================================= -->
+<!-- RETOUR -->
+<!-- ================================================= -->
+<a href="{% url 'sollicitations_list' %}"
+   class="btn btn-ghost btn-sm">
+   ← Retour aux opportunités
+</a>
+
+
+<!-- ================================================= -->
+<!-- HEADER MISSION -->
+<!-- ================================================= -->
+<div class="space-y-2">
+
+<h1 class="text-3xl font-bold">
+{{ contact.mission.titre }}
+</h1>
+
+<div class="flex flex-wrap gap-2">
+
+<span class="badge badge-outline">
+📂 {{ contact.mission.domaine }}
+</span>
+
+<span class="badge badge-warning">
+Proposition reçue
+</span>
+
+</div>
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- VUE RAPIDE (DECISION FAST) -->
+<!-- ================================================= -->
+<div class="stats shadow w-full">
+
+<div class="stat">
+<div class="stat-title">Durée estimée</div>
+<div class="stat-value text-primary">
+{{ contact.mission.duree_estimee_jours|default:"—" }}
+</div>
+<div class="stat-desc">jours</div>
+</div>
+
+<div class="stat">
+<div class="stat-title">Budget estimé</div>
+<div class="stat-value text-success">
+{{ contact.mission.budget_estime|default:"Non communiqué" }}
+</div>
+</div>
+
+<div class="stat">
+<div class="stat-title">Localisation</div>
+<div class="stat-value text-base">
+{{ contact.mission.localisation|default:"Remote / flexible" }}
+</div>
+</div>
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- CONTEXTE MISSION -->
+<!-- ================================================= -->
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+
+<h2 class="card-title">🎯 Contexte & Objectifs</h2>
+
+<p class="whitespace-pre-line leading-relaxed">
+{{ contact.mission.description }}
+</p>
+
+{% if contact.mission.objectifs %}
+<div class="divider">Objectifs attendus</div>
+<p class="whitespace-pre-line">
+{{ contact.mission.objectifs }}
+</p>
+{% endif %}
+
+{% if contact.mission.livrables_attendus %}
+<div class="divider">Livrables attendus</div>
+<p class="whitespace-pre-line">
+{{ contact.mission.livrables_attendus }}
+</p>
+{% endif %}
+
+</div>
+</div>
+
+
+<!-- ================================================= -->
+<!-- POURQUOI VOUS -->
+<!-- ================================================= -->
+{% if contact.mission.documents.all %}
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+
+<h2 class="card-title">
+📎 Documents de mission
+</h2>
+
+<p class="text-sm opacity-70">
+Ces documents détaillent précisément le besoin avant votre décision.
+</p>
+
+<div class="divide-y">
+
+{% for doc in contact.mission.documents.all %}
+
+<div class="flex justify-between items-center py-4">
+
+    <div class="flex items-center gap-3">
+
+        <div class="badge badge-outline">
+            {{ doc.get_type_document_display }}
+        </div>
+
+        <div>
+            <div class="font-medium">
+                {{ doc.nom }}
+            </div>
+
+            <div class="text-xs opacity-50">
+                Ajouté le {{ doc.cree_le|date:"d/m/Y" }}
+            </div>
+        </div>
+
+    </div>
+
+    <a href="{{ doc.fichier.url }}"
+       target="_blank"
+       class="btn btn-sm btn-outline">
+        Ouvrir
     </a>
 
-    <!-- Titre -->
-    <div class="flex items-center gap-3">
-        <h1 class="text-2xl font-bold">
-            {{ contact.mission.titre }}
-        </h1>
+</div>
 
-        <div class="badge badge-warning">
-            En attente
-        </div>
-    </div>
+{% endfor %}
 
-    <!-- Mission -->
-    <div class="card bg-base-100 shadow">
-        <div class="card-body">
-            <h2 class="card-title">📌 Détails de la mission</h2>
+</div>
 
-            <p><strong>Domaine :</strong> {{ contact.mission.domaine }}</p>
+</div>
+</div>
+{% endif %}
+<!-- ================================================= -->
+<!-- MESSAGE CLIENT (OPTIONNEL) -->
+<!-- ================================================= -->
+{% if contact.message %}
+<div class="card bg-base-100 shadow">
+<div class="card-body">
 
-            <p class="mt-2">
-                {{ contact.mission.description }}
-            </p>
+<h2 class="card-title">💬 Message complémentaire</h2>
 
-            {% if contact.duree_estimee_jours %}
-            <p class="mt-2">
-                <strong>Durée estimée :</strong>
-                {{ contact.duree_estimee_jours }} jours
-            </p>
-            {% endif %}
-        </div>
-    </div>
+<p class="whitespace-pre-line">
+{{ contact.message }}
+</p>
 
-    <!-- Client -->
-    <div class="card bg-base-100 shadow">
-        <div class="card-body">
-            <h2 class="card-title">👤 Client</h2>
+</div>
+</div>
+{% endif %}
 
-            <p>
-                {{ contact.client.get_full_name|default:contact.client.email }}
-            </p>
-        </div>
-    </div>
 
-    <!-- Message -->
-    {% if contact.message %}
-    <div class="card bg-base-100 shadow">
-        <div class="card-body">
-            <h2 class="card-title">💬 Message du client</h2>
-            <p class="whitespace-pre-line">
-                {{ contact.message }}
-            </p>
-        </div>
-    </div>
-    {% endif %}
+<!-- ================================================= -->
+<!-- DECISION -->
+<!-- ================================================= -->
+<div class="card bg-base-200 shadow-lg">
+<div class="card-body space-y-4">
 
-    <!-- Actions -->
-    <div class="card bg-base-200">
-        <div class="card-body">
+<h2 class="card-title">
+Votre décision
+</h2>
 
-            <h2 class="card-title">Décision</h2>
+<p class="text-sm opacity-70">
+Accepter déclenchera la mise en relation officielle avec le client.
+</p>
 
-            <form method="post" class="flex gap-4">
-                {% csrf_token %}
+<form method="post" class="flex flex-wrap gap-4">
+{% csrf_token %}
 
-                <button name="action"
-                        value="accept"
-                        class="btn btn-success">
-                    ✅ Accepter la mission
-                </button>
+<button name="action"
+        value="accept"
+        class="btn btn-success btn-lg">
+✅ Accepter la mission
+</button>
 
-                <button name="action"
-                        value="refuse"
-                        class="btn btn-error">
-                    ❌ Refuser
-                </button>
+<button name="action"
+        value="refuse"
+        class="btn btn-outline btn-error">
+Refuser
+</button>
 
-            </form>
+</form>
 
-        </div>
-    </div>
+</div>
+</div>
 
 </div>
 

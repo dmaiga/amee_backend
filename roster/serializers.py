@@ -17,8 +17,8 @@ class ConsultantSerializer(serializers.ModelSerializer):
             "email",
             "id_membre",
             "statut",
-            "domaine_expertise",
-            "annees_experience",
+            #"domaine_expertise",
+            #"annees_experience",
             
         ]
 
@@ -52,8 +52,8 @@ class ConsultantPublicSerializer(serializers.ModelSerializer):
         model = ConsultantProfile
         fields = [
             "nom_complet",
-            "domaine_expertise",
-            "annees_experience",
+            #"domaine_expertise",
+            #"annees_experience",
             "resume_public",
             "langues",
             "secteurs_experience",

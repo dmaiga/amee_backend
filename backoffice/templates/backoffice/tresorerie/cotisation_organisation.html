@@ -1,0 +1,49 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto p-6 space-y-6">
+
+<h2 class="text-xl font-semibold">
+Cotisation annuelle — Organisation
+</h2>
+
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+
+<form method="post" class="space-y-4">
+{% csrf_token %}
+
+<div>
+<label class="label">
+<span class="label-text">Organisation</span>
+</label>
+{{ form.organization }}
+</div>
+
+<div>
+<label class="label">
+<span class="label-text">Montant cotisation</span>
+</label>
+{{ form.montant }}
+</div>
+
+<div>
+<label class="label">
+<span class="label-text">Description</span>
+</label>
+{{ form.description }}
+</div>
+
+<button type="submit"
+        class="btn btn-primary w-full font-semibold">
+Enregistrer la cotisation
+</button>
+
+</form>
+
+</div>
+</div>
+
+</div>
+
+{% endblock %}

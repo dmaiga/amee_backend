@@ -1,41 +1,130 @@
 {% extends "backoffice/base.html" %}
 {% block content %}
 
-<div class="container py-3">
+<div class="max-w-6xl mx-auto py-6">
 
-<h4>{{ opportunity.titre }}</h4>
+    <!-- HEADER -->
+    <div class="flex justify-between items-start mb-6">
 
-<p class="text-muted">
-{{ opportunity.get_type_display }}
-</p>
+        <div>
+            <h1 class="text-3xl font-bold">
+                {{ opportunity.titre }}
+            </h1>
 
-<div class="card mb-3">
-    <div class="card-body">
-        {{ opportunity.description|linebreaks }}
+            <div class="flex items-center gap-3 mt-2 text-sm text-base-content/60">
+
+                <span class="badge badge-outline">
+                    {{ opportunity.get_type_display }}
+                </span>
+
+                {% if opportunity.est_expire %}
+                    <span class="badge badge-error">
+                        Expirée
+                    </span>
+                {% else %}
+                    <span class="badge badge-success">
+                        Active
+                    </span>
+                {% endif %}
+
+                {% if opportunity.reserve_aux_membres %}
+                    <span class="badge badge-warning">
+                        🔒 Membres
+                    </span>
+                {% else %}
+                    <span class="badge badge-success">
+                        Public
+                    </span>
+                {% endif %}
+
+            </div>
+        </div>
+
+        <div class="flex gap-2">
+            <a href="{% url 'bo_opportunity_edit' opportunity.id %}"
+               class="btn btn-primary">
+                ✏️ Modifier
+            </a>
+
+            <a href="{% url 'bo_opportunities_list' %}"
+               class="btn btn-ghost">
+                ← Retour
+            </a>
+        </div>
+
     </div>
-</div>
 
-<p>
-<strong>Date limite :</strong>
-{{ opportunity.date_limite }}
-</p>
 
-<p>
-<strong>Accès :</strong>
-{% if opportunity.reserve_aux_membres %}
-🔒 Membres
-{% else %}
-Public
-{% endif %}
-</p>
+    <!-- LAYOUT -->
+    <div class="grid lg:grid-cols-3 gap-6">
 
-{% if opportunity.fichier_joint %}
-<a href="{{ opportunity.fichier_joint.url }}"
-   target="_blank"
-   class="btn btn-success">
-   Télécharger document
-</a>
-{% endif %}
+        <!-- DESCRIPTION -->
+        <div class="lg:col-span-2">
+
+            <div class="card bg-base-100 shadow">
+                <div class="card-body prose max-w-none">
+                    {{ opportunity.description|linebreaks }}
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- SIDEBAR -->
+        <div class="space-y-6">
+
+            <!-- Infos -->
+            <div class="card bg-base-100 shadow">
+                <div class="card-body space-y-3">
+
+                    <h3 class="font-semibold">
+                        Informations
+                    </h3>
+
+                    <div class="text-sm">
+                        <span class="text-base-content/60">
+                            Date limite :
+                        </span><br>
+                        {{ opportunity.date_limite|default:"Non définie" }}
+                    </div>
+
+                    <div class="text-sm">
+                        <span class="text-base-content/60">
+                            Publié par :
+                        </span><br>
+
+                        {% if opportunity.publie_par %}
+                            👤 {{ opportunity.publie_par }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Téléchargement -->
+            {% if opportunity.fichier_joint %}
+            <div class="card bg-base-100 shadow">
+                <div class="card-body text-center">
+
+                    <p class="text-base-content/60 text-sm mb-3">
+                        Document associé
+                    </p>
+
+                    <a href="{{ opportunity.fichier_joint.url }}"
+                       target="_blank"
+                       class="btn btn-success w-full">
+                       ⬇ Télécharger document
+                    </a>
+
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
 
 </div>
 

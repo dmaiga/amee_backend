@@ -1,27 +1,124 @@
 {% extends "backoffice/base.html" %}
 {% block content %}
 
-<div class="container py-3">
+<div class="max-w-7xl mx-auto py-6">
 
-<h4>
-{% if article %}Modifier{% else %}Créer{% endif %}
-un article
-</h4>
+    <!-- HEADER -->
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold">
+            {% if article %}Modifier{% else %}Créer{% endif %}
+            un article
+        </h1>
+        <p class="text-base-content/60">
+            Gestion du contenu éditorial
+        </p>
+    </div>
 
 <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
+{% csrf_token %}
 
-    {{ form.as_p }}
+<div class="grid lg:grid-cols-3 gap-6">
 
-    <button class="btn btn-success">
-        Enregistrer
+    <!-- COLONNE PRINCIPALE -->
+    <div class="lg:col-span-2 space-y-6">
+
+        <!-- Titre -->
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <label class="label">
+                    <span class="label-text font-medium">Titre</span>
+                </label>
+                {{ form.titre }}
+            </div>
+        </div>
+
+        <!-- Contenu -->
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <label class="label">
+                    <span class="label-text font-medium">Contenu</span>
+                </label>
+                {{ form.contenu }}
+            </div>
+        </div>
+
+        <!-- Image -->
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <label class="label">
+                    <span class="label-text font-medium">Image</span>
+                </label>
+                {{ form.image }}
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- SIDEBAR -->
+    <div class="space-y-6">
+
+        <!-- Publication -->
+        <div class="card bg-base-100 shadow">
+            <div class="card-body space-y-4">
+
+                <h3 class="font-semibold">Publication</h3>
+
+                <div>
+                    <label class="label">
+                        <span class="label-text">Type</span>
+                    </label>
+                    {{ form.type }}
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <span>Publié</span>
+                    {{ form.publie }}
+                </div>
+
+                <div>
+                    <label class="label">
+                        <span class="label-text">Date de publication</span>
+                    </label>
+                    {{ form.date_publication }}
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <span>Publication forcée</span>
+                    {{ form.publie_manuellement }}
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Lien externe -->
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <label class="label">
+                    <span class="label-text font-medium">
+                        Lien externe
+                    </span>
+                </label>
+                {{ form.lien_externe }}
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ACTIONS -->
+<div class="mt-8 flex gap-3">
+    <button class="btn btn-primary">
+         Enregistrer
     </button>
 
-    <a href="{% url 'bo_articles_list' %}" class="btn btn-secondary">
+    <a href="{% url 'bo_articles_list' %}" class="btn btn-ghost">
         Annuler
     </a>
-</form>
+</div>
 
+</form>
 </div>
 
 {% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base_espace.html" %}
+
+{% block content %}
+
+<div class="max-w-3xl mx-auto space-y-6">
+
+    <h1 class="text-xl font-bold">
+        Postuler – {{ mission.titre }}
+    </h1>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-4">
+
+        {% csrf_token %}
+
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">Message au client</span>
+            </label>
+            {{ form.message }}
+        </div>
+
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">Proposition technique (PDF)</span>
+            </label>
+            {{ form.proposition_technique }}
+        </div>
+
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">Proposition financière (PDF)</span>
+            </label>
+            {{ form.proposition_financiere }}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full">
+            Envoyer ma candidature
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

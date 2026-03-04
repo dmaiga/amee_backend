@@ -3,44 +3,149 @@
 
 <div class="p-6 space-y-6">
 
-<h2 class="text-2xl font-semibold">
-{{ organisation.nom }}
-</h2>
+<!-- ========================= -->
+<!-- HEADER ORGANISATION -->
+<!-- ========================= -->
+<div class="flex items-center gap-6">
 
+    <!-- LOGO -->
+    <div class="w-24 h-24 rounded-xl bg-base-200 flex items-center justify-center overflow-hidden">
+        {% if organisation.logo %}
+            <img src="{{ organisation.logo.url }}"
+                 class="object-cover w-full h-full">
+        {% else %}
+            <span class="opacity-40 text-sm">Aucun logo</span>
+        {% endif %}
+    </div>
+
+    <!-- INFOS PRINCIPALES -->
+    <div>
+        <h2 class="text-2xl font-semibold">
+            {{ organisation.nom }}
+        </h2>
+
+        {% if organisation.sigle %}
+            <div class="opacity-60">{{ organisation.sigle }}</div>
+        {% endif %}
+
+        <!-- STATUT -->
+        <div class="mt-2">
+
+            {% if not organisation.est_affilie %}
+                <span class="badge badge-ghost">Non affilié</span>
+
+            {% elif organisation.date_expiration and organisation.date_expiration >= today %}
+                <span class="badge badge-success">Affiliation active</span>
+
+            {% else %}
+                <span class="badge badge-warning">Affiliation expirée</span>
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+<!-- ========================= -->
+<!-- INFORMATIONS ORGANISATION -->
+<!-- ========================= -->
 <div class="card bg-base-100 shadow">
-<div class="card-body">
+<div class="card-body space-y-2">
+
+<h3 class="card-title">Informations générales</h3>
 
 <p><b>Email :</b> {{ organisation.email_contact }}</p>
-<p><b>Téléphone :</b> {{ organisation.telephone }}</p>
-<p><b>Siège :</b> {{ organisation.siege }}</p>
+<p><b>Téléphone :</b> {{ organisation.telephone|default:"—" }}</p>
+<p><b>Siège :</b> {{ organisation.siege|default:"—" }}</p>
+
+{% if organisation.site_web %}
+<p>
+<b>Site web :</b>
+<a href="{{ organisation.site_web }}" target="_blank"
+   class="link link-primary">
+   {{ organisation.site_web }}
+</a>
+</p>
+{% endif %}
+
+<p><b>Créé le :</b> {{ organisation.cree_le|date:"d/m/Y" }}</p>
 
 <a href="{% url 'bo_organisation_edit' organisation.id %}"
-   class="btn btn-primary mt-3">
-Modifier
+   class="btn btn-primary mt-3 w-fit">
+    Modifier
 </a>
 
 </div>
 </div>
 
+<!-- ========================= -->
+<!-- REPRESENTANT -->
+<!-- ========================= -->
+<div class="card bg-base-100 shadow">
+<div class="card-body space-y-2">
+
+<h3 class="card-title">Représentant du bureau</h3>
+
+<p><b>Nom :</b> {{ organisation.representant_nom|default:"—" }}</p>
+<p><b>Fonction :</b> {{ organisation.representant_fonction|default:"—" }}</p>
+<p><b>Email :</b> {{ organisation.representant_email|default:"—" }}</p>
+
+</div>
+</div>
+
+<!-- ========================= -->
+<!-- STATUT AFFILIATION -->
+<!-- ========================= -->
+<div class="card bg-base-100 shadow">
+<div class="card-body space-y-2">
+
+<h3 class="card-title">Affiliation</h3>
+
+<p><b>Date affiliation :</b>
+{{ organisation.date_affiliation|date:"d/m/Y"|default:"—" }}</p>
+
+<p><b>Activation :</b>
+{{ organisation.date_activation|date:"d/m/Y"|default:"—" }}</p>
+
+<p><b>Expiration :</b>
+{{ organisation.date_expiration|date:"d/m/Y"|default:"—" }}</p>
+
+</div>
+</div>
+
+<!-- ========================= -->
+<!-- HISTORIQUE PAIEMENTS -->
+<!-- ========================= -->
 <div class="card bg-base-100 shadow">
 <div class="card-body">
 
 <h3 class="card-title">Historique paiements</h3>
 
 <table class="table table-zebra">
+
+<thead>
 <tr>
 <th>Date</th>
 <th>Catégorie</th>
 <th>Montant</th>
 </tr>
+</thead>
 
+<tbody>
 {% for t in transactions %}
 <tr>
-<td>{{ t.date_transaction }}</td>
+<td>{{ t.date_transaction|date:"d/m/Y" }}</td>
 <td>{{ t.get_categorie_display }}</td>
-<td>{{ t.montant }}</td>
+<td class="font-medium">{{ t.montant }}</td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="3" class="text-center opacity-60">
+Aucun paiement enregistré
+</td>
 </tr>
 {% endfor %}
+</tbody>
 
 </table>
 

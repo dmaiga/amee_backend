@@ -3,7 +3,7 @@
 {% block content %}
 
 <h1 class="text-2xl font-semibold mb-6">
-🤝 Missions clients
+Collaborations missions
 </h1>
 
 <div class="overflow-x-auto">
@@ -14,9 +14,10 @@
 <tr>
     <th>ID</th>
     <th>Client</th>
-    <th>Titre</th>
-    <th>Domaine</th>
+    <th>Mission</th>
+    <th>Consultant</th>
     <th>Statut</th>
+    <th>Feedback</th>
     <th>Incident</th>
     <th>Action</th>
 </tr>
@@ -24,49 +25,89 @@
 
 <tbody>
 
-{% for mission in missions %}
+{% for c in collaborations %}
 <tr>
 
-    <td>#{{ mission.id }}</td>
+    <!-- ID collaboration -->
+    <td>#{{ c.id }}</td>
 
-    <td>{{ mission.client.email }}</td>
-
-    <td>{{ mission.titre }}</td>
-
-    <td>{{ mission.domaine }}</td>
-
+    <!-- CLIENT -->
     <td>
-        {% if mission.statut == "OUVERTE" %}
-            <span class="badge badge-warning">Ouverte</span>
+        <div class="font-medium">
+            {{ c.client.email }}
+        </div>
+    </td>
 
-        {% elif mission.statut == "EN_COURS" %}
+    <!-- MISSION -->
+    <td>
+        <div class="font-medium">
+            {{ c.mission.titre }}
+        </div>
+        <div class="text-xs opacity-60">
+            {{ c.mission.domaine }}
+        </div>
+    </td>
+
+    <!-- CONSULTANT -->
+    <td>
+        {{ c.consultant.get_full_name }}
+    </td>
+
+    <!-- STATUT -->
+    <td>
+        {% if c.statut == "ENVOYE" %}
+            <span class="badge badge-ghost">Envoyé</span>
+
+        {% elif c.statut == "MISSION_CONFIRME" %}
             <span class="badge badge-info">En cours</span>
 
-        {% elif mission.statut == "FERMEE" %}
+        {% elif c.statut == "MISSION_TERMINEE" %}
             <span class="badge badge-success">Terminée</span>
+
+        {% elif c.statut == "REFUSE" %}
+            <span class="badge badge-error">Refusée</span>
+
+        {% else %}
+            <span class="badge badge-outline">
+                {{ c.get_statut_display }}
+            </span>
         {% endif %}
     </td>
-<td>
-{% if mission.incidents > 0 %}
-<span class="badge badge-error">
-    ⚠ {{ mission.incidents }}
-</span>
-{% else %}
-    NO
-{% endif %}
-</td>
+
+    <!-- FEEDBACK -->
     <td>
-        <a href="{% url 'bo_mission_detail' mission.id %}"
+        {% if c.feedback %}
+            ⭐ {{ c.feedback.note }}/5
+        {% else %}
+            —
+        {% endif %}
+    </td>
+
+    <!-- INCIDENT -->
+    <td>
+        {% if c.feedback and c.feedback.incident_signale %}
+            <span class="badge badge-error">
+                ⚠ Incident
+            </span>
+        {% else %}
+            <span class="opacity-50">OK</span>
+        {% endif %}
+    </td>
+
+    <!-- ACTION -->
+    <td>
+        <a href="{% url 'bo_mission_detail' c.mission.id %}"
            class="btn btn-sm btn-outline">
-            Voir
+            Voir mission
         </a>
     </td>
 
 </tr>
+
 {% empty %}
 <tr>
-<td colspan="6" class="text-center opacity-60">
-Aucune mission.
+<td colspan="8" class="text-center opacity-60">
+Aucune collaboration enregistrée.
 </td>
 </tr>
 {% endfor %}

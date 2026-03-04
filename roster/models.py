@@ -2,74 +2,187 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
 
+
+
+# =====================================================
+# DOSSIER CONSULTANT AMEE (VALIDATION INTERNE)
+# =====================================================
 
 class ConsultantProfile(models.Model):
 
     STATUT_CHOICES = (
-        ('BROUILLON', 'Brouillon'),
-        ('SOUMIS', 'Soumis'),
-        ('VALIDE', 'Validé'),
-        ('REFUSE', 'Refusé'),
+        ("BROUILLON", "Brouillon"),
+        ("SOUMIS", "Soumis"),
+        ("VALIDE", "Validé"),
+        ("REFUSE", "Refusé"),
+    )
+
+    ELIGIBILITE = (
+        ("OPTION1", "Diplôme environnement + 2 ans expérience"),
+        ("OPTION2", "Autre diplôme + 5 ans expérience"),
     )
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='profil_roster'
+        related_name="profil_roster"
     )
 
     statut = models.CharField(
         max_length=20,
         choices=STATUT_CHOICES,
-        default='BROUILLON'
+        default="BROUILLON"
     )
 
-    # -------- Infos minimales AMEE --------
-    domaine_expertise = models.CharField(max_length=255)
-    annees_experience = models.IntegerField(
-        null=True,
-        blank=True
-    )
-
-    cv_document = models.FileField(
-        upload_to="roster/cv/",
-        null=True,
-        blank=True
-    )
+    # ==========================
+    # ELIGIBILITE AMEE
+    # ==========================
 
     eligibilite_option = models.CharField(
         max_length=20,
-        choices=(
-            ("OPTION1", "Diplôme + expérience"),
-            ("OPTION2", "Expérience validée conseil"),
-        ),
+        choices=ELIGIBILITE,
+        blank=True,
+        null=True
+    )
+
+    diplome_principal_domaine = models.CharField(max_length=255, blank=True)
+    annee_diplome_principal = models.PositiveIntegerField(null=True, blank=True)
+
+    autre_diplome_pertinent = models.CharField(max_length=255, blank=True)
+    annee_autre_diplome = models.PositiveIntegerField(null=True, blank=True)
+
+    annees_experience_ees = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Nombre total d'années d'expérience EES"
+    )
+
+    titre_professionnel = models.CharField(max_length=255)
+    resume_public = models.TextField()
+
+    # ================= POSITIONNEMENT =================
+
+    SENIORITE = (
+        ("JUNIOR", "Junior"),
+        ("CONFIRME", "Confirmé"),
+        ("SENIOR", "Senior"),
+        ("EXPERT", "Expert"),
+    )
+
+    niveau_seniorite = models.CharField(
+        max_length=20,
+        choices=SENIORITE,
+        blank=True
+    )
+
+    STATUT_EMPLOI = (
+        ("RECHERCHE", "Recherche active"),
+        ("OUVERT", "Ouvert opportunités"),
+        ("INDISPONIBLE", "Indisponible"),
+    )
+
+
+
+    # ================= EXPERTISE =================
+
+
+    secteurs_experience = models.TextField(blank=True)
+
+    langues = models.CharField(max_length=255, blank=True)
+
+
+    # ================= DOCUMENTS =================
+
+    cv_public = models.FileField(
+        upload_to="roster/public_cv/",
         null=True,
         blank=True
     )
 
+    lien_cv = models.URLField(blank=True)
+    lien_linkedin = models.URLField(blank=True)
+
+    # ================= DISPONIBILITE =================
+
+    statut_professionnel = models.CharField(
+        max_length=20,
+        choices=STATUT_EMPLOI,
+        blank=True
+    )
+
+    consentement_publication = models.BooleanField(default=True)
+
+    mis_a_jour_le = models.DateTimeField(auto_now=True)
+
+    domaines_expertise = models.CharField(max_length=500)
+
+    experience_geographique = models.TextField(blank=True)
+
+    certifications = models.TextField(blank=True)
+
+
+    attestations = models.TextField(
+        blank=True,
+        help_text="Certifications Banque mondiale, IFC, ISO..."
+    )
+
+    cv_document = models.FileField(
+        upload_to="roster/cv_evaluation/",
+        null=True,
+        blank=True
+    )
+
+    # ==========================
+    # VALIDATION BUREAU
+    # ==========================
+
+    eligibilite_validee = models.BooleanField(default=False)
+
     notes_interne_bureau = models.TextField(blank=True)
 
-    # -------- décision --------
     valide_par = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
         blank=True,
-        on_delete=models.SET_NULL
+        on_delete=models.SET_NULL,
+        related_name="consultants_valides"
     )
 
     date_validation = models.DateTimeField(null=True, blank=True)
 
-    cree_le = models.DateTimeField(auto_now_add=True)
-    est_disponible = models.BooleanField(default=True)
     motif_refus = models.TextField(null=True, blank=True)
     motif_reexamen = models.TextField(null=True, blank=True)
 
-    class Meta:
-        indexes = [
-            models.Index(fields=["statut", "est_disponible"]),
-        ]
-    
+    est_disponible = models.BooleanField(default=True)
+
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    # ==========================
+    # VALIDATION METIER
+    # ==========================
+
+    def clean(self):
+
+        if self.eligibilite_option == "OPTION1":
+            if not self.diplome_principal_domaine:
+                raise ValidationError(
+                    "Diplôme principal requis pour l'option 1."
+                )
+
+        if self.eligibilite_option == "OPTION2":
+            if not self.autre_diplome_pertinent:
+                raise ValidationError(
+                    "Autre diplôme requis pour l'option 2."
+                )
+
+    # ==========================
+    # ETAT ACTIF
+    # ==========================
 
     @property
     def est_actif_roster(self):
@@ -91,6 +204,11 @@ class ConsultantProfile(models.Model):
 
         return True
 
+    def __str__(self):
+        return f"{self.user.email} - {self.statut}"
+    
+
+
     def valider(self, validateur):
 
         ancien = self.statut
@@ -100,6 +218,13 @@ class ConsultantProfile(models.Model):
         self.date_validation = timezone.now()
         self.save()
 
+
+        user = self.user
+        if user.role != "CONSULTANT":
+            user.role = "CONSULTANT"
+            user.save(update_fields=["role"])
+
+        # historique décision
         RosterDecisionHistory.objects.create(
             profil=self,
             ancien_statut=ancien,
@@ -148,169 +273,6 @@ class ConsultantProfile(models.Model):
     def __str__(self):
         return f"#{self.id}  - {self.user.email} - {self.statut}"
 
-from django.db import models
-from roster.models import ConsultantProfile
-
-
-class ConsultantPublicProfile(models.Model):
-
-    consultant = models.OneToOneField(
-        ConsultantProfile,
-        on_delete=models.CASCADE,
-        related_name="public_profile"
-    )
-
-    # ===============================
-    # IDENTITÉ PROFESSIONNELLE (clé UX)
-    # ===============================
-
-    titre_professionnel = models.CharField(
-        max_length=255,
-        help_text="Ex: Expert sauvegardes environnementales – Banque mondiale"
-    )
-
-    resume_public = models.TextField(
-        help_text="2–3 phrases résumant votre expertise principale."
-    )
-
-    # ===============================
-    # POSITIONNEMENT EXPERT
-    # ===============================
-
-    SENIORITE = (
-        ("JUNIOR", "Junior"),
-        ("CONFIRME", "Confirmé"),
-        ("SENIOR", "Senior"),
-        ("EXPERT", "Expert"),
-    )
-
-    niveau_seniorite = models.CharField(
-        max_length=20,
-        choices=SENIORITE,
-        blank=True
-    )
-
-    STATUT_EMPLOI = (
-        ("INDEPENDANT", "Indépendant"),
-        ("EMPLOYE", "Employé"),
-        ("CONSULTANT_LIBRE", "Consultant indépendant"),
-    )
-
-    statut_professionnel = models.CharField(
-        max_length=30,
-        choices=STATUT_EMPLOI,
-        blank=True
-    )
-
-    # ===============================
-    # EXPERTISE
-    # ===============================
-
-    domaines_expertise = models.CharField(
-        max_length=500,
-        help_text="Mots-clés séparés par virgule (EIES, PGES, Biodiversité...)"
-    )
-
-    langues = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text="Ex: Français (natif), Anglais (C1)"
-    )
-
-    experience_geographique = models.TextField(
-        blank=True,
-        help_text="Pays ou régions d'expérience professionnelle"
-    )
-
-    secteurs_experience = models.TextField(
-        blank=True,
-        help_text="Ex: Energie, Mines, Agriculture, Infrastructures..."
-    )
-    
-    diplome_principal_domaine = models.CharField(max_length=255, blank=True)
-
-    annee_diplome_principal = models.PositiveIntegerField(
-        null=True,
-        blank=True
-    )
-
-    autre_diplome_pertinent = models.CharField(
-        max_length=255,
-        blank=True
-    )
-
-    annee_autre_diplome = models.PositiveIntegerField(
-        null=True,
-        blank=True
-    )
-
-    annees_experience_ees = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        help_text="Années d'expérience pertinentes EES"
-    )
-    # ===============================
-    # INFORMATIONS PROFESSIONNELLES
-    # ===============================
-
-    nationalite = models.CharField(max_length=100, blank=True)
-    pays_residence = models.CharField(max_length=100, blank=True)
-
-    certifications = models.TextField(
-        blank=True,
-        help_text="Banque mondiale, IFC, ISO, formations spécialisées..."
-    )
-
-    # ===============================
-    # DOCUMENTS & LIENS
-    # ===============================
-
-    cv_public = models.FileField(
-        upload_to="roster/public_cv/",
-        null=True,
-        blank=True
-    )
-
-    lien_cv = models.URLField(
-        blank=True,
-        help_text="Lien vers CV externe (LinkedIn, Drive, etc.)"
-    )
-
-    lien_linkedin = models.URLField(blank=True)
-
-    # ===============================
-    # DISPONIBILITÉ
-    # ===============================
-
-    STATUT_DISPO = (
-        ("RECHERCHE", "Recherche active"),
-        ("OUVERT", "Ouvert opportunités"),
-        ("INDISPONIBLE", "Indisponible"),
-    )
-
-    statut_disponibilite = models.CharField(
-        max_length=20,
-        choices=STATUT_DISPO,
-        default="OUVERT"
-    )
-
-    # ===============================
-    # CONSENTEMENT RGPD
-    # ===============================
-
-    consentement_publication = models.BooleanField(
-        default=True,
-        help_text="Autoriser l'affichage du profil dans le roster AMEE."
-    )
-
-    mis_a_jour_le = models.DateTimeField(auto_now=True)
-
-    # ===============================
-    # AFFICHAGE
-    # ===============================
-
-    def __str__(self):
-        return f"PublicProfile - {self.consultant.user.email}"
 
 class RosterDecisionHistory(models.Model):
 

@@ -1,11 +1,7 @@
+# memberships/api/urls.py
 from django.urls import path
-from memberships.views import (
-    MonAdhesionView,
-    
-    
-)
+from .views import MembershipRegistrationView
 
 urlpatterns = [
-    path('me/', MonAdhesionView.as_view()),
-    
- ]
+    path("inscription/", MembershipRegistrationView.as_view()),
+]

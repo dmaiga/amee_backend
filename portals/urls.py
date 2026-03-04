@@ -21,9 +21,13 @@ urlpatterns = [
     # Gestion des Missions (Besoins)
     path("client/missions/", ClientMissionListView.as_view(), name="client_missions"),
     path("client/missions/create/", ClientMissionCreateView.as_view(), name="client_mission_create"),
+    path("client/missions/<int:pk>/close/", mission_close, name="mission_close"),
+
     path("client/missions/detail/<int:pk>/", ClientMissionDetailView.as_view(), name="client_mission_detail"),
     path("client/missions/<int:mission_id>/add-document/", mission_add_document, name="mission_add_document"),
-
+    path("applications/<int:pk>/detail/",detail_postulation_consultant, name="detail_postulation_consultant"),    
+    path("applications/<int:pk>/<str:action>/",application_update_status,name="application_update_status"),
+  
     # Interactions & Collaborations
     path("client/request-contact/", request_contact_client, name="request_contact_client"),    
     path("client/collaborations/", client_collaborations, name="client_collaborations"),
@@ -40,15 +44,19 @@ urlpatterns = [
     # ==========================================
     # 3. ESPACE MEMBRE & CONSULTANT (Adhérents)
     # ==========================================
+    
     path("espace/", portal_dashboard, name="portal_dashboard"),
     
     
     path("espace/profile/", member_profile, name="member_profile"),
     path("espace/edit_profile/", edit_profile, name="edit_profile"),
     
+    path("espace/missions/", ConsultantMissionListView.as_view(), name="consultant_mission_list"),
+    path("espace/missions/<int:pk>/", ConsultantMissionDetailView.as_view(), name="consultant_mission_detail"),
+
     path("espace/roster/", roster_dashboard, name="roster_dashboard"),
-    path("espace/roster/postuler/", roster_postuler, name="roster_postuler"),
-    path("espace/roster/editer/", roster_edit_profile, name="roster_edit_profile"),
+    path("espace/roster/postuler/", roster_profile, name="roster_profile"),
+    
     path("espace/roster/reexamen/", roster_reexamen, name="roster_reexamen"),
 
     path("espace/membership/",membership_detail, name="membership_detail",),
@@ -63,5 +71,5 @@ urlpatterns = [
         "sollicitations/<int:pk>/",sollicitation_detail,name="consultant_sollicitation_detail" ),
 
     path("missions/",consultant_missions,name="consultant_missions"),
-    path("missions/<int:pk>/", mission_detail, name="consultant_mission_detail"),
+    path("missions/<int:pk>/", mission_detail, name="collaboration_mission_detail"),
 ]

@@ -29,28 +29,15 @@ def portal_access_required(level):
             # -----------------------
             if level in ["member", "consultant"]:
 
-                adhesion = getattr(user, "adhesion", None)
+                adhesion = getattr(user, "membership", None)
 
                 if not adhesion or not adhesion.est_actif:
                     messages.error(
                         request,
                         "Votre adhésion n'est pas active."
                     )
-                    return redirect("portal-dashboard")
+                    return redirect("login")
 
-            # -----------------------
-            # CONSULTANT CHECK
-            # -----------------------
-            if level == "consultant":
-
-                profil = getattr(user, "profil_roster", None)
-
-                if not profil or not profil.est_actif_roster:
-                    messages.error(
-                        request,
-                        "Accès réservé aux consultants validés."
-                    )
-                    return redirect("portal-dashboard")
 
             # -----------------------
             # CLIENT CHECK

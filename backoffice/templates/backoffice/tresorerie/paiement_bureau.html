@@ -4,13 +4,15 @@
 <div class="max-w-3xl mx-auto p-6 space-y-6">
 
 <h2 class="text-2xl font-semibold">
-💰 Paiement Bureau
+    Paiement Bureau
 </h2>
 
-{% if success %}
-<div class="alert alert-success">
-Paiement enregistré pour {{ organisation.nom }} ✅
-</div>
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
 {% endif %}
 
 <form method="post" class="card bg-base-100 shadow">
@@ -18,44 +20,69 @@ Paiement enregistré pour {{ organisation.nom }} ✅
 
 {% csrf_token %}
 
-<label class="label">Organisation</label>
-<select name="organisation" class="select select-bordered w-full" required>
-    <option value="">-- sélectionner --</option>
-    {% for org in organisations %}
-       <option value="{{ org.id }}"
-{% if organisation_selected and organisation_selected.id == org.id %}
-selected
-{% endif %}
->
-    {{ org.nom }}
-</option>
-    {% endfor %}
-</select>
+<!-- Organisation -->
+<div>
+    <label class="label">Organisation</label>
+    {{ form.organization }}
+    {% if form.organization.errors %}
+        <p class="text-error text-sm">{{ form.organization.errors }}</p>
+    {% endif %}
+</div>
 
-<label class="label">Type de paiement</label>
-<select name="operation" class="select select-bordered w-full">
-    <option value="ADHESION">Adhésion</option>
-    <option value="COTISATION">Cotisation</option>
-    <option value="FULL">Adhésion + Cotisation</option>
-</select>
+<!-- Type opération -->
+<div>
+    <label class="label">Type de paiement</label>
+    {{ form.operation }}
+</div>
 
-<input type="number"
-       name="montant"
-       placeholder="Montant"
-       class="input input-bordered w-full"
-       required>
+<!-- Adhésion -->
+<div id="adhesion-field">
+    <label class="label">Frais d’adhésion</label>
+    {{ form.montant_adhesion }}
+</div>
 
-<textarea name="description"
-          class="textarea textarea-bordered w-full"
-          placeholder="Description"></textarea>
+<!-- Cotisation -->
+<div id="cotisation-field">
+    <label class="label">Cotisation annuelle</label>
+    {{ form.montant_cotisation }}
+</div>
 
-<button class="btn btn-primary">
-Enregistrer paiement
+<!-- Description -->
+<div>
+    <label class="label">Description</label>
+    {{ form.description }}
+</div>
+
+<button class="btn btn-primary w-full">
+    Enregistrer paiement
 </button>
 
 </div>
 </form>
 
 </div>
+<script>
+const operation = document.querySelector("#id_operation");
+const adh = document.querySelector("#adhesion-field");
+const cot = document.querySelector("#cotisation-field");
 
+function toggleFields() {
+
+    if (operation.value === "ADHESION") {
+        adh.style.display = "block";
+        cot.style.display = "none";
+    }
+    else if (operation.value === "COTISATION") {
+        adh.style.display = "none";
+        cot.style.display = "block";
+    }
+    else {
+        adh.style.display = "block";
+        cot.style.display = "block";
+    }
+}
+
+operation.addEventListener("change", toggleFields);
+toggleFields();
+</script>
 {% endblock %}

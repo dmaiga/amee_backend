@@ -1,8 +1,10 @@
 # cms/models.py
 from django.db import models
 from django.utils.text import slugify
+
+from django.conf import settings
 from django.utils import timezone
-from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 class Article(models.Model):
     TYPE_CHOICES = (
@@ -39,6 +41,13 @@ class Article(models.Model):
         default=False,
         help_text="Forcer la publication indépendamment de la date"
     )
+    publie_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
+
 
 
     def save(self, *args, **kwargs):
@@ -87,6 +96,12 @@ class Resource(models.Model):
     reserve_aux_membres = models.BooleanField(default=True)
     telechargements = models.PositiveIntegerField(default=0)
     cree_le = models.DateTimeField(auto_now_add=True)
+    publie_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
 
     def __str__(self):
         return f"[{self.get_categorie_display()}] {self.titre}"
@@ -96,7 +111,7 @@ class Opportunity(models.Model):
         ("EMPLOI", "Offre d'emploi"),
         ("STAGE", "Stage"),
         ("APPEL_OFFRE", "Appel d'offre"),
-        ("PARTENARIAT", "Coopération"),
+        ("PARTENARIAT", "Collaboration"),
     )
 
     titre = models.CharField(max_length=255)
@@ -107,7 +122,12 @@ class Opportunity(models.Model):
     fichier_joint = models.FileField(upload_to="cms/opportunites/", null=True, blank=True)
     publie = models.BooleanField(default=True)
     cree_le = models.DateTimeField(auto_now_add=True)
-
+    publie_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
     @property
     def est_expire(self):
         if not self.date_limite:

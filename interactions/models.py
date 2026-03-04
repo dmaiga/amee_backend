@@ -13,6 +13,15 @@ class ContactRequest(models.Model):
         ('SANS_SUITE', 'Sans suite'),
         ('REFUSE', 'Refus du consultant'),
     )
+    TYPE_INITIATIVE = (
+        ("CONSULTANT", "Candidature consultant"),
+        ("CLIENT", "Invitation client"),
+    )
+    
+    initie_par = models.CharField(
+        max_length=20,
+        choices=TYPE_INITIATIVE
+    )
 
     client = models.ForeignKey(
         settings.AUTH_USER_MODEL,

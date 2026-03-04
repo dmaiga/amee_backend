@@ -1,0 +1,158 @@
+{% extends "base_client.html" %}
+{% block title %}Candidature - {{ consultant.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-8 pb-10">
+    <div class="flex items-center justify-between">
+        <a href="{% url 'client_mission_detail' mission.id %}" class="btn btn-ghost btn-sm gap-2">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Retour à la mission
+        </a>
+        <div class="flex gap-2">
+            {% if application.statut == "EN_ATTENTE" %}
+                <a href="{% url 'application_update_status' application.id 'retenu' %}" class="btn btn-success btn-sm">Retenir</a>
+                <a href="{% url 'application_update_status' application.id 'refuse' %}" class="btn btn-error btn-sm">Refuser</a>
+            {% else %}
+                <span class="badge badge-lg {% if application.statut == 'retenu' %}badge-success{% else %}badge-error{% endif %} font-bold uppercase p-4">
+                    {{ application.get_statut_display }}
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow border border-base-200 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="p-8 bg-gradient-to-r from-primary/5 to-transparent flex flex-col md:flex-row gap-6 items-center">
+                <div class="avatar">
+                    <div class="w-24 h-24 rounded-2xl ring ring-primary ring-offset-base-100 ring-offset-2">
+                        {% if consultant.membership.photo %}
+                            <img src="{{ consultant.membership.photo.url }}" />
+                        {% else %}
+                            <div class="bg-neutral text-neutral-content flex items-center justify-center text-3xl">
+                                {{ consultant.first_name|slice:":1" }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="text-center md:text-left space-y-1">
+                    <h1 class="text-3xl font-extrabold">{{ consultant.get_full_name }}</h1>
+                    <p class="text-xl text-primary font-medium">{{ consultant.profil_roster.titre_professionnel }}</p>
+                    <div class="flex flex-wrap justify-center md:justify-start gap-4 mt-2 text-sm opacity-70">
+                        <span class="flex items-center gap-1"><i data-lucide="mail" class="w-4 h-4"></i> {{ consultant.email }}</span>
+                        {% if consultant.profil_roster.niveau_seniorite %}
+                            <span class="flex items-center gap-1"><i data-lucide="award" class="w-4 h-4"></i> {{ consultant.profil_roster.get_niveau_seniorite_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 space-y-6">
+            
+            <div class="card bg-base-100 shadow border border-base-200">
+                <div class="card-body">
+                    <h3 class="card-title text-lg mb-4">À propos du consultant</h3>
+                    <div class="prose max-w-none opacity-80">
+                        {{ consultant.profil_roster.resume_public|linebreaks }}
+                    </div>
+
+                    <h3 class="card-title text-lg mt-8 mb-4 text-secondary">Domaines d'expertise</h3>
+                    <div class="flex flex-wrap gap-2">
+                        {% for domaine in consultant.profil_roster.domaines_expertise.split %}
+                            <span class="badge badge-outline badge-secondary">{{ domaine|default:"-" }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="card bg-base-100 shadow border border-base-200">
+                    <div class="card-body">
+                        <h3 class="font-bold flex items-center gap-2 mb-3">
+                            <i data-lucide="globe" class="w-4 h-4 text-primary"></i> Expérience Géo
+                        </h3>
+                        <p class="text-sm opacity-80">{{ consultant.profil_roster.experience_geographique|default:"Non renseignée" }}</p>
+                    </div>
+                </div>
+                <div class="card bg-base-100 shadow border border-base-200">
+                    <div class="card-body">
+                        <h3 class="font-bold flex items-center gap-2 mb-3">
+                            <i data-lucide="scroll-text" class="w-4 h-4 text-primary"></i> Certifications
+                        </h3>
+                        <p class="text-sm opacity-80">{{ consultant.profil_roster.attestations|default:"Aucune attestation listée" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-primary/5 border border-primary/20">
+                <div class="card-body">
+                    <h3 class="card-title text-lg flex items-center gap-2">
+                        <i data-lucide="message-square" class="w-5 h-5"></i>
+                        Note de motivation pour cette mission
+                    </h3>
+                    <div class="bg-base-100 p-6 rounded-xl mt-4 italic shadow-inner">
+                        {{ application.message|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <div class="card bg-base-100 shadow border border-base-200">
+                <div class="card-body">
+                    <h3 class="font-bold mb-4">Pièces jointes (Offre)</h3>
+                    <div class="space-y-3">
+                        {% if application.proposition_technique %}
+                            <a href="{{ application.proposition_technique.url }}" class="btn btn-outline btn-block justify-between">
+                                Offre Technique <i data-lucide="download" class="w-4 h-4"></i>
+                            </a>
+                        {% endif %}
+                        {% if application.proposition_financiere %}
+                            <a href="{{ application.proposition_financiere.url }}" class="btn btn-outline btn-block justify-between">
+                                Offre Financière <i data-lucide="download" class="w-4 h-4"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow border border-base-200">
+                <div class="card-body">
+                    <h3 class="font-bold mb-4">Profil & CV</h3>
+                    <div class="space-y-4">
+                        {% if consultant.profil_roster.cv_public %}
+                            <a href="{{ consultant.profil_roster.cv_public.url }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-200 border border-base-200 transition-all">
+                                <div class="bg-error/10 p-2 rounded text-error"><i data-lucide="file-text"></i></div>
+                                <span class="text-sm font-medium">Curriculum Vitae</span>
+                            </a>
+                        {% endif %}
+                        
+                        {% if consultant.profil_roster.lien_linkedin %}
+                            <a href="{{ consultant.profil_roster.lien_linkedin }}" target="_blank" class="flex items-center gap-3 p-3 rounded-lg hover:bg-base-200 border border-base-200 transition-all">
+                                <div class="bg-blue-600/10 p-2 rounded text-blue-600"><i data-lucide="linkedin"></i></div>
+                                <span class="text-sm font-medium">Profil LinkedIn</span>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-base-200/50">
+                <div class="card-body p-5">
+                    <div class="flex items-center gap-2 text-xs font-bold uppercase opacity-50 mb-2">
+                        <i data-lucide="info" class="w-4 h-4"></i> Infos académiques
+                    </div>
+                    <p class="text-sm"><strong>Diplôme :</strong> {{ consultant.profil_roster.diplome_principal_domaine }} ({{ consultant.profil_roster.annee_diplome_principal }})</p>
+                    <p class="text-sm mt-1"><strong>Expérience EES :</strong> {{ consultant.profil_roster.annees_experience_ees }} ans</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

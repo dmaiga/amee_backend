@@ -20,25 +20,75 @@ User = get_user_model()
 
 from django.utils import timezone
 
-
 class Membership(models.Model):
 
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='adhesion'
+    ELIGIBILITE = (
+        ("OPTION1", "Env/Social + 2 ans"),
+        ("OPTION2", "Autre domaine + 5 ans"),
     )
 
-    date_activation = models.DateField(null=True, blank=True)
-    date_expiration = models.DateField(null=True, blank=True)
+    STATUT = (
+        ("EN_ATTENTE", "En attente"),
+        ("VALIDE", "Validé"),
+        ("REFUSE", "Refusé"),
+    )
+
+    DIPLOME_NIVEAU = (
+        ("LICENCE", "Licence"),
+        ("MASTER", "Master"),
+        ("DOCTORAT", "Doctorat"),
+        ("AUTRE", "Autre"),
+    )
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="membership"
+    )
+
+    # ===== ELIGIBILITE =====
+    eligibilite_option = models.CharField(max_length=20, choices=ELIGIBILITE)
+
+    cv_document = models.FileField(
+        upload_to="adhesion/cv/",
+        null=True,
+        blank=True
+    )
+
+    diplome_niveau = models.CharField(
+        max_length=20,
+        choices=DIPLOME_NIVEAU,
+        null=True,
+        blank=True
+    )
+
+    diplome_intitule = models.CharField(
+        max_length=255,
+        blank=True
+    )
+
+    diplome_document = models.FileField(
+        upload_to="adhesion/diplomes/",
+        null=True,
+        blank=True
+    )
+    # décision bureau
+    statut = models.CharField(
+        max_length=20,
+        choices=STATUT,
+        default="EN_ATTENTE"
+    )
 
     valide_par = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
+        User,
         null=True,
         blank=True,
-        related_name='adhesions_validees'
+        on_delete=models.SET_NULL,
+        related_name="adhesions_validation"
     )
+    motif_refus = models.TextField(blank=True)
+    date_activation = models.DateField(null=True, blank=True)
+    date_expiration = models.DateField(null=True, blank=True)
 
     cree_le = models.DateTimeField(auto_now_add=True)
 
@@ -51,6 +101,15 @@ class Membership(models.Model):
             return False
         return self.date_expiration >= timezone.now().date()
     
+    from datetime import date
+    
+    @property
+    def jours_restants(self):
+        if not self.date_expiration:
+            return None
+    
+        delta = self.date_expiration - timezone.now().date()
+        return delta.days
 
     def __str__(self):
         return f"{self.user.email} - actif:{self.est_actif}"
@@ -65,27 +124,3 @@ class Membership(models.Model):
     
         return transaction.cree_par if transaction else None
 
-
-class MemberProfile(models.Model):
-
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="member_profile"
-    )
-
-    photo = models.ImageField(
-        upload_to=member_avatar_path,
-        null=True,
-        blank=True
-    )
-
-    telephone = models.CharField(max_length=30, blank=True)
- 
-    fonction = models.CharField(max_length=255, blank=True)
-    secteur = models.CharField(max_length=255, blank=True)
-    bio = models.TextField(blank=True)
-
-    mis_a_jour_le = models.DateTimeField(auto_now=True)
-    def __str__(self):
-        return self.user.email

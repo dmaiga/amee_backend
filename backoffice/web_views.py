@@ -8,11 +8,16 @@ from django.http import HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from datetime import timedelta
+from django.urls import reverse   
+from django.db.models import Prefetch,Sum,Count, Q,Max,Avg
+from django.db.models import Case, When, Value, IntegerField
+from django.utils import timezone
 
-from django.db.models import Prefetch,Sum,Count, Q,Max
-
+from django.utils import timezone
 from django.core.mail import send_mail
 from django.contrib import messages
+
+
 
 
 from backoffice.api.tresorerie.services import TresorerieService
@@ -32,8 +37,14 @@ from tresorerie.models import Transaction
 from backoffice.forms import (
     ArticleForm,ResourceForm,
     OpportunityForm,AffecterIncidentForm,
-    StatuerIncidentForm, EnrolementPaiementForm)
+    StatuerIncidentForm, EnrolementOrganisationForm,
+    PaiementCreationOrganisationForm,CotisationOrganisationForm
+    )
 
+
+
+from memberships.models import Membership
+    
 from organizations.models import Organization
 from memberships.models import Membership
 
@@ -66,7 +77,7 @@ from django.db import transaction
 
 from django.contrib.auth import get_user_model
 
-from tresorerie.forms import EnrolementPaiementForm
+from tresorerie.forms import EnrolementPaiementForm,PaiementSimpleForm,ActivationDigitaleForm
 
 User = get_user_model()
 
@@ -81,7 +92,7 @@ def dashboard(request):
     trente_jours_ago = now - timezone.timedelta(days=30)
 
     # --- 👥 Membres & Roster ---
-    membres_actifs = User.objects.filter(adhesion__date_expiration__gte=now.date()).count()
+    membres_actifs = User.objects.filter(adhesions_validation__date_expiration__gte=now.date()).count()
     consultants = ConsultantProfile.objects.filter(statut="VALIDE").count()
     roster_attente = ConsultantProfile.objects.filter(statut="EN_ATTENTE").count()
     
@@ -166,7 +177,7 @@ def enrolement_dashboard(request):
             derniere_cotisation=Max(
                 "transactions__date_transaction",
                 filter=Q(
-                    transactions__categorie="COTISATION",
+                    transactions__categorie="COTISATION_ORG",
                     transactions__statut="VALIDEE"
                 )
             )
@@ -202,55 +213,66 @@ def enrolement_dashboard(request):
         context
     )
 
-
 @login_required
-def paiement_bureau(request, organisation_id=None):
-
-    organisations = Organization.objects.filter(est_actif=True).order_by("nom")
+def paiement_bureau(request):
 
     if request.method == "POST":
+        form = CotisationOrganisationForm(request.POST)
 
-        organisation = get_object_or_404(
-            Organization,
-            pk=request.POST.get("organisation")
-        )
+        if form.is_valid():
 
-        PaiementService.payer_organisation(
-            user=request.user,
-            organisation=organisation,
-            operation=request.POST.get("operation"),
-            montant=int(request.POST.get("montant")),
-            description=request.POST.get("description"),
-        )
+            TresorerieService.cotisation_organisation(
+                user=request.user,
+                organization=form.cleaned_data["organization"],
+                montant=form.cleaned_data["montant"],
+                description=form.cleaned_data["description"],
+            )
 
-        messages.success(request, "Paiement enregistré.")
-        return redirect("bo_enrolement_dashboard")
+            messages.success(request, "Cotisation enregistrée.")
+            return redirect("bo_enrolement_dashboard")
+
+    else:
+        form = CotisationOrganisationForm()
 
     return render(
         request,
-        "backoffice/tresorerie/paiement_bureau.html",
-        {"organisations": organisations}
+        "backoffice/tresorerie/cotisation_organisation.html",
+        {"form": form},
     )
 
-
 @login_required
-def tresorerie_paiement(request):
-
+def enroulement_paiement(request):
+    print(EnrolementPaiementForm().fields.keys())
     if request.method == "GET":
         token = str(uuid.uuid4())
         request.session["paiement_token"] = token
-
+        user_id = request.GET.get("user_id")
+        
+        initial = {}
+        
+        if user_id:
+            user = User.objects.filter(pk=user_id).first()
+            if user:
+                initial = {
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "phone": user.phone,
+                    "organization": user.organization,
+                }
+        
         return render(
             request,
-            "backoffice/tresorerie/tresorerie_form.html",
+            "backoffice/tresorerie/enroulemnt_form.html",
             {
-                "form": EnrolementPaiementForm(),
+                "form": EnrolementPaiementForm(initial=initial),
                 "paiement_token": token,
             },
         )
 
-    form = EnrolementPaiementForm(request.POST)
 
+    form = EnrolementPaiementForm(request.POST, request.FILES)
+   
     if not form.is_valid():
         return render(request,
                       "backoffice/tresorerie/tresorerie_form.html",
@@ -274,6 +296,27 @@ def tresorerie_paiement(request):
         }
     )
 
+    membership_defaults = {
+        "eligibilite_option": data["eligibilite_option"],
+        "diplome_niveau": data.get("diplome_niveau"),
+        "diplome_intitule": data.get("diplome_intitule"),
+        "statut": "VALIDE",
+        "valide_par": request.user,
+        "date_activation": timezone.now().date(),
+    }
+    
+    # fichiers (évite d'écraser si non envoyés)
+    if request.FILES.get("cv_document"):
+        membership_defaults["cv_document"] = request.FILES["cv_document"]
+    
+    if request.FILES.get("diplome_document"):
+        membership_defaults["diplome_document"] = request.FILES["diplome_document"]
+    
+    Membership.objects.update_or_create(
+        user=membre,
+        defaults=membership_defaults,
+    )
+
     PaiementService.payer_membre(
         user=request.user,
         membre=membre,
@@ -284,6 +327,93 @@ def tresorerie_paiement(request):
     messages.success(request, "Enrôlement enregistré.")
     return redirect("bo_enrolement_dashboard")
 
+@login_required
+def tresorerie_paiement_simple(request):
+
+    if request.method == "POST":
+        form = PaiementSimpleForm(request.POST)
+
+        if form.is_valid():
+            data = form.cleaned_data
+
+            user = User.objects.filter(email=data["email"]).first()
+
+            if not user:
+                messages.error(request, "Membre introuvable.")
+                return redirect("bo_paiement_simple")
+
+            # 🔥 Forcer COTISATION
+            PaiementService.payer_membre(
+                user=request.user,
+                membre=user,
+                operation="COTISATION",
+                data={"montant": data["montant"],
+                      "description": data["description"]},
+            )
+
+            messages.success(request, "Cotisation enregistrée.")
+            return redirect("bo_enrolement_dashboard")
+
+    else:
+        form = PaiementSimpleForm()
+
+    return render(request,
+                  "backoffice/tresorerie/paiement_simple.html",
+                  {"form": form})
+
+@login_required
+def tresorerie_activation(request, user_id):
+
+    user = get_object_or_404(
+        User.objects.select_related("membership"),
+        pk=user_id
+    )
+
+    membership = user.membership
+
+    if request.method == "POST":
+        form = ActivationDigitaleForm(request.POST)
+
+        if form.is_valid():
+            data = form.cleaned_data
+
+            # 1️⃣ ADHESION
+            TresorerieService.enregistrer_paiement(
+                user=request.user,
+                data={
+                    "type_transaction": "ENTREE",
+                    "categorie": "ADHESION",
+                    "montant": data["montant_adhesion"],
+                    "membre": user,
+                    "email_payeur": user.email,
+                    "description": "Adhésion digitale",
+                }
+            )
+
+            # 2️⃣ COTISATION
+            TresorerieService.enregistrer_paiement(
+                user=request.user,
+                data={
+                    "type_transaction": "ENTREE",
+                    "categorie": "COTISATION",
+                    "montant": data["montant_cotisation"],
+                    "membre": user,
+                     "email_payeur": user.email,
+                    "description": "Cotisation annuelle",
+                }
+            )
+
+            messages.success(request, "Activation effectuée.")
+            return redirect("bo_enrolement_dashboard")
+
+    else:
+        form = ActivationDigitaleForm()
+
+    return render(
+        request,
+        "backoffice/tresorerie/activation.html",
+        {"form": form, "membre": user}
+    )
 
 @login_required
 def tresorerie_depense(request):
@@ -379,32 +509,22 @@ def transaction_detail(request, transaction_id):
 @login_required
 def membres_list(request):
 
-    role = request.GET.get("role")
+    statut = request.GET.get("statut")
 
-    # ----------------------
-    # RESEAU AMEE
-    # ----------------------
-    membres = User.objects.filter(
-        id_membre_association__isnull=False
-    ).select_related("adhesion").exclude(role="SUPERADMIN")
+    dossiers = (
+        Membership.objects
+        .select_related("user", "user__organization")
+        .exclude(user__role="SUPERADMIN")
+        .order_by("-cree_le")
+    )
 
-    if role:
-        membres = membres.filter(role=role)
-
-    membres = membres.order_by("-id")
-
-    # ----------------------
-    # CLIENTS EXTERNES
-    # ----------------------
-    clients = User.objects.filter(
-        role="CLIENT"
-    ).order_by("-id")
+    if statut:
+        dossiers = dossiers.filter(statut=statut)
 
     context = {
-        "membres": membres,
-        "clients": clients,
-        "selected_role": role,
-        "roles": User.ROLE_CHOICES,
+        "dossiers": dossiers,
+        "selected_statut": statut,
+        "statuts": Membership.STATUT,
     }
 
     return render(
@@ -418,11 +538,13 @@ def membre_detail(request, user_id):
 
     user = get_object_or_404(
         User.objects.select_related(
-            "adhesion",
+            "membership",
             "profil_roster"
         ),
         pk=user_id
     )
+
+    membership = getattr(user, "membership", None)
 
     derniere_transaction = (
         user.transactions
@@ -431,9 +553,31 @@ def membre_detail(request, user_id):
         .first()
     )
 
+    # ===============================
+    # ACTIONS DOSSIER
+    # ===============================
+    if request.method == "POST" and membership:
+
+        action = request.POST.get("action")
+
+        # ❌ REFUSER
+        if action == "refuser":
+
+            membership.statut = "REFUSE"
+            membership.valide_par = request.user
+            membership.motif_refus = request.POST.get("motif")
+            membership.save()
+
+            messages.success(request, "Candidature refusée.")
+            return redirect("bo_membre_detail", user_id=user.id)
+
+        # ✅ ACCEPTER → direction trésorerie
+        elif action == "accepter":
+            return redirect("bo_activation", user_id=user.id)
+
     context = {
         "membre": user,
-        "membership": getattr(user, "adhesion", None),
+        "membership": membership,
         "derniere_transaction": derniere_transaction,
         "roster_profile": getattr(user, "profil_roster", None),
     }
@@ -468,6 +612,7 @@ def clients_list(request):
         }
     )
 
+
 @login_required
 def client_detail(request, pk):
 
@@ -476,13 +621,69 @@ def client_detail(request, pk):
         pk=pk
     )
 
+    user = client.user
+    contacts = user.demandes_clients
+
+    # -------------------------
+    # MISSIONS
+    # -------------------------
+    missions_stats = user.missions.aggregate(
+        total=Count("id"),
+        actives=Count("id", filter=Q(statut="ACTIVE")),
+        terminees=Count("id", filter=Q(statut="TERMINEE ")),
+    )
+
+    # -------------------------
+    # COLLABORATIONS REELLES
+    # consultants uniques
+    # -------------------------
+    collaboration_stats = contacts.filter(
+        est_collaboration_validee=True
+    ).aggregate(
+        consultants_uniques=Count("consultant", distinct=True),
+        collaborations=Count("id"),
+        missions_terminees=Count(
+            "id",
+            filter=Q(statut="MISSION_TERMINEE")
+        ),
+    )
+
+    # -------------------------
+    # FEEDBACK DONNE PAR LE CLIENT
+    # -------------------------
+    feedback_stats = contacts.filter(
+        feedback__isnull=False
+    ).aggregate(
+        total_feedback=Count("feedback"),
+        note_moyenne=Avg("feedback__note"),
+        incidents=Count(
+            "feedback",
+            filter=Q(feedback__incident_signale=True)
+        ),
+    )
+
+    # -------------------------
+    # STATUT CLIENT SIMPLE
+    # -------------------------
+    if collaboration_stats["consultants_uniques"] == 0:
+        statut_client = "INACTIF"
+    elif collaboration_stats["consultants_uniques"] < 3:
+        statut_client = "EN_DEMARRAGE"
+    else:
+        statut_client = "ACTIF"
+
     return render(
         request,
         "backoffice/clients/client_detail.html",
         {
-            "client": client
+            "client": client,
+            "missions_stats": missions_stats,
+            "collaboration_stats": collaboration_stats,
+            "feedback_stats": feedback_stats,
+            "statut_client": statut_client,
         }
     )
+
 
 @login_required
 def valider_client(request, pk):
@@ -550,23 +751,41 @@ def refuser_client(request, pk):
 #
 #-----------------------------
 
+
+
 @login_required
 def roster_list(request):
 
     statut = request.GET.get("statut")
 
-    profils = ConsultantProfile.objects.select_related(
-        "user",
-        "user__adhesion"
+    profils = (
+        ConsultantProfile.objects
+        .select_related(
+            "user",
+            "user__membership",
+            "user__organization",
+        )
     )
 
     if statut:
         profils = profils.filter(statut=statut)
 
+    # 🔥 priorité visuelle :
+    # SOUMIS → VALIDE → REFUSE
+    profils = profils.annotate(
+        ordre_statut=Case(
+            When(statut="SOUMIS", then=Value(0)),
+            When(statut="VALIDE", then=Value(1)),
+            default=Value(2),
+            output_field=IntegerField(),
+        )
+    ).order_by("ordre_statut", "-id")
+
     context = {
-        "profils": profils.order_by("-id"),
+        "profils": profils,
         "selected_statut": statut,
         "statuts": ConsultantProfile._meta.get_field("statut").choices,
+        "today": timezone.now().date(),
     }
 
     return render(
@@ -579,15 +798,23 @@ def roster_list(request):
 def roster_detail(request, profil_id):
 
     profil = get_object_or_404(
-        ConsultantProfile.objects.select_related("user"),
+        ConsultantProfile.objects
+        .select_related(
+            "user",
+            "user__membership",
+        )
+        .prefetch_related("historique"),
         pk=profil_id
     )
 
     return render(
         request,
         "backoffice/roster/roster_detail.html",
-        {"profil": profil}
+        {
+            "profil": profil,
+        }
     )
+
 
 @require_POST
 @login_required
@@ -618,6 +845,7 @@ def roster_decision(request, profil_id):
 
     return redirect("bo_roster_detail", profil_id=profil.id)
 
+
 #-----------------------------
 #
 #-----------------------------
@@ -625,15 +853,13 @@ def roster_decision(request, profil_id):
 @login_required
 def missions_list(request):
 
-
-    missions = (
-        Mission.objects
-        .select_related("client")
-        .annotate(
-            incidents=Count(
-                "contacts__feedback",
-                filter=Q(contacts__feedback__incident_signale=True)
-            )
+    collaborations = (
+        ContactRequest.objects
+        .select_related(
+            "mission",
+            "client",
+            "consultant",
+            "feedback",
         )
         .order_by("-id")
     )
@@ -641,7 +867,9 @@ def missions_list(request):
     return render(
         request,
         "backoffice/missions/missions_list.html",
-        {"missions": missions}
+        {
+            "collaborations": collaborations
+        }
     )
 
 @login_required
@@ -670,6 +898,7 @@ def mission_detail(request, mission_id):
             "contacts": contacts,
         }
     )
+
 
 @login_required
 def demander_feedback(request, contact_id):
@@ -873,7 +1102,9 @@ def cms_dashboard(request):
 @login_required
 def articles_list(request):
 
-    statut = request.GET.get("statut")
+    statut = request.GET.get("statut") or ""
+    type_article = request.GET.get("type") or ""
+    search = request.GET.get("q") or ""
 
     articles = Article.objects.all().order_by("-date_publication")
 
@@ -883,12 +1114,21 @@ def articles_list(request):
     elif statut == "brouillon":
         articles = articles.filter(publie=False)
 
+    if type_article:
+        articles = articles.filter(type=type_article)
+
+    if search.strip():
+        articles = articles.filter(titre__icontains=search.strip())
+
     return render(
         request,
         "backoffice/cms/articles/articles_list.html",
         {
             "articles": articles,
             "selected_statut": statut,
+            "selected_type": type_article,
+            "search": search,
+            "type_choices": Article.TYPE_CHOICES,  
         }
     )
 
@@ -919,7 +1159,14 @@ def article_form(request, article_id=None):
         )
 
         if form.is_valid():
-            form.save()
+            article = form.save(commit=False)
+    
+            # audit : auteur publication
+            if not article.publie_par:
+                article.publie_par = request.user
+    
+            article.save()
+    
             return redirect("bo_articles_list")
 
     else:
@@ -939,12 +1186,23 @@ def article_form(request, article_id=None):
 @login_required
 def ressources_list(request):
 
-    categorie = request.GET.get("categorie")
+    categorie = request.GET.get("categorie") or ""
+    acces = request.GET.get("acces") or ""
+    search = request.GET.get("q") or ""
 
     ressources = Resource.objects.all().order_by("-cree_le")
 
     if categorie:
         ressources = ressources.filter(categorie=categorie)
+
+    if acces == "membres":
+        ressources = ressources.filter(reserve_aux_membres=True)
+
+    elif acces == "public":
+        ressources = ressources.filter(reserve_aux_membres=False)
+
+    if search.strip():
+        ressources = ressources.filter(titre__icontains=search.strip())
 
     return render(
         request,
@@ -953,6 +1211,8 @@ def ressources_list(request):
             "ressources": ressources,
             "categories": Resource.CATEGORIE_CHOICES,
             "selected_categorie": categorie,
+            "selected_acces": acces,
+            "search": search,
         }
     )
 
@@ -983,7 +1243,13 @@ def ressource_form(request, ressource_id=None):
         )
 
         if form.is_valid():
-            form.save()
+            ressource = form.save(commit=False)
+
+            if not ressource.publie_par:
+                ressource.publie_par = request.user
+
+            ressource.save()
+
             return redirect("bo_ressources_list")
 
     else:
@@ -1035,7 +1301,7 @@ def opportunity_detail(request, opportunity_id):
 
 @login_required
 def opportunity_form(request, opportunity_id=None):
-    
+
     opportunity = None
 
     if opportunity_id:
@@ -1049,7 +1315,14 @@ def opportunity_form(request, opportunity_id=None):
         )
 
         if form.is_valid():
-            form.save()
+            opportunity = form.save(commit=False)
+
+            # ✅ QUI A PUBLIÉ
+            if not opportunity.publie_par:
+                opportunity.publie_par = request.user
+
+            opportunity.save()
+
             return redirect("bo_opportunities_list")
 
     else:
@@ -1073,24 +1346,46 @@ def opportunity_form(request, opportunity_id=None):
 @login_required
 def organisations_list(request):
 
+    filtre = request.GET.get("statut")
+
     organisations = (
         Organization.objects
         .annotate(
             derniere_cotisation=Max(
                 "transactions__date_transaction",
                 filter=Q(
-                    transactions__categorie="COTISATION",
+                    transactions__categorie="COTISATION_ORG",
                     transactions__statut="VALIDEE"
                 )
             )
         )
-        .order_by("nom")
     )
+
+    today = timezone.now().date()
+
+    # 🔎 filtres simples
+    if filtre == "actifs":
+        organisations = organisations.filter(
+            date_expiration__gte=today
+        )
+
+    elif filtre == "expires":
+        organisations = organisations.filter(
+            date_expiration__lt=today
+        )
+
+    elif filtre == "non_affilies":
+        organisations = organisations.filter(est_affilie=False)
+
+    organisations = organisations.order_by("nom")
 
     return render(
         request,
         "backoffice/organisations/organisations_list.html",
-        {"organisations": organisations}
+        {
+            "organisations": organisations,
+            "filtre": filtre,
+        },
     )
 
 @login_required
@@ -1109,8 +1404,10 @@ def organisation_detail(request, organisation_id):
         {
             "organisation": organisation,
             "transactions": transactions,
+            "today": timezone.now().date(),
         }
     )
+
 
 @login_required
 def organisation_form(request, organisation_id=None):
@@ -1124,26 +1421,65 @@ def organisation_form(request, organisation_id=None):
         )
 
     if request.method == "POST":
-        form = OrganizationForm(request.POST, instance=organisation)
 
-        if form.is_valid():
-            organisation = form.save()
+        org_form = OrganizationForm(
+            request.POST,
+            request.FILES,
+            instance=organisation
+        )
 
-            messages.success(
-                request,
-                "Organisation enregistrée."
-            )
+        paiement_form = PaiementCreationOrganisationForm(request.POST)
 
-            # 👉 redirection vers paiement
-            return redirect(
-                "bo_paiement_bureau_org",
-                organisation_id=organisation.id
-            )
+        if org_form.is_valid() and paiement_form.is_valid():
+
+            organisation = org_form.save()
+
+            op = paiement_form.cleaned_data["operation"]
+            adh = paiement_form.cleaned_data["montant_adhesion"]
+            cot = paiement_form.cleaned_data.get("montant_cotisation")
+            description = paiement_form.cleaned_data.get("description")
+
+            try:
+
+                if op == "FULL":
+
+                    TresorerieService.enroller_organisation(
+                        user=request.user,
+                        organization=organisation,
+                        montant_enrolement=adh,
+                        montant_cotisation=cot,
+                        description=description,
+                    )
+
+                elif op == "ADHESION":
+
+                    TresorerieService.enroller_organisation(
+                        user=request.user,
+                        organization=organisation,
+                        montant_enrolement=adh,
+                        description=description,
+                    )
+
+                messages.success(
+                    request,
+                    "Organisation créée et paiement enregistré."
+                )
+
+                return redirect("bo_enrolement_dashboard")
+
+            except ValueError as e:
+                messages.error(request, str(e))
+
     else:
-        form = OrganizationForm(instance=organisation)
+        org_form = OrganizationForm(instance=organisation)
+        paiement_form = PaiementCreationOrganisationForm()
 
     return render(
         request,
         "backoffice/organisations/organisation_form.html",
-        {"form": form}
+        {
+            "form": org_form,
+            "paiement_form": paiement_form,
+            "organisation": organisation,
+        }
     )

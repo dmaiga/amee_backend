@@ -8,12 +8,45 @@
 une ressource
 </h4>
 
+<!-- ✅ FORM MANQUANT -->
 <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
+{% csrf_token %}
 
-    <button class="btn btn-success">Enregistrer</button>
-</form>
+<div class="card bg-base-100 shadow">
+<div class="card-body space-y-4">
+
+{% for field in form %}
+<div class="form-control">
+    <label class="label">
+        <span class="label-text font-medium">
+            {{ field.label }}
+        </span>
+    </label>
+
+    {{ field }}
+
+    {% if field.errors %}
+        <p class="text-error text-sm">
+            {{ field.errors }}
+        </p>
+    {% endif %}
+</div>
+{% endfor %}
+
+<div class="pt-4 flex gap-2">
+    <button type="submit" class="btn btn-primary">
+        Enregistrer
+    </button>
+
+    <a href="{% url 'bo_ressources_list' %}" class="btn btn-ghost">
+        Annuler
+    </a>
+</div>
+
+</div>
+</div>
+
+</form> <!-- ✅ IMPORTANT -->
 
 </div>
 

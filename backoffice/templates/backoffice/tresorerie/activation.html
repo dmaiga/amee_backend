@@ -1,0 +1,70 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="max-w-3xl mx-auto space-y-6">
+
+<h2 class="text-xl font-semibold">
+Activation digitale du membre
+</h2>
+
+<!-- DOSSIER EN LECTURE -->
+<div class="card bg-base-100 shadow">
+<div class="card-body space-y-2 text-sm">
+
+<div><b>Nom :</b> {{ membre.first_name }} {{ membre.last_name }}</div>
+<div><b>Email :</b> {{ membre.email }}</div>
+<div><b>Organisation :</b> {{ membre.organization.nom|default:"Individuel" }}</div>
+
+<hr>
+
+<div><b>Éligibilité :</b> {{ membership.get_eligibilite_option_display }}</div>
+<div><b>Diplôme :</b> {{ membership.diplome_intitule }}</div>
+
+{% if membership.cv_document %}
+<a href="{{ membership.cv_document.url }}" target="_blank" class="link">
+Voir CV
+</a>
+{% endif %}
+
+{% if membership.diplome_document %}
+<a href="{{ membership.diplome_document.url }}" target="_blank" class="link">
+Voir Diplôme
+</a>
+{% endif %}
+
+</div>
+</div>
+
+<!-- FORM PAIEMENT -->
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+<form method="post" class="space-y-4">
+{% csrf_token %}
+
+<div>
+<label class="label">Montant adhésion</label>
+{{ form.montant_adhesion }}
+</div>
+
+<div>
+<label class="label">Montant cotisation</label>
+{{ form.montant_cotisation }}
+</div>
+
+<div>
+<label class="label">Description</label>
+{{ form.description }}
+</div>
+
+<button type="submit"
+        class="btn btn-success w-full font-semibold">
+Encaisser & Activer
+</button>
+
+</form>
+</div>
+</div>
+
+</div>
+
+{% endblock %}

@@ -8,19 +8,20 @@
     <!-- ===================================================== -->
     <div class="flex justify-between items-center">
         <h2 class="text-2xl font-semibold">
-            🎯 Pilotage Enrôlement & Cotisations
+             Pilotage Enrôlement & Cotisations
         </h2>
             <div class="flex flex-wrap gap-4">
+        <a href="{% url 'bo_paiement_simple' %}"
+           class="btn btn-primary">
+             Paiement Individu
+        </a>
 
         <a href="{% url 'bo_enregistrer_paiement' %}"
-           class="btn btn-primary">
-            👤 Paiement Individu
+           class="btn btn-secondary">
+             Enroulement  Individu
         </a>
 
-        <a href="{% url 'bo_paiement_bureau' %}"
-           class="btn btn-secondary">
-            🏢 Paiement Bureau
-        </a>
+
 
     </div>
 
@@ -70,7 +71,7 @@
         <div class="card-body">
 
             <h3 class="card-title">
-                🏢 Bureaux à relancer / inactifs
+                 Bureaux à relancer / inactifs
             </h3>
 
             <div class="overflow-x-auto mt-3">
@@ -136,7 +137,7 @@
         <div class="card-body">
 
             <h3 class="card-title">
-                👤 Individus à relancer
+                 Individus à relancer
             </h3>
 
             <div class="overflow-x-auto mt-3">

@@ -2,18 +2,14 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 import uuid
-from django.utils.text import slugify
-
 from quality_control.models import Feedback
     
 from django.utils.text import slugify
 import os
 
+from django.utils import timezone
 
 
-import uuid
-import os
-from django.utils.text import slugify
 
 
 def member_avatar_path(instance, filename):
@@ -115,7 +111,9 @@ class User(AbstractUser):
     )
 
     secondary_phone = models.CharField(max_length=30, blank=True)
- 
+    nationalite = models.CharField(max_length=255, blank=True)
+    pays_residence = models.CharField(max_length=255, blank=True)
+     
     external_id = models.UUIDField(
         default=uuid.uuid4,
         editable=False,
@@ -150,6 +148,28 @@ class User(AbstractUser):
 
         return username
 
+    def activer_membre(self):
+        """
+        Transforme un utilisateur en membre officiel AMEE
+        """
+        if not self.id_membre_association:
+
+            year = timezone.now().year
+
+            last = User.objects.filter(
+                id_membre_association__startswith=f"MEM-{year}-"
+            ).order_by("-id_membre_association").first()
+
+            if not last or not last.id_membre_association:
+                num = 1
+            else:
+                num = int(last.id_membre_association.split("-")[-1]) + 1
+
+            self.id_membre_association = f"MEM-{year}-{num:03d}"
+
+        self.role = "MEMBER"
+        self.save(update_fields=["id_membre_association", "role"])
+        
     def save(self, *args, **kwargs):
         # Génère username seulement s'il est vide
         if not self.username:

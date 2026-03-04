@@ -1,39 +1,131 @@
 {% extends "backoffice/base.html" %}
 {% block content %}
 
-<div class="container py-3">
+<div class="max-w-6xl mx-auto py-6">
 
-<h4>{{ ressource.titre }}</h4>
+    <!-- HEADER -->
+    <div class="flex justify-between items-start mb-6">
 
-<p class="text-muted">
-    {{ ressource.get_categorie_display }}
-</p>
+        <div>
+            <h1 class="text-3xl font-bold">
+                {{ ressource.titre }}
+            </h1>
 
-<div class="card mb-3">
-    <div class="card-body">
-        {{ ressource.description|linebreaks }}
+            <div class="flex items-center gap-3 mt-2 text-sm text-base-content/60">
+
+                <span class="badge badge-outline">
+                    {{ ressource.get_categorie_display }}
+                </span>
+
+                {% if ressource.reserve_aux_membres %}
+                    <span class="badge badge-warning">
+                        Membres uniquement
+                    </span>
+                {% else %}
+                    <span class="badge badge-success">
+                        Public
+                    </span>
+                {% endif %}
+
+            </div>
+        </div>
+
+        <div class="flex gap-2">
+            <a href="{% url 'bo_ressource_edit' ressource.id %}"
+               class="btn btn-primary">
+                Modifier
+            </a>
+
+            <a href="{% url 'bo_ressources_list' %}"
+               class="btn btn-ghost">
+               ← Retour
+            </a>
+        </div>
+
     </div>
+
+
+    <!-- LAYOUT -->
+    <div class="grid lg:grid-cols-3 gap-6">
+
+        <!-- DESCRIPTION -->
+        <div class="lg:col-span-2">
+
+            <div class="card bg-base-100 shadow">
+                <div class="card-body prose max-w-none">
+                    {{ ressource.description|linebreaks }}
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- SIDEBAR -->
+        <div class="space-y-6">
+
+            <!-- Téléchargement -->
+            <div class="card bg-base-100 shadow">
+                <div class="card-body text-center">
+
+                    <p class="text-sm text-base-content/60 mb-3">
+                        Téléchargements
+                    </p>
+
+                    <div class="text-3xl font-bold mb-4">
+                        {{ ressource.telechargements }}
+                    </div>
+
+                    <a href="{{ ressource.fichier.url }}"
+                       target="_blank"
+                       class="btn btn-success w-full">
+                       ⬇ Télécharger le fichier
+                    </a>
+
+                </div>
+            </div>
+
+            <!-- Infos -->
+            <div class="card bg-base-100 shadow">
+                <div class="card-body">
+
+                    <h3 class="font-semibold mb-3">
+                        Informations
+                    </h3>
+<div>
+    <span class="text-base-content/60">
+        Publié par :
+    </span><br>
+
+    {% if ressource.publie_par %}
+        <span class="font-medium">
+            👤 {{ ressource.publie_par }}
+        </span>
+    {% else %}
+        —
+    {% endif %}
 </div>
+                    <div class="text-sm space-y-2">
 
-<p>
-<strong>Accès :</strong>
-{% if ressource.reserve_aux_membres %}
-🔒 Membres uniquement
-{% else %}
-Public
-{% endif %}
-</p>
+                        <div>
+                            <span class="text-base-content/60">
+                                Accès :
+                            </span><br>
 
-<p>
-<strong>Téléchargements :</strong>
-{{ ressource.telechargements }}
-</p>
+                            {% if ressource.reserve_aux_membres %}
+                                 Réservé aux membres
+                            {% else %}
+                                 Public
+                            {% endif %}
+                        </div>
 
-<a href="{{ ressource.fichier.url }}"
-   class="btn btn-success"
-   target="_blank">
-   Télécharger le fichier
-</a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
 
 </div>
 

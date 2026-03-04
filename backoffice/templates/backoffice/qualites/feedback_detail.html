@@ -2,132 +2,248 @@
 
 {% block content %}
 
-<div class="max-w-5xl mx-auto space-y-6">
+<div class="max-w-6xl mx-auto space-y-6">
 
-    <!-- HEADER -->
-    <div class="flex justify-between items-center">
+<!-- ===================================================== -->
+<!-- HEADER -->
+<!-- ===================================================== -->
+<div class="flex flex-wrap justify-between items-center gap-4">
+
+    <div>
         <h1 class="text-2xl font-semibold">
-            ⭐ Feedback mission
+            ⭐ Évaluation de mission
         </h1>
 
-        <div class="badge badge-outline">
-            Mission #{{ feedback.contact_request.mission.id }}
+        <div class="text-sm opacity-70">
+            Mission :
+            <a href="{% url 'bo_mission_detail' feedback.contact_request.mission.id %}"
+               class="link link-hover font-medium">
+                {{ feedback.contact_request.mission.titre }}
+            </a>
         </div>
     </div>
 
-
-    <!-- INFOS ACTEURS -->
-    <div class="card bg-base-100 shadow">
-        <div class="card-body">
-
-            <h2 class="card-title text-base-content/70">
-                Informations
-            </h2>
-
-            <div class="grid md:grid-cols-2 gap-4 mt-2">
-
-                <div class="stat bg-base-200 rounded-box">
-                    <div class="stat-title">Client</div>
-                    <div class="stat-value text-base">
-                        {{ feedback.client.email }}
-                    </div>
-                </div>
-
-                <div class="stat bg-base-200 rounded-box">
-                    <div class="stat-title">Consultant</div>
-                    <div class="stat-value text-base">
-                        {{ feedback.contact_request.consultant.email }}
-                    </div>
-                </div>
-
-            </div>
-        </div>
+    <div class="badge badge-outline">
+        Collaboration #{{ feedback.contact_request.id }}
     </div>
 
+</div>
 
-    <!-- FEEDBACK -->
-    <div class="card bg-base-100 shadow">
-        <div class="card-body">
 
-            <h2 class="card-title">
-                Évaluation client
-            </h2>
+<!-- ===================================================== -->
+<!-- ACTEURS -->
+<!-- ===================================================== -->
+<div class="card bg-base-100 shadow">
+<div class="card-body">
 
-            <div class="flex items-center gap-3 mt-2">
-                <div class="rating rating-lg">
-                    {% for i in "12345" %}
-                        <input type="radio" class="mask mask-star-2 bg-warning"
-                               {% if forloop.counter == feedback.note %}checked{% endif %}
-                               disabled />
-                    {% endfor %}
-                </div>
+<h2 class="card-title text-base-content/70">
+Acteurs de la collaboration
+</h2>
 
-                <span class="text-lg font-semibold">
-                    {{ feedback.note }}/5
-                </span>
-            </div>
+<div class="grid md:grid-cols-2 gap-6 mt-4">
 
-            {% if feedback.commentaire %}
-            <div class="mt-4 p-4 bg-base-200 rounded-lg whitespace-pre-line">
-                {{ feedback.commentaire }}
-            </div>
-            {% endif %}
+<!-- CLIENT -->
+<div class="bg-base-200 rounded-xl p-5 space-y-2">
 
-        </div>
+    <div class="text-xs uppercase opacity-60">
+        Client
     </div>
 
+    <a href="{% url 'client_detail' feedback.client.client_profile.id %}"
+       class="font-semibold text-lg link link-hover">
+        {{ feedback.client.first_name }} {{ feedback.client.last_name }}
+    </a>
 
-    <!-- INCIDENT SIGNALÉ -->
-    {% if feedback.incident_signale %}
-    <div class="alert alert-error shadow">
-        <div>
-            <span class="font-semibold">Incident signalé</span>
-            <p class="mt-1 opacity-90">
-                {{ feedback.description_incident }}
-            </p>
-        </div>
+    {% if feedback.client.client_profile.nom_entreprise %}
+    <div class="text-sm opacity-70">
+        {{ feedback.client.client_profile.nom_entreprise }}
     </div>
     {% endif %}
 
+    <div class="text-xs opacity-60">
+        {{ feedback.client.email }}
+    </div>
 
-    <!-- SUIVI INCIDENT -->
-    {% if feedback.incident %}
-    <div class="card bg-base-100 shadow border border-warning/30">
-        <div class="card-body">
+</div>
 
-            <h2 class="card-title">
-                🔎 Suivi de l'incident
-            </h2>
 
-            <div class="flex flex-wrap gap-6 mt-3">
+<!-- CONSULTANT -->
+<div class="bg-base-200 rounded-xl p-5 space-y-2">
 
-                <div>
-                    <div class="text-sm opacity-60">Statut</div>
-                    <span class="badge {{ feedback.incident.badge_class }} mt-1">
-                        {{ feedback.incident.get_statut_display }}
-                    </span>
-                </div>
+    <div class="text-xs uppercase opacity-60">
+        Consultant
+    </div>
 
-                <div>
-                    <div class="text-sm opacity-60">Enquêteur</div>
-                    <div class="font-medium">
-                        {{ feedback.incident.enqueteur_display }}
-                    </div>
-                </div>
+    <a href="{% url 'bo_membre_detail' feedback.contact_request.consultant.id %}"
+       class="font-semibold text-lg link link-hover">
+        {{ feedback.contact_request.consultant.first_name }}
+        {{ feedback.contact_request.consultant.last_name }}
+    </a>
 
-            </div>
-
-            {% if feedback.incident.rapport_enquete %}
-            <div class="divider">Rapport d'enquête</div>
-
-            <div class="bg-base-200 p-5 rounded-lg whitespace-pre-line leading-relaxed">
-                {{ feedback.incident.rapport_enquete }}
-            </div>
-            {% endif %}
-
-        </div>
+    {% if feedback.contact_request.consultant.organization %}
+    <div class="text-sm opacity-70">
+        {{ feedback.contact_request.consultant.organization.nom }}
     </div>
     {% endif %}
+
+    <div class="text-xs opacity-60">
+        {{ feedback.contact_request.consultant.email }}
+    </div>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+
+<!-- ===================================================== -->
+<!-- CONTEXTE COLLABORATION -->
+<!-- ===================================================== -->
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+
+<h2 class="card-title">Contexte de collaboration</h2>
+
+<div class="grid md:grid-cols-3 gap-6 text-sm mt-2">
+
+<div>
+<div class="opacity-60">Statut mission</div>
+<div class="font-medium">
+{{ feedback.contact_request.get_statut_display }}
+</div>
+</div>
+
+<div>
+<div class="opacity-60">Durée estimée</div>
+<div class="font-medium">
+{{ feedback.contact_request.duree_estimee_jours|default:"—" }} jours
+</div>
+</div>
+
+<div>
+<div class="opacity-60">Collaboration validée</div>
+<div class="font-medium">
+{% if feedback.contact_request.est_collaboration_validee %}
+✅ Oui
+{% else %}
+❌ Non
+{% endif %}
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+
+<!-- ===================================================== -->
+<!-- FEEDBACK CLIENT -->
+<!-- ===================================================== -->
+<div class="card bg-base-100 shadow">
+<div class="card-body">
+
+<h2 class="card-title">
+Évaluation du client
+</h2>
+
+<div class="flex items-center gap-4 mt-3">
+
+<div class="rating rating-lg">
+{% for i in "12345" %}
+<input type="radio"
+       class="mask mask-star-2 bg-warning"
+       {% if forloop.counter == feedback.note %}checked{% endif %}
+       disabled />
+{% endfor %}
+</div>
+
+<span class="text-xl font-semibold">
+{{ feedback.note }}/5
+</span>
+
+</div>
+
+<div class="text-xs opacity-60 mt-2">
+Soumis le {{ feedback.cree_le|date:"d/m/Y H:i" }}
+</div>
+
+{% if feedback.commentaire %}
+<div class="mt-4 p-5 bg-base-200 rounded-xl whitespace-pre-line leading-relaxed">
+{{ feedback.commentaire }}
+</div>
+{% endif %}
+
+</div>
+</div>
+
+
+<!-- ===================================================== -->
+<!-- INCIDENT SIGNALÉ -->
+<!-- ===================================================== -->
+{% if feedback.incident_signale %}
+<div class="alert alert-error shadow">
+<div>
+<span class="font-semibold">Incident signalé par le client</span>
+
+{% if feedback.description_incident %}
+<p class="mt-2 opacity-90 whitespace-pre-line">
+{{ feedback.description_incident }}
+</p>
+{% endif %}
+</div>
+</div>
+{% endif %}
+
+
+<!-- ===================================================== -->
+<!-- SUIVI QUALITE AMEE -->
+<!-- ===================================================== -->
+{% if feedback.incident %}
+<div class="card bg-base-100 shadow border border-warning/30">
+<div class="card-body">
+
+<h2 class="card-title">
+🔎 Suivi qualité AMEE
+</h2>
+
+<div class="flex flex-wrap gap-8 mt-3">
+
+<div>
+<div class="text-sm opacity-60">Statut</div>
+<span class="badge {{ feedback.incident.badge_class }} mt-1">
+{{ feedback.incident.get_statut_display }}
+</span>
+</div>
+
+<div>
+<div class="text-sm opacity-60">Enquêteur AMEE</div>
+<div class="font-medium">
+{{ feedback.incident.enqueteur_display }}
+</div>
+</div>
+
+</div>
+
+{% if feedback.incident.statut == "OUVERT" %}
+<div class="alert alert-warning mt-5">
+⚠️ Action requise : affecter un enquêteur pour analyse.
+</div>
+{% endif %}
+
+{% if feedback.incident.rapport_enquete %}
+<div class="divider">Rapport d'enquête</div>
+
+<div class="bg-base-200 p-5 rounded-xl whitespace-pre-line leading-relaxed">
+{{ feedback.incident.rapport_enquete }}
+</div>
+{% endif %}
+
+</div>
+</div>
+{% endif %}
 
 </div>
 

@@ -1,85 +1,222 @@
 {% extends "base_espace.html" %}
-
 {% block content %}
-<div class="max-w-4xl mx-auto py-8">
 
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-10 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div>
-            <h3 class="text-blue-800 font-bold uppercase text-xs tracking-wider">Expertise & Missions</h3>
-            <p class="text-sm text-blue-600 mt-1">Gérez votre parcours consultant et vos mises en relation.</p>
-        </div>
-        <div>
-            {% if consultant_profile %}
-                <a href="{% url 'roster_dashboard' %}" class="btn btn-primary btn-sm normal-case">
-                    Espace Consultant →
-                </a>
+<div class="max-w-5xl mx-auto py-10 space-y-10">
+
+<!-- ================= HEADER ================= -->
+<div class="flex flex-col md:flex-row items-center gap-6 pb-8 border-b border-base-300">
+
+    <div class="avatar">
+        <div class="w-24 rounded-xl bg-base-200 ring-1 ring-base-300 shadow-sm">
+            {% if request.user.photo %}
+                <img src="{{ request.user.photo.url }}" />
             {% else %}
-                <a href="{% url 'roster_postuler' %}" class="btn btn-success btn-sm text-white normal-case">
-                    Devenir Consultant
-                </a>
+                <div class="flex items-center justify-center h-full text-2xl font-black">
+                    {{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}
+                </div>
             {% endif %}
         </div>
     </div>
 
-    <div class="flex flex-col md:flex-row items-center md:items-start gap-8 border-b border-base-200 pb-10">
-        <div class="avatar placeholder">
-            <div class="bg-neutral text-neutral-content rounded-lg w-24 shadow-sm">
-                {% if user.photo %}
-                    <img src="{{ user.photo.url }}" alt="Profil" />
-                {% else %}
-                    <span class="text-2xl font-bold">{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}</span>
-                {% endif %}
-            </div>
-        </div>
+    <div class="flex-1 text-center md:text-left">
+        <h1 class="text-3xl font-black tracking-tight">
+            {{ request.user.get_full_name }}
+        </h1>
 
-        <div class="flex-1 text-center md:text-left">
-            <h1 class="text-3xl font-extrabold text-base-content">{{ user.first_name }} {{ user.last_name }}</h1>
-            <p class="text-sm font-medium opacity-60 mt-1 uppercase tracking-widest">Membre AMEE</p>
-            
-            <div class="mt-6 flex flex-wrap justify-center md:justify-start gap-3">
-                <a href="{% url 'edit_profile' %}" class="btn btn-outline btn-sm">Modifier mes infos</a>
-                <div class="badge badge-lg badge-ghost font-bold text-[10px] uppercase">ID: {{ user.id_membre_association|default:"En attente" }}</div>
-            </div>
-        </div>
+        <p class="text-sm opacity-60 uppercase tracking-wider mt-1">
+            {{ request.user.get_role_display }}
+            • ID {{ request.user.id_membre_association|default:"---" }}
+        </p>
+
+        <a href="{% url 'edit_profile' %}" class="btn btn-sm btn-outline mt-4">
+            Modifier mon profil
+        </a>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mt-10">
-        
-        <div class="space-y-6">
-            <h4 class="font-bold text-xs uppercase tracking-widest opacity-50 border-l-4 border-primary pl-3">Coordonnées</h4>
-            
-            <div class="space-y-4 text-sm">
-                <div>
-                    <label class="block opacity-50 text-[10px] uppercase font-black">Email Professionnel</label>
-                    <p class="font-semibold">{{ user.email }}</p>
-                </div>
-                <div>
-                    <label class="block opacity-50 text-[10px] uppercase font-black">Téléphone</label>
-                    <p class="font-semibold">{{ user.phone|default:"—" }}</p>
-                </div>
-                <div>
-                    <label class="block opacity-50 text-[10px] uppercase font-black">Organisation</label>
-                    <p class="font-semibold">{{ user.organization|default:"Indépendant" }}</p>
-                </div>
-            </div>
-        </div>
+</div>
 
-        <div class="space-y-6">
-            <h4 class="font-bold text-xs uppercase tracking-widest opacity-50 border-l-4 border-success pl-3">Adhésion AMEE</h4>
-            
-            <div class="card bg-base-100 border border-base-200 shadow-sm">
-                <div class="card-body p-6">
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold">Statut Annuel</span>
-                        <div class="badge badge-success text-white font-bold">ACTIF</div>
-                    </div>
-                    <p class="text-xs opacity-60 mt-4 leading-relaxed">
-                        Votre adhésion est valide. Vous avez accès à l'annuaire complet et aux ressources du réseau.
-                    </p>
-                </div>
-            </div>
-        </div>
 
+<!-- ================= INFOS + ADHESION ================= -->
+<div class="grid md:grid-cols-2 gap-6">
+
+<!-- COORDONNEES -->
+<div class="card bg-base-100 border border-base-300 shadow-sm">
+<div class="card-body space-y-4">
+
+<h3 class="text-xs uppercase font-black opacity-50">
+Coordonnées
+</h3>
+
+<div class="space-y-3 text-sm">
+    <div>
+        <span class="opacity-50 text-xs uppercase">Email</span>
+        <p class="font-semibold">{{ request.user.email }}</p>
+    </div>
+
+    <div>
+        <span class="opacity-50 text-xs uppercase">Téléphone</span>
+        <p class="font-semibold">{{ request.user.phone|default:"—" }}</p>
+    </div>
+
+    <div>
+        <span class="opacity-50 text-xs uppercase">Localisation</span>
+        <p class="font-semibold">
+            {{ request.user.nationalite }} / {{ request.user.pays_residence }}
+        </p>
     </div>
 </div>
+
+</div>
+</div>
+
+
+<!-- ADHESION -->
+<div class="card bg-base-100 border border-base-300 shadow-sm">
+<div class="card-body text-center space-y-3">
+
+<span class="text-xs uppercase font-black opacity-50">
+Adhésion AMEE
+</span>
+
+{% if request.user.adhesion.est_actif %}
+
+<div class="text-2xl font-black text-primary">
+Membre actif
+</div>
+
+{% if request.user.adhesion.jours_restants %}
+<p class="text-sm opacity-70">
+
+{% if request.user.adhesion.jours_restants > 30 %}
+Valide encore {{ request.user.adhesion.jours_restants }} jours
+{% elif request.user.adhesion.jours_restants > 7 %}
+Expire bientôt ({{ request.user.adhesion.jours_restants }} jours)
+{% else %}
+<span class="text-warning font-semibold">
+Expiration imminente ({{ request.user.adhesion.jours_restants }} jours)
+</span>
+{% endif %}
+
+</p>
+{% endif %}
+
+{% else %}
+
+<div class="text-2xl font-black text-error">
+Adhésion expirée
+</div>
+
+<p class="text-sm opacity-70">
+Veuillez renouveler votre cotisation.
+</p>
+
+{% endif %}
+
+</div>
+</div>
+
+</div>
+
+
+<!-- ================= ROSTER ================= -->
+<div class="space-y-4">
+
+<h3 class="text-xs uppercase font-black opacity-50">
+Statut Consultant AMEE
+</h3>
+
+{% if not consultant_profile %}
+
+<div class="card bg-base-100 border border-dashed border-primary shadow-sm">
+<div class="card-body flex md:flex-row flex-col justify-between items-center gap-4">
+
+<div>
+<h4 class="font-bold">Rejoindre le roster AMEE</h4>
+<p class="text-xs opacity-70">
+Déposez votre candidature pour devenir consultant expert.
+</p>
+</div>
+
+<a href="{% url 'roster_profile' %}" class="btn btn-primary btn-sm">
+Postuler
+</a>
+
+</div>
+</div>
+
+{% else %}
+
+<div class="card bg-base-100 border border-base-300 shadow-sm">
+<div class="card-body flex flex-col md:flex-row justify-between gap-6">
+
+<div>
+
+<span class="text-xs uppercase opacity-40 font-black">
+État du dossier
+</span>
+
+{% if consultant_profile.statut == "BROUILLON" %}
+<h3 class="text-xl font-black text-warning">Dossier en préparation</h3>
+<p class="text-xs opacity-60">Finalisez votre dossier pour soumission.</p>
+
+{% elif consultant_profile.statut == "SOUMIS" %}
+<h3 class="text-xl font-black text-primary">Évaluation en cours</h3>
+<p class="text-xs opacity-60">
+Votre candidature est en cours d’évaluation par l’AMEE.
+</p>
+
+{% elif consultant_profile.statut == "VALIDE" %}
+<h3 class="text-xl font-black text-success">Consultant certifié</h3>
+<p class="text-xs opacity-60">
+Votre profil est actif dans le roster AMEE.
+</p>
+
+{% elif consultant_profile.statut == "REFUSE" %}
+<h3 class="text-xl font-black text-error">Corrections requises</h3>
+<p class="text-xs opacity-60">
+Votre dossier nécessite des modifications.
+</p>
+
+{% if consultant_profile.motif_refus %}
+<div class="mt-3 p-3 bg-error/10 text-error text-xs rounded-lg">
+<strong>Motif :</strong> {{ consultant_profile.motif_refus }}
+</div>
+{% endif %}
+{% endif %}
+
+</div>
+
+
+<!-- ACTIONS -->
+<div class="flex flex-col gap-2">
+
+{% if consultant_profile.statut == "VALIDE" %}
+<a href="{% url 'roster_profile' %}" class="btn btn-primary btn-sm">
+Modifier mon profil consultant
+</a>
+{% endif %}
+
+{% if consultant_profile.statut == "BROUILLON" or consultant_profile.statut == "REFUSE" %}
+<a href="{% url 'roster_profile' %}" class="btn btn-primary btn-sm">
+Continuer mon dossier
+</a>
+{% endif %}
+
+{% if consultant_profile.statut == "REFUSE" %}
+<a href="{% url 'roster_reexamen' %}" class="btn btn-outline btn-sm">
+Demander réexamen
+</a>
+{% endif %}
+
+</div>
+
+</div>
+</div>
+
+{% endif %}
+
+</div>
+
+</div>
+
 {% endblock %}

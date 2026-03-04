@@ -28,7 +28,21 @@
                 {{ form.titre }}
                 {% if form.titre.errors %}<span class="text-error text-xs mt-1">{{ form.titre.errors.0 }}</span>{% endif %}
             </div>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold text-base-content">Objectif </span>
+                </label>
+                {{ form.objectifs }}
+                {% if form.objectifs.errors %}<span class="text-error text-xs mt-1">{{ form.objectifs.errors.0 }}</span>{% endif %}
+            </div>
 
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold text-base-content">Livrables attendus</span>
+                </label>
+                {{ form.livrables_attendus }}
+                {% if form.livrables_attendus.errors %}<span class="text-error text-xs mt-1">{{ form.livrables_attendus.errors.0 }}</span>{% endif %}
+            </div>
             <div class="form-control">
                 <label class="label">
                     <span class="label-text font-semibold text-base-content">Description détaillée</span>
@@ -68,7 +82,38 @@
                     {{ form.budget_estime }}
                 </div>
             </div>
+ <div class="bg-base-200 p-4 rounded-xl grid md:grid-cols-2 gap-6">
 
+    <div class="form-control">
+        <label class="label">
+            <span class="label-text font-semibold text-base-content italic">
+                Type de mission
+            </span>
+        </label>
+        {{ form.type_publication }}
+        <label class="label">
+            <span class="label-text-alt text-base-content/70">
+                Choisissez si la mission est publique (visible par tous les consultants) 
+                ou ciblée (adressée à un consultant spécifique).
+            </span>
+        </label>
+    </div>
+
+    <div class="form-control">
+        <label class="label">
+            <span class="label-text font-semibold text-base-content italic">
+                Date limite de candidature
+            </span>
+        </label>
+        {{ form.date_fin }}
+        <label class="label">
+            <span class="label-text-alt text-base-content/70">
+                Après cette date, la mission ne sera plus visible aux consultants.
+            </span>
+        </label>
+    </div>
+
+</div>
             <div class="card-actions justify-end pt-6 border-t border-base-200">
                 <button type="reset" class="btn btn-ghost">Annuler</button>
                 <button type="submit" class="btn btn-primary px-10">

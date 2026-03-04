@@ -1,88 +1,193 @@
 {% extends "backoffice/base.html" %}
 
-{% block title %}Détail Client{% endblock %}
-{% block page_context %}Fiche Client{% endblock %}
+{% block title %}Fiche Client{% endblock %}
+{% block page_context %}Analyse Client{% endblock %}
 
 {% block content %}
 
-<div class="max-w-5xl mx-auto space-y-6">
+<div class="max-w-6xl mx-auto space-y-6">
 
-    <!-- Header -->
-    <div class="flex justify-between items-start">
+<!-- ===================================================== -->
+<!-- IDENTITE CLIENT (PRIORITAIRE) -->
+<!-- ===================================================== -->
+<div class="card bg-base-100 border shadow">
+<div class="card-body">
+
+<div class="flex justify-between items-start flex-wrap gap-6">
+
+    <!-- ========================= -->
+    <!-- IDENTITE ENTREPRISE -->
+    <!-- ========================= -->
+    <div class="space-y-3">
+
         <div>
             <h1 class="text-2xl font-bold">
                 {{ client.nom_entreprise }}
             </h1>
 
-            <p class="opacity-70 text-sm">
+            <p class="opacity-60 text-sm">
                 Créé le {{ client.cree_le|date:"d F Y" }}
             </p>
         </div>
 
-        {% if client.est_verifie %}
-            <span class="badge badge-success badge-lg">Client validé</span>
-        {% else %}
-            <span class="badge badge-warning badge-lg">En attente</span>
-        {% endif %}
-    </div>
+        <!-- Infos rapides -->
+        <div class="grid sm:grid-cols-2 gap-x-8 gap-y-1 text-sm">
+            <p>
+                <span class="opacity-60">Secteur :</span>
+                <b>{{ client.secteur_activite }}</b>
+            </p>
 
-    <!-- Infos -->
-    <div class="grid md:grid-cols-2 gap-6">
+            <p>
+                <span class="opacity-60">Email :</span>
+                {{ client.email_pro }}
+            </p>
 
-        <div class="card bg-base-100 border border-base-300">
-            <div class="card-body">
-                <h2 class="card-title">Entreprise</h2>
-
-                <p><b>Secteur :</b> {{ client.secteur_activite }}</p>
-                <p><b>Email :</b> {{ client.email_pro }}</p>
-                <p><b>Téléphone :</b> {{ client.telephone_pro|default:"—" }}</p>
-            </div>
-        </div>
-
-        <div class="card bg-base-100 border border-base-300">
-            <div class="card-body">
-                <h2 class="card-title">Contact principal</h2>
-
-                <p><b>Nom :</b> {{ client.nom_contact }}</p>
-                <p><b>Fonction :</b> {{ client.fonction_contact }}</p>
-                <p><b>Compte actif :</b>
-                    {% if client.user.is_active %}
-                        ✅ Oui
-                    {% else %}
-                        ❌ Non
-                    {% endif %}
-                </p>
-            </div>
+            <p>
+                <span class="opacity-60">Téléphone :</span>
+                {{ client.telephone_pro|default:"—" }}
+            </p>
         </div>
 
     </div>
 
-    <!-- Actions gouvernance -->
-    {% if not client.est_verifie %}
-    <div class="card bg-base-100 border border-warning">
-        <div class="card-body">
 
-            <h2 class="card-title text-warning">
-                Actions de gouvernance
-            </h2>
+    <!-- ========================= -->
+    <!-- REPRESENTANT -->
+    <!-- ========================= -->
+    <div class="bg-base-100 border rounded-xl p-4 min-w-[260px]">
 
-            <div class="flex gap-3">
-
-                <a href="{% url 'valider_client' client.id %}"
-                   class="btn btn-success">
-                    ✅ Valider le client
-                </a>
-
-                <a href="{% url 'refuser_client' client.id %}"
-                   class="btn btn-outline btn-error">
-                    ❌ Refuser
-                </a>
-
-            </div>
-
+        <div class="text-xs uppercase opacity-60 font-semibold mb-2">
+            Représentant principal
         </div>
+
+        <p class="font-medium">
+            {{ client.nom_contact }}
+        </p>
+
+        <p class="text-sm opacity-70">
+            {{ client.fonction_contact|default:"—" }}
+        </p>
+
+        <p class="text-xs mt-2">
+            Compte :
+            {% if client.user.is_active %}
+                <span class="text-success font-medium">Actif</span>
+            {% else %}
+                <span class="text-error font-medium">Inactif</span>
+            {% endif %}
+        </p>
+
     </div>
-    {% endif %}
+
+</div>
+</div>
+</div>
+
+
+<!-- ===================================================== -->
+<!-- KPI DATA DRIVEN -->
+<!-- ===================================================== -->
+<div class="grid md:grid-cols-4 gap-4">
+
+<div class="stat bg-base-100 border">
+<div class="stat-title">Missions créées</div>
+<div class="stat-value">{{ missions_stats.total|default:0 }}</div>
+</div>
+
+<div class="stat bg-base-100 border">
+<div class="stat-title">Consultants mobilisés</div>
+<div class="stat-value">
+{{ collaboration_stats.consultants_uniques|default:0 }}
+</div>
+</div>
+
+<div class="stat bg-base-100 border">
+<div class="stat-title">Collaborations</div>
+<div class="stat-value">
+{{ collaboration_stats.collaborations|default:0 }}
+</div>
+</div>
+
+<div class="stat bg-base-100 border">
+<div class="stat-title">Missions terminées</div>
+<div class="stat-value">
+{{ collaboration_stats.missions_terminees|default:0 }}
+</div>
+</div>
+
+</div>
+
+
+<!-- ===================================================== -->
+<!-- ANALYSE RELATION CLIENT -->
+<!-- ===================================================== -->
+<div class="grid md:grid-cols-2 gap-6">
+
+<!-- ACTIVITE -->
+<div class="card bg-base-100 border">
+<div class="card-body">
+
+<h2 class="card-title">Activité plateforme</h2>
+
+<p><b>Missions actives :</b> {{ missions_stats.actives|default:0 }}</p>
+<p><b>Missions terminées :</b>{{ collaboration_stats.missions_terminees|default:0 }}</p>
+<p><b>Collaborations validées :</b> {{ collaboration_stats.collaborations|default:0 }}</p>
+
+</div>
+</div>
+
+<!-- QUALITE RELATION -->
+<div class="card bg-base-100 border">
+<div class="card-body">
+
+<h2 class="card-title">Qualité collaboration</h2>
+
+<p><b>Feedbacks donnés :</b>
+{{ feedback_stats.total_feedback|default:0 }}</p>
+
+<p><b>Note moyenne donnée :</b>
+{{ feedback_stats.note_moyenne|floatformat:1|default:"—" }}</p>
+
+<p><b>Incidents signalés :</b>
+{{ feedback_stats.incidents|default:0 }}</p>
+
+{% if feedback_stats.incidents %}
+<div class="alert alert-warning mt-3">
+⚠️ Ce client a signalé des incidents durant certaines missions.
+</div>
+{% endif %}
+
+</div>
+</div>
+
+</div>
+
+
+<!-- ===================================================== -->
+<!-- GOUVERNANCE -->
+<!-- ===================================================== -->
+{% if not client.est_verifie %}
+<div class="card bg-base-100 border border-warning">
+<div class="card-body">
+
+<h2 class="card-title text-warning">
+Actions de gouvernance
+</h2>
+
+<div class="flex gap-3">
+<a href="{% url 'valider_client' client.id %}" class="btn btn-success">
+ Valider le client
+</a>
+
+<a href="{% url 'refuser_client' client.id %}"
+   class="btn btn-outline btn-error">
+ Refuser
+</a>
+</div>
+
+</div>
+</div>
+{% endif %}
 
 </div>
 

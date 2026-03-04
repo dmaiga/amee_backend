@@ -4,91 +4,188 @@
 
 {% block content %}
 
-<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-    <div>
-        <h1 class="text-3xl font-extrabold text-base-content tracking-tight">Mes missions</h1>
-        <p class="text-base opacity-60 mt-1">Gérez vos besoins et suivez vos mises en relation.</p>
-    </div>
+<div class="max-w-7xl mx-auto space-y-10">
 
-    <a href="{% url 'client_mission_create' %}" class="btn btn-primary shadow-lg gap-2">
-        <i data-lucide="plus-circle" class="w-5 h-5"></i>
-        Nouvelle mission
-    </a>
-</div>
+    <!-- HEADER -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
 
-<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-
-{% for mission in missions %}
-
-<div class="card bg-base-100 border border-base-200 hover:border-primary/40 hover:shadow-xl transition-all duration-300 group">
-
-    <div class="card-body p-6">
-
-        <div class="flex justify-between items-start mb-2">
-            <span class="text-xs font-bold uppercase tracking-widest text-primary opacity-80">
-                {{ mission.domaine }}
-            </span>
-            <span class="text-xs opacity-50 font-medium">
-                {{ mission.cree_le|date:"d M Y" }}
-            </span>
-        </div>
-
-        <h2 class="card-title text-xl font-bold leading-tight group-hover:text-primary transition-colors">
-            {{ mission.titre }}
-        </h2>
-
-        <p class="text-base opacity-70 mt-3 line-clamp-2 min-h-[3rem]">
-            {{ mission.description|truncatewords:20 }}
-        </p>
-
-        <div class="flex flex-wrap gap-2 mt-6">
-            <div class="badge badge-lg badge-outline gap-2 font-semibold">
-                <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                {{ mission.get_statut_display }}
-            </div>
-            
-            {% if mission.nb_contacts > 0 %}
-            <div class="badge badge-lg badge-success text-white font-semibold">
-                {{ mission.nb_contacts }} expert{{ mission.nb_contacts|pluralize }} contacté{{ mission.nb_contacts|pluralize }}
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="divider my-4 opacity-50"></div>
-
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2 text-sm font-medium">
-                 <i data-lucide="message-square" class="w-4 h-4 opacity-50"></i>
-                 <span>{{ mission.nb_contacts }} interaction{{ mission.nb_contacts|pluralize }}</span>
-            </div>
-
-            <a href="{% url 'client_mission_detail' mission.id %}"
-               class="btn btn-ghost btn-circle hover:bg-primary hover:text-white transition-all">
-                <i data-lucide="arrow-right" class="w-6 h-6"></i>
-            </a>
-        </div>
-
-    </div>
-</div>
-
-{% empty %}
-
-<div class="col-span-full py-20 text-center bg-base-100 rounded-3xl border-2 border-dashed border-base-300">
-    <div class="flex flex-col items-center gap-4">
-        <div class="bg-base-200 p-6 rounded-full">
-            <i data-lucide="briefcase" class="w-12 h-12 opacity-20"></i>
-        </div>
         <div>
-            <h3 class="text-xl font-bold">Aucune mission pour le moment</h3>
-            <p class="opacity-60">Commencez par publier votre premier besoin pour trouver un expert.</p>
+            <h1 class="text-3xl font-extrabold tracking-tight">
+                Mes missions
+            </h1>
+            <p class="opacity-60 mt-1">
+                Suivez l’évolution de vos besoins et vos candidatures.
+            </p>
         </div>
-        <a href="{% url 'client_mission_create' %}" class="btn btn-primary mt-2">
-            Créer ma première mission
-        </a>
-    </div>
-</div>
 
-{% endfor %}
+        <a href="{% url 'client_mission_create' %}"
+           class="btn btn-primary gap-2 shadow-lg">
+            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+            Nouvelle mission
+        </a>
+
+    </div>
+
+
+    <!-- KPI GLOBAL -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <div class="card bg-base-100 shadow p-6">
+            <div class="text-sm opacity-60">Total missions</div>
+            <div class="text-3xl font-bold mt-2">
+                {{ missions|length }}
+            </div>
+        </div>
+
+        <div class="card bg-base-100 shadow p-6">
+            <div class="text-sm opacity-60">Missions actives</div>
+            <div class="text-3xl font-bold mt-2">
+                {{missions_actives }}
+            </div>
+        </div>
+
+        <div class="card bg-base-100 shadow p-6">
+            <div class="text-sm opacity-60">Total candidatures reçues</div>
+            <div class="text-3xl font-bold mt-2">
+                {{ total_applications }}
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- LISTE MISSIONS -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+
+    {% for mission in missions %}
+
+        <div class="card bg-base-100 border border-base-200 hover:border-primary/40 hover:shadow-xl transition-all duration-300 group">
+
+            <div class="card-body p-6 space-y-4">
+
+                <!-- Header mission -->
+                <div class="flex justify-between items-start">
+
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-widest text-primary opacity-80">
+                            {{ mission.domaine }}
+                        </span>
+
+                        <h2 class="text-xl font-bold mt-1 group-hover:text-primary transition-colors">
+                            {{ mission.titre }}
+                        </h2>
+                    </div>
+
+                    <span class="badge
+                        {% if mission.statut == 'ACTIVE' %}
+                            badge-success
+                        {% elif mission.statut == 'BROUILLON' %}
+                            badge-warning
+                        {% elif mission.statut == 'TERMINEE' %}
+                            badge-neutral
+                        {% else %}
+                            badge-error
+                        {% endif %}
+                    ">
+                        {{ mission.get_statut_display }}
+                    </span>
+
+                </div>
+
+                <!-- Description -->
+                <p class="text-base opacity-70 line-clamp-3 min-h-[4rem]">
+                    {{ mission.description|truncatewords:25 }}
+                </p>
+
+                <!-- Infos clés -->
+                <div class="grid grid-cols-2 gap-4 text-sm">
+
+                    <div>
+                        <div class="opacity-60">Candidatures</div>
+                        <div class="font-semibold">
+                            {{ mission.nb_applications|default:0 }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="opacity-60">Invitations</div>
+                        <div class="font-semibold">
+                            {{ mission.nb_contacts|default:0 }}
+                        </div>
+                    </div>
+
+                    {% if mission.date_fin %}
+                    <div class="col-span-2">
+                        <div class="opacity-60">Date limite</div>
+                        <div class="
+                            {% if mission.date_fin < today %}
+                                text-error font-semibold
+                            {% endif %}
+                        ">
+                            {{ mission.date_fin }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+
+                <!-- Barre de progression simple -->
+                <div>
+                    <progress class="progress progress-primary w-full"
+                              value="{{ mission.nb_applications|default:0 }}"
+                              max="10">
+                    </progress>
+                </div>
+
+                <!-- Footer -->
+                <div class="flex items-center justify-between pt-4 border-t border-base-200">
+
+                    <div class="text-xs opacity-50">
+                        Créée le {{ mission.cree_le|date:"d M Y" }}
+                    </div>
+
+                    <a href="{% url 'client_mission_detail' mission.id %}"
+                       class="btn btn-ghost btn-circle hover:bg-primary hover:text-white">
+                        <i data-lucide="arrow-right" class="w-6 h-6"></i>
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    {% empty %}
+
+        <div class="col-span-full py-24 text-center bg-base-100 rounded-3xl border-2 border-dashed border-base-300">
+
+            <div class="flex flex-col items-center gap-4">
+
+                <div class="bg-base-200 p-6 rounded-full">
+                    <i data-lucide="briefcase" class="w-12 h-12 opacity-20"></i>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-bold">
+                        Aucune mission pour le moment
+                    </h3>
+                    <p class="opacity-60">
+                        Publiez votre premier besoin pour recevoir des candidatures.
+                    </p>
+                </div>
+
+                <a href="{% url 'client_mission_create' %}"
+                   class="btn btn-primary mt-2">
+                    Créer ma première mission
+                </a>
+
+            </div>
+
+        </div>
+
+    {% endfor %}
+
+    </div>
 
 </div>
 

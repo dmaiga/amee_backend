@@ -6,7 +6,6 @@ from accounts.models import User
 from quality_control.models import IncidentReview
 from organizations.models import Organization
 
-
 class ArticleForm(forms.ModelForm):
 
     class Meta:
@@ -23,13 +22,39 @@ class ArticleForm(forms.ModelForm):
         ]
 
         widgets = {
-            "contenu": forms.Textarea(attrs={
-                "rows": 8,
-                "class": "form-control"
+            "titre": forms.TextInput(attrs={
+                "class": "input input-bordered w-full"
             }),
-            "date_publication": forms.DateTimeInput(
-                attrs={"type": "datetime-local", "class": "form-control"}
-            ),
+
+            "type": forms.Select(attrs={
+                "class": "select select-bordered w-full"
+            }),
+
+            "contenu": forms.Textarea(attrs={
+                "rows": 12,
+                "class": "textarea textarea-bordered w-full"
+            }),
+
+            "image": forms.ClearableFileInput(attrs={
+                "class": "file-input file-input-bordered w-full"
+            }),
+
+            "date_publication": forms.DateTimeInput(attrs={
+                "type": "datetime-local",
+                "class": "input input-bordered w-full"
+            }),
+
+            "lien_externe": forms.URLInput(attrs={
+                "class": "input input-bordered w-full"
+            }),
+
+            "publie": forms.CheckboxInput(attrs={
+                "class": "toggle toggle-success"
+            }),
+
+            "publie_manuellement": forms.CheckboxInput(attrs={
+                "class": "toggle toggle-warning"
+            }),
         }
 
 class ResourceForm(forms.ModelForm):
@@ -54,33 +79,39 @@ class ResourceForm(forms.ModelForm):
 
         widgets = {
             "titre": forms.TextInput(attrs={
-                "class": "form-control",
+                "class": "input input-bordered w-full",
                 "placeholder": "Titre de la ressource"
             }),
 
             "description": forms.Textarea(attrs={
-                "class": "form-control",
+                "class": "textarea textarea-bordered w-full",
                 "rows": 5,
                 "placeholder": "Description courte..."
             }),
 
             "categorie": forms.Select(attrs={
-                "class": "form-select"
+                "class": "select select-bordered w-full"
+            }),
+
+            "fichier": forms.ClearableFileInput(attrs={
+                "class": "file-input file-input-bordered w-full"
             }),
 
             "reserve_aux_membres": forms.CheckboxInput(attrs={
-                "class": "form-check-input"
+                "class": "toggle toggle-warning"
             }),
         }
-        def clean_fichier(self):
-            fichier = self.cleaned_data.get("fichier")
 
-            if fichier and fichier.size > 10 * 1024 * 1024:
-                raise forms.ValidationError(
-                    "Le fichier ne doit pas dépasser 10MB."
-                )
+    # ✅ EN DEHORS DE META
+    def clean_fichier(self):
+        fichier = self.cleaned_data.get("fichier")
 
-            return fichier
+        if fichier and fichier.size > 10 * 1024 * 1024:
+            raise forms.ValidationError(
+                "Le fichier ne doit pas dépasser 10MB."
+            )
+
+        return fichier
 
 class OpportunityForm(forms.ModelForm):
 
@@ -98,58 +129,35 @@ class OpportunityForm(forms.ModelForm):
 
         widgets = {
             "titre": forms.TextInput(attrs={
-                "class": "form-control"
+                "class": "input input-bordered w-full"
             }),
 
             "description": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 6
+                "class": "textarea textarea-bordered w-full",
+                "rows": 8
             }),
 
             "type": forms.Select(attrs={
-                "class": "form-select"
+                "class": "select select-bordered w-full"
             }),
 
             "date_limite": forms.DateInput(attrs={
                 "type": "date",
-                "class": "form-control"
+                "class": "input input-bordered w-full"
+            }),
+
+            "fichier_joint": forms.ClearableFileInput(attrs={
+                "class": "file-input file-input-bordered w-full"
             }),
 
             "reserve_aux_membres": forms.CheckboxInput(attrs={
-                "class": "form-check-input"
+                "class": "toggle toggle-warning"
+            }),
+
+            "publie": forms.CheckboxInput(attrs={
+                "class": "toggle toggle-success"
             }),
         }
-
-from django import forms
-from organizations.models import Organization
-
-
-class OrganizationForm(forms.ModelForm):
-
-    class Meta:
-        model = Organization
-        fields = [
-            "nom",
-            "sigle",
-            "email_contact",
-            "telephone",
-            "siege",
-            "site_web",
-        ]  # ❌ est_actif retiré
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # DaisyUI inputs
-        for field in self.fields.values():
-            field.widget.attrs.update({
-                "class": "input input-bordered w-full"
-            })
-
-        # placeholders UX
-        self.fields["nom"].widget.attrs["placeholder"] = "Nom officiel du bureau"
-        self.fields["sigle"].widget.attrs["placeholder"] = "Sigle (optionnel)"
-        self.fields["email_contact"].widget.attrs["placeholder"] = "contact@organisation.org"
 
 class AffecterIncidentForm(forms.ModelForm):
 
@@ -161,13 +169,16 @@ class AffecterIncidentForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         enqueteurs = User.objects.filter(
-            role__in=["BUREAU", "SUPERADMIN", "SECRETARIAT"],
-
+            role__in=["BUREAU", "SUPERADMIN", "SECRETARIAT"]
         ).select_related("adhesion")
 
         self.fields["enqueteur"].queryset = enqueteurs
 
-        # UX nom / fallback email
+        self.fields["enqueteur"].widget.attrs.update({
+            "class": "select select-bordered w-full"
+        })
+
+        # UX affichage humain
         self.fields["enqueteur"].label_from_instance = (
             lambda u: (
                 f"{u.first_name} {u.last_name}".strip()
@@ -177,7 +188,7 @@ class AffecterIncidentForm(forms.ModelForm):
         )
 
         self.fields["enqueteur"].empty_label = "— Sélectionner un enquêteur —"
-
+      
 class StatuerIncidentForm(forms.ModelForm):
 
     DECISIONS = [
@@ -187,16 +198,37 @@ class StatuerIncidentForm(forms.ModelForm):
     ]
 
     decision = forms.ChoiceField(choices=DECISIONS)
-    niveau = forms.IntegerField(required=False, min_value=1, max_value=3)
+    niveau = forms.IntegerField(
+        required=False,
+        min_value=1,
+        max_value=3
+    )
 
     class Meta:
         model = IncidentReview
         fields = ["rapport_enquete", "decision"]
+
         widgets = {
-            "rapport_enquete": forms.Textarea(
-                attrs={"rows": 6, "class": "form-control"}
-            )
+            "rapport_enquete": forms.Textarea(attrs={
+                "rows": 6,
+                "class": "textarea textarea-bordered w-full"
+            })
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["decision"].widget.attrs.update({
+            "class": "select select-bordered w-full"
+        })
+
+        self.fields["niveau"].widget.attrs.update({
+            "class": "input input-bordered w-full",
+            "placeholder": "Niveau de sanction (1 à 3)"
+        })
+        self.fields["niveau"].help_text = (
+            "Obligatoire pour avertissement ou suspension."
+        )
 
     # -----------------------------
     # VALIDATION MÉTIER
@@ -207,14 +239,12 @@ class StatuerIncidentForm(forms.ModelForm):
         decision = cleaned.get("decision")
         niveau = cleaned.get("niveau")
 
-        # si sanction → niveau obligatoire
         if decision != "NON_LIEU" and not niveau:
             raise forms.ValidationError(
                 "Un niveau de sanction est requis."
             )
 
-        return cleaned
-    
+        return cleaned       
 
 class EnrolementPaiementForm(forms.Form):
 
@@ -223,7 +253,34 @@ class EnrolementPaiementForm(forms.Form):
         ("ADHESION", "Adhésion seule"),
         ("COTISATION", "Cotisation seule"),
     ]
+    ELIGIBILITE = [
+        ("OPTION1", "Env/Social + 2 ans"),
+        ("OPTION2", "Autre domaine + 5 ans"),
+    ]
+    DIPLOME_NIVEAU = [
+        ("LICENCE", "Licence"),
+        ("MASTER", "Master"),
+        ("DOCTORAT", "Doctorat"),
+        ("AUTRE", "Autre"),
+    ]
+    
 
+    eligibilite_option = forms.ChoiceField(choices=ELIGIBILITE)
+    cv_document = forms.FileField(required=False)
+
+    diplome_niveau = forms.ChoiceField(
+        choices=DIPLOME_NIVEAU,
+        label="Niveau du diplôme"
+    )
+
+    diplome_intitule = forms.CharField(
+        label="Intitulé du diplôme"
+    )
+
+    diplome_document = forms.FileField(
+        required=False,
+        label="Diplôme (scan ou PDF)"
+    )
     # --- identité ---
     email = forms.EmailField(label="Email")
     first_name = forms.CharField(label="Prénom")
@@ -250,7 +307,23 @@ class EnrolementPaiementForm(forms.Form):
             self.fields[name].widget.attrs.update({
                 "class": "input input-bordered w-full",
             })
-
+        self.fields["eligibilite_option"].widget.attrs.update({
+            "class": "select select-bordered w-full"
+        })
+        self.fields["cv_document"].widget.attrs.update({
+            "class": "file-input file-input-bordered w-full"
+        })
+        self.fields["diplome_niveau"].widget.attrs.update({
+            "class": "select select-bordered w-full"
+        })
+        
+        self.fields["diplome_intitule"].widget.attrs.update({
+            "class": "input input-bordered w-full"
+        })
+        
+        self.fields["diplome_document"].widget.attrs.update({
+            "class": "file-input file-input-bordered w-full"
+        })
         # textarea
         self.fields["description"].widget.attrs.update({
             "class": "textarea textarea-bordered w-full",
@@ -265,3 +338,236 @@ class EnrolementPaiementForm(forms.Form):
         self.fields["organization"].widget.attrs.update({
             "class": "select select-bordered w-full"
         })
+
+
+from django import forms
+
+INPUT = "input input-bordered w-full"
+SELECT = "select select-bordered w-full"
+TEXTAREA = "textarea textarea-bordered w-full"
+
+
+class PaiementCreationOrganisationForm(forms.Form):
+
+    OPERATION_CHOICES = [
+        ("FULL", "Adhésion + Cotisation"),
+        ("ADHESION", "Adhésion seule"),
+    ]
+
+    operation = forms.ChoiceField(
+        choices=OPERATION_CHOICES,
+        label="Type d’opération",
+        widget=forms.Select(attrs={"class": SELECT})
+    )
+
+    montant_adhesion = forms.IntegerField(
+        min_value=1000,
+        label="Montant adhésion",
+        widget=forms.NumberInput(attrs={"class": INPUT})
+    )
+
+    montant_cotisation = forms.IntegerField(
+        required=False,
+        min_value=1000,
+        label="Montant cotisation (si FULL)",
+        widget=forms.NumberInput(attrs={"class": INPUT})
+    )
+
+    description = forms.CharField(
+        required=False,
+        label="Description",
+        widget=forms.Textarea(attrs={
+            "class": TEXTAREA,
+            "rows": 3
+        })
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+
+        operation = cleaned.get("operation")
+        cotisation = cleaned.get("montant_cotisation")
+
+        if operation == "FULL" and not cotisation:
+            raise forms.ValidationError(
+                "Montant cotisation requis pour une opération FULL."
+            )
+
+        return cleaned
+    
+
+class OrganizationForm(forms.ModelForm):
+
+    class Meta:
+        model = Organization
+        fields = [
+            "nom",
+            "sigle",
+            "email_contact",
+            "telephone",
+            "siege",
+            "site_web",
+
+            # 🔹 nouvelles infos bureau
+            "representant_nom",
+            "representant_fonction",
+            "representant_email",
+            "logo",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # ✅ Style DaisyUI uniforme
+        for name, field in self.fields.items():
+
+            # file input différent
+            if name == "logo":
+                field.widget.attrs.update({
+                    "class": "file-input file-input-bordered w-full"
+                })
+            else:
+                field.widget.attrs.update({
+                    "class": "input input-bordered w-full"
+                })
+
+        # ✅ Placeholders UX
+        self.fields["nom"].widget.attrs["placeholder"] = "Nom officiel du bureau"
+        self.fields["sigle"].widget.attrs["placeholder"] = "Sigle (optionnel)"
+        self.fields["email_contact"].widget.attrs["placeholder"] = "contact@organisation.org"
+        self.fields["telephone"].widget.attrs["placeholder"] = "+223 XX XX XX XX"
+        self.fields["siege"].widget.attrs["placeholder"] = "Ville / Adresse du siège"
+        self.fields["site_web"].widget.attrs["placeholder"] = "https://..."
+
+        # 🔹 Représentant
+        self.fields["representant_nom"].widget.attrs["placeholder"] = "Nom du représentant"
+        self.fields["representant_fonction"].widget.attrs["placeholder"] = "Président, Secrétaire général..."
+        self.fields["representant_email"].widget.attrs["placeholder"] = "email du représentant"
+
+
+# Deprecier a utilise now cotisationOrganisationForm
+class EnrolementOrganisationForm(forms.Form):
+
+    OPERATION_CHOICES = [
+        ("FULL", "Adhésion + Cotisation"),
+        ("ADHESION", "Adhésion seule"),
+        ("COTISATION", "Cotisation seule"),
+    ]
+
+    organization = forms.ModelChoiceField(
+        queryset=Organization.objects.filter(est_actif=True),
+        label="Organisation",
+        empty_label="Choisir une organisation"
+    )
+
+    operation = forms.ChoiceField(choices=OPERATION_CHOICES)
+
+    montant_adhesion = forms.IntegerField(
+        required=False,
+        min_value=1000,
+        label="Frais d’adhésion"
+    )
+
+    montant_cotisation = forms.IntegerField(
+        required=False,
+        min_value=1000,
+        label="Cotisation annuelle"
+    )
+
+    description = forms.CharField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # inputs
+        for name in [
+            "montant_adhesion",
+            "montant_cotisation",
+        ]:
+            self.fields[name].widget.attrs.update({
+                "class": "input input-bordered w-full"
+            })
+
+        self.fields["description"].widget.attrs.update({
+            "class": "textarea textarea-bordered w-full",
+            "rows": 3,
+        })
+
+        self.fields["operation"].widget.attrs.update({
+            "class": "select select-bordered w-full"
+        })
+
+        self.fields["organization"].widget.attrs.update({
+            "class": "select select-bordered w-full"
+        })
+
+    # ✅ validation intelligente
+    def clean(self):
+        cleaned = super().clean()
+
+        op = cleaned.get("operation")
+        adh = cleaned.get("montant_adhesion")
+        cot = cleaned.get("montant_cotisation")
+
+        if op == "ADHESION" and not adh:
+            raise forms.ValidationError(
+                "Montant adhésion requis."
+            )
+
+        if op == "COTISATION" and not cot:
+            raise forms.ValidationError(
+                "Montant cotisation requis."
+            )
+
+        if op == "FULL" and (not adh or not cot):
+            raise forms.ValidationError(
+                "Adhésion et cotisation requises."
+            )
+
+        return cleaned
+
+
+class CotisationOrganisationForm(forms.Form):
+
+    organization = forms.ModelChoiceField(
+        queryset=Organization.objects.filter(est_affilie=True),
+        empty_label="Organisation affiliée",
+        label="Organisation"
+    )
+
+    montant = forms.IntegerField(
+        min_value=1000,
+        label="Montant cotisation"
+    )
+
+    description = forms.CharField(
+        required=False,
+        label="Description"
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["organization"].widget.attrs.update({
+            "class": "select select-bordered w-full"
+        })
+
+        self.fields["montant"].widget.attrs.update({
+            "class": "input input-bordered w-full"
+        })
+
+        self.fields["description"].widget.attrs.update({
+            "class": "textarea textarea-bordered w-full",
+            "rows": 3
+        })
+
+    def clean(self):
+        cleaned = super().clean()
+        org = cleaned.get("organization")
+
+        if org and not org.est_affilie:
+            raise forms.ValidationError(
+                "Cette organisation n'est pas encore affiliée."
+            )
+
+        return cleaned

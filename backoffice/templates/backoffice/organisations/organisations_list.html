@@ -1,53 +1,145 @@
 {% extends "backoffice/base.html" %}
 {% block content %}
 
-<div class="p-6">
+<div class="p-6 space-y-6">
 
-<div class="flex justify-between mb-4">
-    <h2 class="text-xl font-semibold">🏢 Bureaux partenaires</h2>
+<!-- HEADER -->
+<div class="flex justify-between items-center">
+    <h2 class="text-xl font-semibold">
+        Bureaux partenaires
+    </h2>
+
+
+
+    <div class="flex flex-wrap gap-4">
 
     <a href="{% url 'bo_organisation_create' %}" class="btn btn-primary">
         + Nouveau bureau
     </a>
+
+        <a href="{% url 'bo_paiement_bureau' %}"
+           class="btn btn-secondary">
+             Paiement Bureau
+        </a>
+
+    </div>
 </div>
 
+<!-- FILTRES -->
+<div class="flex gap-2 flex-wrap">
+
+    <a href="?"
+       class="btn btn-sm {% if not filtre %}btn-primary{% else %}btn-outline{% endif %}">
+        Tous
+    </a>
+
+    <a href="?statut=actifs"
+       class="btn btn-sm {% if filtre == 'actifs' %}btn-primary{% else %}btn-outline{% endif %}">
+        À jour
+    </a>
+
+    <a href="?statut=expires"
+       class="btn btn-sm {% if filtre == 'expires' %}btn-primary{% else %}btn-outline{% endif %}">
+        Expirés
+    </a>
+
+    <a href="?statut=non_affilies"
+       class="btn btn-sm {% if filtre == 'non_affilies' %}btn-primary{% else %}btn-outline{% endif %}">
+        Non affiliés
+    </a>
+
+</div>
+
+<!-- TABLE -->
 <div class="card bg-base-100 shadow">
-<div class="card-body">
+<div class="card-body overflow-x-auto">
 
 <table class="table table-zebra">
+
 <thead>
 <tr>
-<th>Nom</th>
-<th>Email</th>
-<th>Dernière cotisation</th>
-<th>Statut</th>
-<th></th>
+    <th>Organisation</th>
+    <th>Contact</th>
+    <th>Dernière cotisation</th>
+    <th>Expiration</th>
+    <th>Statut</th>
+    <th></th>
 </tr>
 </thead>
 
 <tbody>
+
+{% now "Y-m-d" as today %}
+
 {% for org in organisations %}
 <tr>
-<td class="font-medium">{{ org.nom }}</td>
-<td>{{ org.email_contact }}</td>
-<td>{{ org.derniere_cotisation|default:"Jamais" }}</td>
 
-<td>
-{% if org.est_actif %}
-<span class="badge badge-success">Actif</span>
-{% else %}
-<span class="badge badge-error">Inactif</span>
-{% endif %}
-</td>
+    <!-- NOM + SIGLE -->
+    <td>
+        <div class="font-semibold">{{ org.nom }}</div>
+        {% if org.sigle %}
+            <div class="text-xs opacity-60">{{ org.sigle }}</div>
+        {% endif %}
+    </td>
 
-<td>
-<a href="{% url 'bo_organisation_detail' org.id %}"
-   class="btn btn-sm btn-outline">
-Voir
-</a>
-</td>
+    <!-- CONTACT -->
+    <td class="text-sm">
+        <div>{{ org.email_contact }}</div>
+        {% if org.telephone %}
+            <div class="opacity-60">{{ org.telephone }}</div>
+        {% endif %}
+    </td>
+
+    <!-- DERNIERE COTISATION -->
+    <td>
+        {{ org.derniere_cotisation|date:"d/m/Y"|default:"Jamais" }}
+    </td>
+
+    <!-- EXPIRATION -->
+    <td>
+        {{ org.date_expiration|date:"d/m/Y"|default:"—" }}
+    </td>
+
+    <!-- STATUT METIER -->
+    <td>
+
+        {% if not org.est_affilie %}
+            <span class="badge badge-ghost">
+                Non affilié
+            </span>
+
+        {% elif org.date_expiration and org.date_expiration|date:"Y-m-d" >= today %}
+            <span class="badge badge-success">
+                À jour
+            </span>
+
+        {% else %}
+            <span class="badge badge-warning">
+                Expiré
+            </span>
+        {% endif %}
+
+    </td>
+
+    <!-- ACTION -->
+    <td class="text-right">
+        <a href="{% url 'bo_organisation_detail' org.id %}"
+           class="btn btn-sm btn-outline">
+            Voir
+        </a>
+    </td>
+
 </tr>
+{% empty %}
+
+<tr>
+    <td colspan="6" class="text-center opacity-60 py-6">
+        Aucune organisation trouvée
+    </td>
+</tr>
+
 {% endfor %}
+
 </tbody>
 
 </table>

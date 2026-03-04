@@ -21,7 +21,7 @@ from roster.serializers import (
     MonProfilRosterResponseSerializer,
 )
 from django.db import transaction
-from roster.models import ConsultantPublicProfile
+
 
 # ===============================
 # SOUMETTRE CANDIDATURE

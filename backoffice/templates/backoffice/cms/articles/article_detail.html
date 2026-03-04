@@ -1,100 +1,154 @@
 {% extends "backoffice/base.html" %}
 {% block content %}
 
-<div class="container-fluid py-3">
+<div class="max-w-7xl mx-auto py-6">
 
     <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4>{{ article.titre }}</h4>
+    <div class="flex justify-between items-start mb-6">
 
-            <small class="text-muted">
-                {{ article.get_type_display }}
-                •
-                {% if article.date_publication %}
-                    {{ article.date_publication|date:"d/m/Y H:i" }}
+        <div>
+            <h1 class="text-3xl font-bold">
+                {{ article.titre }}
+            </h1>
+
+            <div class="flex items-center gap-3 mt-2 text-sm text-base-content/60">
+
+                <span class="badge badge-outline">
+                    {{ article.get_type_display }}
+                </span>
+
+                {% if article.publie %}
+                    <span class="badge badge-success">Publié</span>
                 {% else %}
-                    Non programmé
+                    <span class="badge badge-warning">Brouillon</span>
                 {% endif %}
-            </small>
+
+                <span>
+                    📅
+                    {% if article.date_publication %}
+                        {{ article.date_publication|date:"d/m/Y H:i" }}
+                    {% else %}
+                        Non programmé
+                    {% endif %}
+                </span>
+
+            </div>
         </div>
 
-        <div>
+        <div class="flex gap-2">
             <a href="{% url 'bo_article_edit' article.id %}"
-               class="btn btn-primary btn-sm">
+               class="btn btn-primary">
                 ✏️ Modifier
             </a>
 
             <a href="{% url 'bo_articles_list' %}"
-               class="btn btn-outline-secondary btn-sm">
+               class="btn btn-ghost">
                 ← Retour
             </a>
         </div>
+
     </div>
 
 
-    <!-- STATUT -->
-    <div class="mb-3">
-        {% if article.publie %}
-            <span class="badge bg-success">Publié</span>
-        {% else %}
-            <span class="badge bg-warning text-dark">Brouillon</span>
-        {% endif %}
-    </div>
+    <!-- LAYOUT -->
+    <div class="grid lg:grid-cols-3 gap-6">
 
+        <!-- CONTENU PRINCIPAL -->
+        <div class="lg:col-span-2">
 
-    <!-- IMAGE -->
-    {% if article.image %}
-        <div class="mb-4">
-            <img src="{{ article.image.url }}"
-                 class="img-fluid rounded shadow-sm"
-                 style="max-height:400px;">
-        </div>
-    {% endif %}
+            {% if article.image %}
+            <div class="mb-6">
+                <img src="{{ article.image.url }}"
+                     class="rounded-xl w-full object-cover shadow"
+                     style="max-height:420px;">
+            </div>
+            {% endif %}
 
-
-    <!-- CONTENU -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            {{ article.contenu|linebreaks }}
-        </div>
-    </div>
-
-
-    <!-- INFOS TECHNIQUES -->
-    <div class="card shadow-sm">
-        <div class="card-header">
-            Informations
-        </div>
-
-        <div class="card-body">
-
-            <p>
-                <strong>Slug :</strong>
-                {{ article.slug }}
-            </p>
-
-            <p>
-                <strong>Lien externe :</strong>
-                {% if article.lien_externe %}
-                    <a href="{{ article.lien_externe }}" target="_blank">
-                        {{ article.lien_externe }}
-                    </a>
-                {% else %}
-                    —
-                {% endif %}
-            </p>
-
-            <p>
-                <strong>Publication forcée :</strong>
-                {% if article.publie_manuellement %}
-                    Oui
-                {% else %}
-                    Non
-                {% endif %}
-            </p>
+            <div class="card bg-base-100 shadow">
+                <div class="card-body prose max-w-none">
+                    {{ article.contenu|linebreaks }}
+                </div>
+            </div>
 
         </div>
+
+
+        <!-- SIDEBAR INFOS -->
+        <div class="space-y-6">
+
+            <!-- Auteur -->
+            <div class="card bg-base-100 shadow">
+                <div class="card-body">
+                    <h3 class="font-semibold mb-3">
+                        Publication
+                    </h3>
+
+                    <p class="text-sm">
+                        <span class="text-base-content/60">
+                            Publié par :
+                        </span><br>
+
+                        {% if article.publie_par %}
+                            <span class="font-medium">
+                                👤 {{ article.publie_par }}
+                            </span>
+                        {% else %}
+                            —
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Informations -->
+            <div class="card bg-base-100 shadow">
+                <div class="card-body">
+                    <h3 class="font-semibold mb-3">
+                        Informations techniques
+                    </h3>
+
+                    <div class="space-y-3 text-sm">
+
+                        <div>
+                            <span class="text-base-content/60">Slug</span>
+                            <div class="font-mono text-xs">
+                                {{ article.slug }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="text-base-content/60">
+                                Publication forcée
+                            </span><br>
+
+                            {% if article.publie_manuellement %}
+                                <span class="badge badge-success">Oui</span>
+                            {% else %}
+                                <span class="badge badge-ghost">Non</span>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <span class="text-base-content/60">
+                                Lien externe
+                            </span><br>
+
+                            {% if article.lien_externe %}
+                                <a href="{{ article.lien_externe }}"
+                                   target="_blank"
+                                   class="link link-primary break-all">
+                                   Ouvrir le lien
+                                </a>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 
 </div>

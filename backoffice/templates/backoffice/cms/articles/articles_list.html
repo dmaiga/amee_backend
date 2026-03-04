@@ -3,15 +3,58 @@
 
 <div class="container-fluid py-3">
 
-<div class="d-flex justify-content-between mb-3">
-    <h4>Articles</h4>
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <h2 class="text-2xl font-bold">Articles</h2>
+        <p class="text-base-content/60">
+            Gestion du contenu du site
+        </p>
+    </div>
 
     <a href="{% url 'bo_article_create' %}" class="btn btn-primary">
         + Nouvel article
     </a>
 </div>
+<form method="get" class="card bg-base-100 shadow mb-6">
+    <div class="card-body grid md:grid-cols-4 gap-4">
 
-<table class="table table-hover">
+        <!-- recherche -->
+        <input
+            type="text"
+            name="q"
+            value="{{ search|default:'' }}"
+            placeholder="Rechercher un article..."
+            class="input input-bordered w-full">
+
+        <!-- statut -->
+        <select name="statut" class="select select-bordered">
+            <option value="">Tous statuts</option>
+            <option value="publie" {% if selected_statut == "publie" %}selected{% endif %}>Publié</option>
+            <option value="brouillon" {% if selected_statut == "brouillon" %}selected{% endif %}>Brouillon</option>
+        </select>
+
+        <!-- type -->
+<select name="type" class="select select-bordered">
+    <option value="">Tous types</option>
+
+    {% for key,label in type_choices %}
+        <option value="{{ key }}"
+            {% if selected_type == key %}selected{% endif %}>
+            {{ label }}
+        </option>
+    {% endfor %}
+</select>
+
+        <button class="btn btn-outline">
+            Filtrer
+        </button>
+
+    </div>
+</form>
+
+<div class="overflow-x-auto bg-base-100 rounded-box shadow">
+<table class="table">
+
 <thead>
 <tr>
     <th>Titre</th>
@@ -24,28 +67,53 @@
 
 <tbody>
 {% for article in articles %}
-<tr>
-    <td>{{ article.titre }}</td>
-    <td>{{ article.get_type_display }}</td>
-    <td>{{ article.date_publication|date:"d/m/Y" }}</td>
+<tr class="hover">
+
+    <td class="font-medium">
+        {{ article.titre }}
+    </td>
+
+    <td>
+        <span class="badge badge-outline">
+            {{ article.get_type_display }}
+        </span>
+    </td>
+
+    <td>
+        {{ article.date_publication|date:"d/m/Y" }}
+    </td>
 
     <td>
         {% if article.publie %}
-            <span class="badge bg-success">Publié</span>
+            <span class="badge badge-success">Publié</span>
         {% else %}
-            <span class="badge bg-warning text-dark">Brouillon</span>
+            <span class="badge badge-warning">Brouillon</span>
         {% endif %}
     </td>
 
-    <td>
-        <a href="{% url 'bo_article_detail' article.id %}" class="btn btn-sm btn-outline-secondary">Voir</a>
-        <a href="{% url 'bo_article_edit' article.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+    <td class="flex gap-2">
+        <a href="{% url 'bo_article_detail' article.id %}"
+           class="btn btn-sm btn-ghost">
+           Voir
+        </a>
+
+        <a href="{% url 'bo_article_edit' article.id %}"
+           class="btn btn-sm btn-primary">
+           Edit
+        </a>
     </td>
+
+</tr>
+{% empty %}
+<tr>
+<td colspan="5" class="text-center py-10 text-base-content/60">
+Aucun article trouvé
+</td>
 </tr>
 {% endfor %}
 </tbody>
-</table>
 
+</table>
 </div>
 
 {% endblock %}

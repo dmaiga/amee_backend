@@ -60,7 +60,7 @@ def portal_state(request):
 
     user = request.user
 
-    adhesion = getattr(user, "adhesion", None)
+    adhesion = getattr(user, "membership", None)
     profil = getattr(user, "profil_roster", None)
     member_profile = getattr(user, "member_profile", None)
 

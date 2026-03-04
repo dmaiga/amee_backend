@@ -9,13 +9,73 @@ une opportunité
 </h4>
 
 <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
+{% csrf_token %}
 
-    <button class="btn btn-success">
+<div class="grid lg:grid-cols-3 gap-6">
+
+    <!-- CONTENU -->
+    <div class="lg:col-span-2 space-y-6">
+
+        <div class="card bg-base-100 shadow">
+            <div class="card-body">
+                <label class="label">Titre</label>
+                {{ form.titre }}
+
+                <label class="label mt-4">Description</label>
+                {{ form.description }}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="space-y-6">
+
+        <div class="card bg-base-100 shadow">
+            <div class="card-body space-y-4">
+
+                <h3 class="font-semibold">Publication</h3>
+
+                <div>
+                    <label class="label">Type</label>
+                    {{ form.type }}
+                </div>
+
+                <div>
+                    <label class="label">Date limite</label>
+                    {{ form.date_limite }}
+                </div>
+
+                <div class="flex justify-between items-center">
+                    <span>Réservé membres</span>
+                    {{ form.reserve_aux_membres }}
+                </div>
+
+                <div class="flex justify-between items-center">
+                    <span>Publié</span>
+                    {{ form.publie }}
+                </div>
+
+                <div>
+                    <label class="label">Document joint</label>
+                    {{ form.fichier_joint }}
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<div class="mt-6">
+    <button class="btn btn-primary">
         Enregistrer
     </button>
+</div>
+
 </form>
+
 
 </div>
 

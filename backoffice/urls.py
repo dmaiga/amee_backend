@@ -1,13 +1,5 @@
 from django.urls import path, include
-from .web_views import (
-   dashboard, demander_feedback, feedback_detail, feedback_detail, membres_list, missions_list, 
-    roster_detail, roster_list, tresorerie_paiement, 
-    membre_detail, roster_decision,mission_detail,
-    transactions_list,transaction_detail,
-    tresorerie_depense,incidents_list,
-    statuer_incident,affecter_incident,
-
-)
+from .web_views import *
 from backoffice import views, web_views
 
 urlpatterns = [
@@ -30,7 +22,10 @@ urlpatterns = [
         name="bo_paiement_bureau_org"
     ),
     
-    path("tresorerie/paiement/", tresorerie_paiement, name="bo_enregistrer_paiement"),
+    path("tresorerie/paiement/", enroulement_paiement, name="bo_enregistrer_paiement"),
+    path("tresorerie/paiement/cotisation", tresorerie_paiement_simple, name="bo_paiement_simple"),
+    path("tresorerie/paiement/activation/<int:user_id>/", tresorerie_activation, name="bo_activation"),
+    
     path("tresorerie/transactions/",transactions_list,name="bo_transactions"),
     path("tresorerie/transactions/<int:transaction_id>/", transaction_detail, name="bo_transaction_detail"),
 
