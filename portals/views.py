@@ -249,8 +249,6 @@ class ClientMissionListView(PortalAccessMixin, LoginRequiredMixin, ListView):
 
         return context
 
-
-
 class ClientMissionDetailView(PortalAccessMixin,LoginRequiredMixin, DetailView):
    
     access_level = "client"
@@ -542,42 +540,37 @@ def client_collaborations(request):
 
     contacts = (
         ContactRequest.objects
-        .filter(mission__client=request.user)
+        .filter(
+            mission__client=request.user
+        )
         .select_related(
             "mission",
             "consultant",
             "consultant__profil_roster",
         )
-        .order_by("-cree_le")
     )
 
-    # -----------------------
-    # FILTRES
-    # -----------------------
-
-    statut = request.GET.get("statut")
-    mission_id = request.GET.get("mission")
-
-    if statut:
-        contacts = contacts.filter(statut=statut)
-
-    if mission_id:
-        contacts = contacts.filter(mission_id=mission_id)
-
-    missions = (
-        request.user.missions
-        .all()
-        .order_by("-cree_le")
+    applications = (
+        MissionApplication.objects
+        .filter(
+            mission__client=request.user,
+            statut="RETENU"
+        )
+        .select_related(
+            "mission",
+            "consultant"
+        )
     )
+
+    missions = request.user.missions.all().order_by("-cree_le")
 
     return render(
         request,
         "clients/collaborations/collaborations.html",
         {
             "contacts": contacts,
+            "applications": applications,
             "missions": missions,
-            "selected_statut": statut,
-            "selected_mission": mission_id,
         },
     )
 
@@ -644,46 +637,71 @@ Equipe AMEE
 """
     )
 
-    messages.success(request, "Relance envoyée au consultant.")
+    messages.info(request, "Relance envoyée au consultant.")
 
     return redirect("client_collaborations")
 
 # ==========================================
 # Qualité (Feedback Client)
 # ==========================================
-
 @login_required
 @portal_access_required("client")
-def donner_feedback(request, pk):
+def donner_feedback(request, pk, source):
 
-    contact = get_object_or_404(
-        ContactRequest,
-        pk=pk,
-        client=request.user
-    )
+    if source == "contact":
 
-    if contact.statut != "MISSION_TERMINEE":
-        messages.warning(
-            request,
-            "Le feedback est disponible uniquement après la fin de mission."
+        contact = get_object_or_404(
+            ContactRequest,
+            pk=pk,
+            client=request.user
         )
-        return redirect("client_collaborations")
 
-    if hasattr(contact, "feedback"):
-        messages.info(request, "Un feedback a déjà été soumis.")
-        return redirect("client_collaborations")
+        if contact.statut != "MISSION_TERMINEE":
+            messages.warning(
+                request,
+                "Le feedback est disponible uniquement après la fin de mission."
+            )
+            return redirect("client_collaborations")
+
+        if hasattr(contact, "feedback"):
+            messages.info(request, "Un feedback a déjà été soumis.")
+            return redirect("client_collaborations")
+
+        mission = contact.mission
+
+    elif source == "application":
+
+        application = get_object_or_404(
+            MissionApplication,
+            pk=pk,
+            mission__client=request.user
+        )
+
+        if hasattr(application, "feedback"):
+            messages.info(request, "Un feedback a déjà été soumis.")
+            return redirect("client_collaborations")
+
+        mission = application.mission
 
     if request.method == "POST":
+
         form = FeedbackForm(request.POST)
 
         if form.is_valid():
+
             feedback = form.save(commit=False)
             feedback.client = request.user
-            feedback.contact_request = contact
+
+            if source == "contact":
+                feedback.contact_request = contact
+            else:
+                feedback.application = application
+
             feedback.save()
 
             messages.success(request, "Merci pour votre évaluation.")
             return redirect("client_collaborations")
+
     else:
         form = FeedbackForm()
 
@@ -692,9 +710,10 @@ def donner_feedback(request, pk):
         "clients/quality/feedback_form.html",
         {
             "form": form,
-            "contact": contact,
+            "mission": mission,
         }
     )
+
 
 @login_required
 @portal_access_required("client")
@@ -706,6 +725,8 @@ def client_feedback_list(request):
         .select_related(
             "contact_request__mission",
             "contact_request__consultant",
+            "application__mission",
+            "application__consultant",
         )
         .order_by("-cree_le")
     )

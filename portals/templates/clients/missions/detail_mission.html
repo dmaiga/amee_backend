@@ -41,12 +41,13 @@ Cette mission est clôturée. Les candidatures sont fermées.
             </div>
 
 <div class="flex gap-3">
-
+    {% if mission.statut != "TERMINEE" %}
     <a href="{% url 'client_experts' %}?mission={{ mission.id }}" 
        class="btn btn-primary gap-2">
         <i data-lucide="user-search" class="w-5 h-5"></i>
         Trouver un expert
     </a>
+    {% endif %}
 
     {% if mission.statut == "ACTIVE" %}
     <a href="{% url 'mission_close' mission.id %}"

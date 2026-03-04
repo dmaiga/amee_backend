@@ -117,12 +117,12 @@
 
                                 {% if contact.statut == "MISSION_TERMINEE" %}
                                     {% if contact.feedback %}
-                                        <a href="{% url 'client_feedback_detail' contact.feedback.id %}" class="btn btn-sm btn-success btn-ghost gap-2">
+                                        <a href="{% url 'client_feedback_detail'  contact.feedback.id %}" class="btn btn-sm btn-success btn-ghost gap-2">
                                             <i data-lucide="star" class="w-4 h-4 text-orange-400"></i>
                                             Feedback
                                         </a>
                                     {% else %}
-                                        <a href="{% url 'client_feedback' contact.pk %}" class="btn btn-sm btn-primary gap-2 animate-pulse">
+                                        <a href="{% url 'client_feedback' 'contact' contact.pk %}" class="btn btn-sm btn-primary gap-2 animate-pulse">
                                             <i data-lucide="message-square-plus" class="w-4 h-4"></i>
                                             Noter l'expert
                                         </a>
@@ -151,6 +151,81 @@
             </table>
         </div>
     </div>
+<div class="card bg-base-100 shadow-sm border border-base-200 mt-6">
+
+<div class="card-body">
+
+<h2 class="text-xl font-bold mb-4">
+Collaborations (missions publiques)
+</h2>
+
+<table class="table">
+<thead>
+<tr>
+<th>Expert</th>
+<th>Mission</th>
+<th>Statut</th>
+<th></th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for app in applications %}
+
+<tr>
+<td>{{ app.consultant.get_full_name }}</td>
+
+<td>{{ app.mission.titre }}</td>
+
+<td>{{ app.mission.statut }}</td>
+
+<td>
+<div class="flex justify-end gap-2">
+
+<a href="{% url 'client_mission_detail' app.mission.id %}"
+   class="btn btn-xs btn-ghost">
+   Mission
+</a>
+
+{% if app.feedback %}
+<a href="{% url 'client_feedback_detail' app.feedback.id %}"
+   class="btn btn-xs btn-success btn-ghost gap-1">
+   <i data-lucide="star" class="w-4 h-4 text-orange-400"></i>
+   Feedback
+</a>
+
+{% else %}
+
+<a href="{% url 'client_feedback' 'application' app.pk %}"
+   class="btn btn-xs btn-primary gap-1 animate-pulse">
+   <i data-lucide="message-square-plus" class="w-4 h-4"></i>
+   Noter
+</a>
+
+{% endif %}
+
+</div>
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="4" class="opacity-40 text-center py-6">
+Aucune collaboration issue des missions publiques.
+</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+</table>
+
+</div>
+</div>
+
 </div>
 
 <script>

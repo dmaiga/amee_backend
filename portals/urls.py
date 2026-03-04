@@ -37,7 +37,9 @@ urlpatterns = [
     path("client/feedbacks/", client_feedback_list, name="client_feedback_list"),
     path("client/feedback/<int:pk>/", client_feedback_detail, name="client_feedback_detail"),
     path("client/donner-feedback/<int:pk>/", donner_feedback, name="client_feedback"),
-
+    path("client/feedback/<str:source>/<int:pk>/",donner_feedback, name="client_feedback"),
+    
+    
     # Paramètres
     path("client/profil/", client_profile_settings, name="client_profile_settings"),
 
