@@ -87,34 +87,64 @@
 <!-- ELIGIBILITE -->
 <div class="card bg-base-100 shadow border">
 <div class="card-body">
-<h2 class="card-title text-primary">Éligibilité</h2>
+<h2 class="card-title text-primary">Dossier d’éligibilité</h2>
+
+{% with membership=profil.user.membership %}
+
+{% if membership %}
 
 <div class="grid md:grid-cols-3 gap-6 mt-4">
 
 <div>
-<label class="text-xs opacity-60">Option</label>
+<label class="text-xs opacity-60">Type d’éligibilité</label>
 <p class="font-bold">
-{{ profil.get_eligibilite_option_display|default:"—" }}
+{{ membership.get_eligibilite_option_display|default:"—" }}
 </p>
 </div>
 
 <div>
-<label class="text-xs opacity-60">Diplôme principal</label>
-<p>{{ profil.diplome_principal_domaine|default:"—" }}</p>
-<small>{{ profil.annee_diplome_principal }}</small>
+<label class="text-xs opacity-60">Diplôme</label>
+<p class="font-semibold">
+{{ membership.get_diplome_niveau_display|default:"—" }}
+</p>
+
+{% if membership.diplome_intitule %}
+<p class="text-sm opacity-70">
+{{ membership.diplome_intitule }}
+</p>
+{% endif %}
 </div>
 
 <div>
-<label class="text-xs opacity-60">Autre diplôme</label>
+<label class="text-xs opacity-60">Année d'obtention</label>
 <p>
-{{ profil.autre_diplome_pertinent|default:"—" }}
+{{ membership.annee_diplome|default:"—" }}
 </p>
 </div>
 
 </div>
-</div>
-</div>
 
+{% if membership.diplome_document %}
+<div class="mt-6">
+<a href="{{ membership.diplome_document.url }}"
+class="btn btn-outline btn-sm">
+Voir diplôme
+</a>
+</div>
+{% endif %}
+
+{% else %}
+
+<p class="text-sm opacity-60">
+Aucun dossier d’éligibilité enregistré.
+</p>
+
+{% endif %}
+
+{% endwith %}
+
+</div>
+</div>
 
 <!-- EXPERTISE -->
 <div class="card bg-base-100 shadow border">

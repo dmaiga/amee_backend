@@ -14,7 +14,7 @@
 
 <h2 class="card-title">Statut</h2>
 
-{% if statut == "ACTIF" %}
+{% if  request.user.membership.est_actif %}
 <span class="badge badge-success">Actif</span>
 {% else %}
 <span class="badge badge-error">Inactif</span>

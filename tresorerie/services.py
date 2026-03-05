@@ -121,8 +121,14 @@ def appliquer_transaction(transaction):
         membership.date_activation = today
         membership.date_expiration = base_date + timedelta(days=365)
 
+        membership.statut = "VALIDE"
+    
         membership.save(
-            update_fields=["date_activation", "date_expiration"]
+            update_fields=[
+                "date_activation",
+                "date_expiration",
+                "statut"
+            ]
         )
 
         return

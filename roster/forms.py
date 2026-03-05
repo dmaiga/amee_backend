@@ -10,18 +10,13 @@ class ConsultantApplicationForm(ModelForm):
 
         fields = [
             # ===== ELIGIBILITE =====
-            "eligibilite_option",
-            "diplome_principal_domaine",
-            "annee_diplome_principal",
-            "autre_diplome_pertinent",
-            "annee_autre_diplome",
-            "annees_experience_ees",
-            "attestations",
             "cv_document",
+            "attestations",
 
             # ===== PROFIL CONSULTANT =====
             "titre_professionnel",
             "resume_public",
+            "annees_experience_ees",
             "niveau_seniorite",
             "statut_professionnel",
             "domaines_expertise",
@@ -74,24 +69,7 @@ class ConsultantApplicationForm(ModelForm):
     # ==================================================
     # VALIDATION METIER
     # ==================================================
-    def clean(self):
-        cleaned = super().clean()
-
-        option = cleaned.get("eligibilite_option")
-
-        if option == "OPTION1" and not cleaned.get("diplome_principal_domaine"):
-            self.add_error(
-                "diplome_principal_domaine",
-                "Diplôme requis pour l’option 1."
-            )
-
-        if option == "OPTION2" and not cleaned.get("autre_diplome_pertinent"):
-            self.add_error(
-                "autre_diplome_pertinent",
-                "Diplôme requis pour l’option 2."
-            )
-
-        return cleaned
+ 
 
     # ==================================================
     # SAVE SIMPLE

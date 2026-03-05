@@ -38,7 +38,7 @@ class SoumettreCandidatureView(GenericAPIView):
 
         user = request.user
 
-        if not hasattr(user, "adhesion") or not user.adhesion.est_actif:
+        if not hasattr(user, "membership") or not user.membership.est_actif:
             return Response(
                 {"detail": "Adhésion non active."},
                 status=status.HTTP_403_FORBIDDEN,

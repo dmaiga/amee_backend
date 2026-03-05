@@ -17,23 +17,35 @@
 <h2 class="card-title">Informations personnelles</h2>
 
 <!-- ================= PHOTO ================= -->
-<div class="flex items-center gap-4">
+<!-- ================= PHOTO ================= -->
+<div class="flex items-center gap-6">
 
-    {% if user.photo %}
-        <img src="{{ user.photo.url }}"
-             class="w-20 h-20 rounded-full object-cover border">
-    {% else %}
-        <div class="w-20 h-20 rounded-full bg-base-300 flex items-center justify-center">
-            <i class="fa-solid fa-user opacity-40"></i>
-        </div>
-    {% endif %}
+<div class="relative">
 
-    <div class="flex-1">
-        <label class="form-control">
-            <span class="label-text">Photo de profil</span>
-            {{ form.photo }}
-        </label>
-    </div>
+    <img
+        id="photoPreview"
+        src="{% if user.photo %}{{ user.photo.url }}{% else %}/static/img/avatar-placeholder.png{% endif %}"
+        class="w-24 h-24 rounded-full object-cover border shadow-sm"
+    >
+
+</div>
+
+<div class="flex-1">
+
+<label class="form-control">
+<span class="label-text font-medium">Photo de profil</span>
+
+{{ form.photo }}
+
+{% if form.photo.help_text %}
+<p class="text-xs opacity-60 mt-1">
+{{ form.photo.help_text }}
+</p>
+{% endif %}
+
+</label>
+
+</div>
 
 </div>
 
@@ -70,13 +82,27 @@
 <div class="grid md:grid-cols-2 gap-4">
 
 <label class="form-control">
-    <span class="label-text">Téléphone officiel</span>
-    {{ form.phone }}
+
+<span class="label-text">Téléphone officiel</span>
+
+{{ form.phone }}
+
+{% if form.phone.errors %}
+<span class="text-error text-xs mt-1">
+{{ form.phone.errors|striptags }}
+</span>
+{% endif %}
+
 </label>
 
 <label class="form-control">
     <span class="label-text">Téléphone secondaire</span>
     {{ form.secondary_phone }}
+    {% if form.secondary_phone.errors %}
+<span class="text-error text-xs mt-1">
+{{ form.secondary_phone.errors|striptags }}
+</span>
+{% endif %}
 </label>
 
 </div>
@@ -100,5 +126,32 @@
 </form>
 
 </div>
+
+<script>
+
+const input = document.getElementById("photoInput");
+const preview = document.getElementById("photoPreview");
+
+if (input) {
+
+input.addEventListener("change", function(event){
+
+const file = event.target.files[0];
+
+if(!file) return;
+
+const reader = new FileReader();
+
+reader.onload = function(e){
+preview.src = e.target.result;
+};
+
+reader.readAsDataURL(file);
+
+});
+
+}
+
+</script>
 
 {% endblock %}

@@ -30,7 +30,7 @@ class MissionAdmin(admin.ModelAdmin):
     # Organisation des champs dans le formulaire d'édition
     fieldsets = (
         ("Informations générales", {
-            'fields': ('titre', 'client', 'expert_cible', 'statut')
+            'fields': ('titre', 'client', 'statut')
         }),
         ("Détails de la mission", {
             'fields': ('description', 'objectifs', 'livrables_attendus', 'domaine')

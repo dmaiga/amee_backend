@@ -3,87 +3,219 @@
 
 <div class="max-w-5xl mx-auto space-y-8">
 
-    <div class="card bg-base-100 shadow-lg p-6 space-y-4">
+<!-- ================================================= -->
 
-        <h1 class="text-2xl font-bold">{{ mission.titre }}</h1>
+<!-- MISSION -->
 
-        <div class="text-sm text-base-content/70">
-            Domaine : {{ mission.domaine }} <br>
-            Budget estimé : {{ mission.budget_estime|default:"Non précisé" }} <br>
-            Durée : {{ mission.duree_estimee_jours|default:"Non précisée" }} jours <br>
-            Date limite : {{ mission.date_fin }}
-        </div>
+<!-- ================================================= -->
 
-        <hr>
+<div class="card bg-base-100 shadow-lg p-6 space-y-4">
 
-        <div>
-            <h2 class="font-semibold">Description</h2>
-            <p>{{ mission.description }}</p>
-        </div>
+<h1 class="text-2xl font-bold">
+{{ mission.titre }}
+</h1>
 
-        {% if mission.objectifs %}
-        <div>
-            <h2 class="font-semibold">Objectifs</h2>
-            <p>{{ mission.objectifs }}</p>
-        </div>
-        {% endif %}
+<div class="grid md:grid-cols-2 gap-4 text-sm text-base-content/70">
 
-        {% if mission.livrables_attendus %}
-        <div>
-            <h2 class="font-semibold">Livrables attendus</h2>
-            <p>{{ mission.livrables_attendus }}</p>
-        </div>
-        {% endif %}
+<div>
+<strong>Domaine :</strong> {{ mission.domaine }}
+</div>
 
-        {% if mission.documents.all %}
-        <div>
-            <h2 class="font-semibold">Documents joints</h2>
-            <ul class="list-disc ml-6 text-sm">
-                {% for doc in mission.documents.all %}
-                    <li>
-                        <a href="{{ doc.fichier.url }}" class="link">
-                            {{ doc.nom }}
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
+<div>
+<strong>Budget estimé :</strong>
+{{ mission.budget_estime|default:"Non précisé" }}
+</div>
 
-    </div>
+<div>
+<strong>Durée :</strong>
+{{ mission.duree_estimee_jours|default:"Non précisée" }} jours
+</div>
 
-    {% if application %}
+<div>
+<strong>Date limite :</strong>
+{{ mission.date_fin }}
+</div>
 
-        <div class="alert alert-info">
-            Statut de votre candidature :
-            <strong>{{ application.get_statut_display }}</strong>
-        </div>
+</div>
 
-    {% else %}
+<hr>
 
-        <div class="card bg-base-200 p-6 shadow space-y-4">
-            <h2 class="text-lg font-semibold">
-                Soumettre votre candidature
-            </h2>
+<div>
+<h2 class="font-semibold mb-1">Description</h2>
+<p class="text-sm leading-relaxed">
+{{ mission.description }}
+</p>
+</div>
 
-            <form method="post" enctype="multipart/form-data" class="space-y-4">
-                {% csrf_token %}
-                {{ form.message.label_tag }}
-                {{ form.message }}
+{% if mission.objectifs %}
 
-                {{ form.proposition_technique.label_tag }}
-                {{ form.proposition_technique }}
+<div>
+<h2 class="font-semibold mb-1">Objectifs</h2>
+<p class="text-sm">{{ mission.objectifs }}</p>
+</div>
+{% endif %}
 
-                {{ form.proposition_financiere.label_tag }}
-                {{ form.proposition_financiere }}
+{% if mission.livrables_attendus %}
 
-                <button type="submit" class="btn btn-primary w-full">
-                    Envoyer ma candidature
-                </button>
-            </form>
-        </div>
+<div>
+<h2 class="font-semibold mb-1">Livrables attendus</h2>
+<p class="text-sm">{{ mission.livrables_attendus }}</p>
+</div>
+{% endif %}
 
-    {% endif %}
+{% if mission.documents.all %}
+
+<div>
+<h2 class="font-semibold mb-2">Documents joints</h2>
+
+<ul class="space-y-2 text-sm">
+
+{% for doc in mission.documents.all %}
+
+<li class="flex justify-between items-center bg-base-200 p-3 rounded-lg">
+
+<span>
+📄 {{ doc.nom }}
+</span>
+
+<a href="{{ doc.fichier.url }}"
+class="btn btn-xs btn-outline"
+target="_blank">
+Télécharger </a>
+
+</li>
+{% endfor %}
+
+</ul>
+
+</div>
+{% endif %}
+
+</div>
+
+<!-- ================================================= -->
+
+<!-- STATUT CANDIDATURE -->
+
+<!-- ================================================= -->
+
+{% if application %}
+
+<div class="alert alert-info shadow">
+
+Votre candidature a été envoyée.
+
+Statut : <strong>{{ application.get_statut_display }}</strong>
+
+</div>
+
+{% else %}
+
+<!-- ================================================= -->
+
+<!-- FORMULAIRE CANDIDATURE -->
+
+<!-- ================================================= -->
+
+<div class="card bg-base-200 p-6 shadow space-y-6">
+
+<h2 class="text-lg font-semibold">
+Soumettre votre candidature
+</h2>
+
+{% if form.non_field_errors %}
+
+<div class="alert alert-error">
+{{ form.non_field_errors }}
+</div>
+{% endif %}
+
+<form method="post"
+      enctype="multipart/form-data"
+      class="space-y-4">
+
+{% csrf_token %}
+
+<!-- MESSAGE -->
+
+<div class="form-control">
+
+<label class="label">
+<span class="label-text font-medium">
+Note de motivation
+</span>
+</label>
+
+{{ form.message }}
+
+{% if form.message.errors %}
+
+<div class="text-error text-sm mt-1">
+{{ form.message.errors }}
+</div>
+{% endif %}
+
+<p class="text-xs opacity-60 mt-1">
+Expliquez brièvement pourquoi votre profil correspond à cette mission.
+</p>
+
+</div>
+
+<!-- PROPOSITION TECHNIQUE -->
+
+<div class="form-control">
+
+<label class="label">
+<span class="label-text font-medium">
+Proposition technique
+</span>
+</label>
+
+{{ form.proposition_technique }}
+
+{% if form.proposition_technique.errors %}
+
+<div class="text-error text-sm mt-1">
+{{ form.proposition_technique.errors }}
+</div>
+{% endif %}
+
+</div>
+
+<!-- PROPOSITION FINANCIERE -->
+
+<div class="form-control">
+
+<label class="label">
+<span class="label-text font-medium">
+Proposition financière
+</span>
+</label>
+
+{{ form.proposition_financiere }}
+
+{% if form.proposition_financiere.errors %}
+
+<div class="text-error text-sm mt-1">
+{{ form.proposition_financiere.errors }}
+</div>
+{% endif %}
+
+</div>
+
+<p class="text-xs opacity-60">
+Formats acceptés : PDF, DOC, DOCX – taille max 10MB
+</p>
+
+<button type="submit"
+     class="btn btn-primary w-full">
+Envoyer ma candidature </button>
+
+</form>
+
+</div>
+
+{% endif %}
 
 </div>
 

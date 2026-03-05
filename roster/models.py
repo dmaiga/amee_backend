@@ -22,10 +22,20 @@ class ConsultantProfile(models.Model):
         ("REFUSE", "Refusé"),
     )
 
-    ELIGIBILITE = (
-        ("OPTION1", "Diplôme environnement + 2 ans expérience"),
-        ("OPTION2", "Autre diplôme + 5 ans expérience"),
+    STATUT_EMPLOI = (
+        ("RECHERCHE", "Recherche active"),
+        ("OUVERT", "Ouvert opportunités"),
+        ("INDISPONIBLE", "Indisponible"),
     )
+
+    SENIORITE = (
+        ("JUNIOR", "Junior"),
+        ("CONFIRME", "Confirmé"),
+        ("SENIOR", "Senior"),
+        ("EXPERT", "Expert"),
+    )
+
+ 
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
@@ -39,40 +49,10 @@ class ConsultantProfile(models.Model):
         default="BROUILLON"
     )
 
-    # ==========================
-    # ELIGIBILITE AMEE
-    # ==========================
-
-    eligibilite_option = models.CharField(
-        max_length=20,
-        choices=ELIGIBILITE,
-        blank=True,
-        null=True
-    )
-
-    diplome_principal_domaine = models.CharField(max_length=255, blank=True)
-    annee_diplome_principal = models.PositiveIntegerField(null=True, blank=True)
-
-    autre_diplome_pertinent = models.CharField(max_length=255, blank=True)
-    annee_autre_diplome = models.PositiveIntegerField(null=True, blank=True)
-
-    annees_experience_ees = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        help_text="Nombre total d'années d'expérience EES"
-    )
-
+  
+    # ================= POSITIONNEMENT =================
     titre_professionnel = models.CharField(max_length=255)
     resume_public = models.TextField()
-
-    # ================= POSITIONNEMENT =================
-
-    SENIORITE = (
-        ("JUNIOR", "Junior"),
-        ("CONFIRME", "Confirmé"),
-        ("SENIOR", "Senior"),
-        ("EXPERT", "Expert"),
-    )
 
     niveau_seniorite = models.CharField(
         max_length=20,
@@ -80,17 +60,11 @@ class ConsultantProfile(models.Model):
         blank=True
     )
 
-    STATUT_EMPLOI = (
-        ("RECHERCHE", "Recherche active"),
-        ("OUVERT", "Ouvert opportunités"),
-        ("INDISPONIBLE", "Indisponible"),
-    )
-
 
 
     # ================= EXPERTISE =================
 
-
+    annees_experience_ees = models.PositiveIntegerField(null=True, blank=True)
     secteurs_experience = models.TextField(blank=True)
 
     langues = models.CharField(max_length=255, blank=True)
@@ -165,20 +139,7 @@ class ConsultantProfile(models.Model):
     # ==========================
     # VALIDATION METIER
     # ==========================
-
-    def clean(self):
-
-        if self.eligibilite_option == "OPTION1":
-            if not self.diplome_principal_domaine:
-                raise ValidationError(
-                    "Diplôme principal requis pour l'option 1."
-                )
-
-        if self.eligibilite_option == "OPTION2":
-            if not self.autre_diplome_pertinent:
-                raise ValidationError(
-                    "Autre diplôme requis pour l'option 2."
-                )
+ 
 
     # ==========================
     # ETAT ACTIF
@@ -193,10 +154,10 @@ class ConsultantProfile(models.Model):
         if not self.est_disponible:
             return False
 
-        if not hasattr(self.user, "adhesion"):
+        if not hasattr(self.user, "membership"):
             return False
 
-        if not self.user.adhesion.est_actif:
+        if not self.user.membership.est_actif:
             return False
 
         if self.user.statut_qualite in ["BANNI", "SUSPENDU"]:

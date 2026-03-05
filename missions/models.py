@@ -3,6 +3,19 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from django.db.models import Count,Q,Exists, OuterRef
+class MissionQuerySet(models.QuerySet):
+
+    def visibles(self):
+        today = timezone.now().date()
+
+        return self.filter(
+            type_publication="PUBLIQUE",
+            statut="ACTIVE"
+        ).filter(
+            Q(date_fin__gte=today) | Q(date_fin__isnull=True)
+        ).order_by('-cree_le')
+
 
 class Mission(models.Model):
 
@@ -16,7 +29,8 @@ class Mission(models.Model):
         ("PUBLIQUE", "Mission publique"),
         ("CIBLEE", "Mission ciblée"),
     )
-
+    objects = MissionQuerySet.as_manager()
+    
     type_publication = models.CharField(
         max_length=20,
         choices=TYPE_PUBLICATION,

@@ -57,6 +57,10 @@ Coordonnées
         <span class="opacity-50 text-xs uppercase">Téléphone</span>
         <p class="font-semibold">{{ request.user.phone|default:"—" }}</p>
     </div>
+    <div>
+        <span class="opacity-50 text-xs uppercase">Téléphone secondaire</span>
+        <p class="font-semibold">{{ request.user.secondary_phone|default:"—" }}</p>
+    </div>
 
     <div>
         <span class="opacity-50 text-xs uppercase">Localisation</span>
@@ -69,7 +73,6 @@ Coordonnées
 </div>
 </div>
 
-
 <!-- ADHESION -->
 <div class="card bg-base-100 border border-base-300 shadow-sm">
 <div class="card-body text-center space-y-3">
@@ -78,46 +81,123 @@ Coordonnées
 Adhésion AMEE
 </span>
 
-{% if request.user.adhesion.est_actif %}
+{% if request.user.membership %}
 
-<div class="text-2xl font-black text-primary">
-Membre actif
-</div>
+    {% if request.user.membership.est_actif %}
 
-{% if request.user.adhesion.jours_restants %}
-<p class="text-sm opacity-70">
+        <div class="text-2xl font-black text-primary">
+        Membre actif
+        </div>
 
-{% if request.user.adhesion.jours_restants > 30 %}
-Valide encore {{ request.user.adhesion.jours_restants }} jours
-{% elif request.user.adhesion.jours_restants > 7 %}
-Expire bientôt ({{ request.user.adhesion.jours_restants }} jours)
-{% else %}
-<span class="text-warning font-semibold">
-Expiration imminente ({{ request.user.adhesion.jours_restants }} jours)
-</span>
-{% endif %}
+        {% if request.user.membership.jours_restants %}
+        <p class="text-sm opacity-70">
 
-</p>
-{% endif %}
+        {% if request.user.membership.jours_restants > 30 %}
+        Valide encore {{ request.user.membership.jours_restants }} jours
+
+        {% elif request.user.membership.jours_restants > 7 %}
+        Expire bientôt ({{ request.user.membership.jours_restants }} jours)
+
+        {% else %}
+        <span class="text-warning font-semibold">
+        Expiration imminente ({{ request.user.membership.jours_restants }} jours)
+        </span>
+
+        {% endif %}
+
+        </p>
+        {% endif %}
+
+    {% else %}
+
+        <div class="text-2xl font-black text-error">
+        Adhésion expirée
+        </div>
+
+        <p class="text-sm opacity-70">
+        Veuillez renouveler votre cotisation.
+        </p>
+
+    {% endif %}
 
 {% else %}
 
 <div class="text-2xl font-black text-error">
-Adhésion expirée
+Aucune adhésion enregistrée
 </div>
 
 <p class="text-sm opacity-70">
-Veuillez renouveler votre cotisation.
+Contactez l’administration.
 </p>
 
 {% endif %}
 
 </div>
 </div>
+</div>
+<!-- ================= DOSSIER ADHESION ================= -->
+<div class="card bg-base-100 border border-base-300 shadow-sm">
+<div class="card-body space-y-4">
+
+<h3 class="text-xs uppercase font-black opacity-50">
+Dossier d’adhésion
+</h3>
+
+{% if membership %}
+
+<div class="space-y-3 text-sm">
+
+<div>
+<span class="opacity-50 text-xs uppercase">Éligibilité</span>
+<p class="font-semibold">
+{{ membership.get_eligibilite_option_display }}
+</p>
+</div>
+
+<div>
+<span class="opacity-50 text-xs uppercase">Diplôme</span>
+<p class="font-semibold">
+{{ membership.get_diplome_niveau_display }}
+{% if membership.diplome_intitule %}
+— {{ membership.diplome_intitule }}
+{% endif %}
+</p>
+</div>
+
+{% if membership.cv_document %}
+<div class="flex justify-between items-center">
+<span class="opacity-50 text-xs uppercase">CV soumis</span>
+
+<a href="{{ membership.cv_document.url }}"
+class="btn btn-xs btn-outline">
+Voir
+</a>
+</div>
+{% endif %}
+
+{% if membership.diplome_document %}
+<div class="flex justify-between items-center">
+<span class="opacity-50 text-xs uppercase">Diplôme</span>
+
+<a href="{{ membership.diplome_document.url }}"
+class="btn btn-xs btn-outline">
+Voir
+</a>
+</div>
+{% endif %}
 
 </div>
 
+{% else %}
 
+<p class="text-sm opacity-60">
+Aucun dossier d’adhésion enregistré.
+</p>
+
+{% endif %}
+
+</div>
+</div>
 <!-- ================= ROSTER ================= -->
 <div class="space-y-4">
 

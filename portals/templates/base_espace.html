@@ -149,6 +149,11 @@ Ressources
 <a href="{% url 'events_list' %}">
 <i class="fa-solid fa-calendar w-5"></i>
 Événements
+{% if cms_new_events %}
+<span class="badge badge-primary badge-sm ml-auto">
+{{ cms_new_events }}
+</span>
+{% endif %}
 </a>
 </li>
 
@@ -156,6 +161,11 @@ Ressources
 <a href="{% url 'opportunities_list' %}">
 <i class="fa-solid fa-briefcase w-5"></i>
 Opportunités
+{% if cms_new_opportunities %}
+<span class="badge badge-primary badge-sm ml-auto">
+{{ cms_new_opportunities }}
+</span>
+{% endif %}
 </a>
 </li>
 
@@ -168,7 +178,7 @@ Consultant
 <li>
 <a href="{% url 'sollicitations_list' %}">
 <i class="fa-solid fa-envelope w-5"></i>
-Sollicitations
+Invitations
 {% if notif_consultant_solicitations %}
 <span class="badge badge-error badge-sm ml-auto">
 {{ notif_consultant_solicitations }}
@@ -179,14 +189,14 @@ Sollicitations
 <li>
 <a href="{% url 'consultant_mission_list' %}">
 <i class="fa-solid fa-handshake w-5"></i>
-Missions
+Appels à mission
 </a>
 </li>
 
 <li>
 <a href="{% url 'consultant_missions' %}">
 <i class="fa-solid fa-handshake w-5"></i>
-Collaborations
+Mes missions
 </a>
 </li>
 {% endif %}

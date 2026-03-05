@@ -66,6 +66,11 @@ class Membership(models.Model):
         max_length=255,
         blank=True
     )
+    
+    annee_diplome = models.CharField(
+        max_length=255,
+        blank=True
+    )
 
     diplome_document = models.FileField(
         upload_to="adhesion/diplomes/",
@@ -100,7 +105,11 @@ class Membership(models.Model):
         if not self.date_expiration:
             return False
         return self.date_expiration >= timezone.now().date()
-    
+  
+    @property
+    def est_membre_actif(self):
+        return self.statut == "VALIDE" and self.est_actif  
+  
     from datetime import date
     
     @property

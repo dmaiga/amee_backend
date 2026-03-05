@@ -276,11 +276,16 @@ class EnrolementPaiementForm(forms.Form):
     diplome_intitule = forms.CharField(
         label="Intitulé du diplôme"
     )
+    annee_diplome = forms.CharField(
+        label="Année d'obtention"
+    )
+
 
     diplome_document = forms.FileField(
         required=False,
         label="Diplôme (scan ou PDF)"
     )
+
     # --- identité ---
     email = forms.EmailField(label="Email")
     first_name = forms.CharField(label="Prénom")
@@ -318,6 +323,10 @@ class EnrolementPaiementForm(forms.Form):
         })
         
         self.fields["diplome_intitule"].widget.attrs.update({
+            "class": "input input-bordered w-full"
+        })
+        
+        self.fields["annee_diplome"].widget.attrs.update({
             "class": "input input-bordered w-full"
         })
         

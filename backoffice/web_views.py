@@ -240,51 +240,44 @@ def paiement_bureau(request):
         {"form": form},
     )
 
+
 @login_required
 def enroulement_paiement(request):
-    print(EnrolementPaiementForm().fields.keys())
+
     if request.method == "GET":
         token = str(uuid.uuid4())
         request.session["paiement_token"] = token
-        user_id = request.GET.get("user_id")
-        
-        initial = {}
-        
-        if user_id:
-            user = User.objects.filter(pk=user_id).first()
-            if user:
-                initial = {
-                    "email": user.email,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                    "phone": user.phone,
-                    "organization": user.organization,
-                }
-        
+
         return render(
             request,
             "backoffice/tresorerie/enroulemnt_form.html",
             {
-                "form": EnrolementPaiementForm(initial=initial),
+                "form": EnrolementPaiementForm(),
                 "paiement_token": token,
             },
         )
 
-
     form = EnrolementPaiementForm(request.POST, request.FILES)
-   
-    if not form.is_valid():
-        return render(request,
-                      "backoffice/tresorerie/tresorerie_form.html",
-                      {"form": form})
 
-    # anti double
+    if not form.is_valid():
+        return render(
+            request,
+            "backoffice/tresorerie/tresorerie_form.html",
+            {"form": form}
+        )
+
     if request.POST.get("paiement_token") != request.session.get("paiement_token"):
         messages.warning(request, "Paiement déjà traité.")
         return redirect("bo_enrolement_dashboard")
 
+    # empêcher double paiement
+    del request.session["paiement_token"]
+
     data = form.cleaned_data
 
+    # =============================
+    # USER
+    # =============================
     membre, _ = User.objects.update_or_create(
         email=data["email"],
         defaults={
@@ -296,27 +289,24 @@ def enroulement_paiement(request):
         }
     )
 
-    membership_defaults = {
-        "eligibilite_option": data["eligibilite_option"],
-        "diplome_niveau": data.get("diplome_niveau"),
-        "diplome_intitule": data.get("diplome_intitule"),
-        "statut": "VALIDE",
-        "valide_par": request.user,
-        "date_activation": timezone.now().date(),
-    }
-    
-    # fichiers (évite d'écraser si non envoyés)
-    if request.FILES.get("cv_document"):
-        membership_defaults["cv_document"] = request.FILES["cv_document"]
-    
-    if request.FILES.get("diplome_document"):
-        membership_defaults["diplome_document"] = request.FILES["diplome_document"]
-    
+    # =============================
+    # MEMBERSHIP
+    # =============================
     Membership.objects.update_or_create(
         user=membre,
-        defaults=membership_defaults,
+        defaults={
+            "eligibilite_option": data["eligibilite_option"],
+            "diplome_niveau": data.get("diplome_niveau"),
+            "diplome_intitule": data.get("diplome_intitule"),
+            "annee_diplome": data.get("annee_diplome"),
+            "cv_document": request.FILES.get("cv_document"),
+            "diplome_document": request.FILES.get("diplome_document"),
+        }
     )
 
+    # =============================
+    # PAIEMENT
+    # =============================
     PaiementService.payer_membre(
         user=request.user,
         membre=membre,

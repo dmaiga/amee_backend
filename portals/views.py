@@ -835,17 +835,20 @@ def portal_dashboard(request):
 # ===============
 # MISSION 
 # ===============
-class ConsultantMissionListView(PortalAccessMixin,LoginRequiredMixin, ListView):
+from django.utils import timezone
+from django.db.models import Q
+
+class ConsultantMissionListView(PortalAccessMixin, LoginRequiredMixin, ListView):
     access_level = "member"
     template_name = "membres/missions/liste_missions_publiques.html"
     context_object_name = "missions"
 
     def get_queryset(self):
-        return Mission.objects.filter(
-            type_publication="PUBLIQUE",
-            statut="ACTIVE",
-        ).order_by("-publie_le")
 
+        today = timezone.now().date()
+
+        return Mission.objects.visibles()
+    
 class ConsultantMissionDetailView(
     PortalAccessMixin,
     LoginRequiredMixin,
@@ -857,10 +860,8 @@ class ConsultantMissionDetailView(
     context_object_name = "mission"
 
     def get_queryset(self):
-        return Mission.objects.filter(
-            type_publication="PUBLIQUE",
-            statut="ACTIVE",
-        )
+        today = timezone.now().date()
+        return Mission.objects.visibles()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -904,6 +905,7 @@ class ConsultantMissionDetailView(
         context = self.get_context_data()
         context["form"] = form
         return self.render_to_response(context)
+
 # ===============
 # Profil Member
 # ===============
@@ -913,13 +915,15 @@ class ConsultantMissionDetailView(
 def member_profile(request):
 
     consultant_profile = getattr(request.user, "profil_roster", None)
-
+    membership = getattr(request.user, "membership", None)
+   
     return render(
         request,
         "membres/profile/profile.html",
         {
             "user": request.user,
             "consultant_profile": consultant_profile,
+            "membership": membership,
         }
     )
 
@@ -994,6 +998,7 @@ def roster_reexamen(request):
         "membres/roster/reexamen.html",
         {"profil": profil}
     )
+
 
 @login_required
 @portal_access_required("member")
@@ -1076,7 +1081,7 @@ def resources_list(request):
     ressources = Resource.objects.all().order_by("-cree_le")
 
     # si ressource réservée → membre actif seulement
-    if not getattr(request.user, "adhesion", None) or not request.user.adhesion.est_actif:
+    if not getattr(request.user, "membership", None) or not request.user.membership.est_actif:
         ressources = ressources.filter(reserve_aux_membres=False)
 
     return render(

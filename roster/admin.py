@@ -9,15 +9,15 @@ class ConsultantProfileAdmin(admin.ModelAdmin):
         "get_user_id",
         "user",
         "statut",
-        "eligibilite_option",
-        "annees_experience_ees",
+ 
+  
         "est_disponible",
         "date_validation",
     )
 
     list_filter = (
         "statut",
-        "eligibilite_option",
+ 
         "est_disponible",
     )
     search_fields = ("user__email", "user__id_membre_association")

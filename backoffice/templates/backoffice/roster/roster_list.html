@@ -75,47 +75,53 @@
     <!-- EXPERIENCE -->
 <td class="text-sm space-y-1">
 
-    {% if profil.diplome_principal_domaine %}
-        <div class="font-medium">
-            {{ profil.diplome_principal_domaine }}
-        </div>
 
-        {% if profil.annee_diplome_principal %}
-            <div class="text-xs opacity-60">
-                {{ profil.annee_diplome_principal }}
-            </div>
-        {% endif %}
-    {% endif %}
+{% with membership=profil.user.membership %}
 
-    {% if profil.autre_diplome_pertinent %}
-        <div class="text-xs opacity-70 mt-1">
-            + {{ profil.autre_diplome_pertinent }}
-            {% if profil.annee_autre_diplome %}
-                ({{ profil.annee_autre_diplome }})
-            {% endif %}
-        </div>
-    {% endif %}
+{% if membership %}
 
-    {% if not profil.diplome_principal_domaine and not profil.autre_diplome_pertinent %}
-        <span class="opacity-40">—</span>
-    {% endif %}
+<div class="font-medium">
+{{ membership.get_diplome_niveau_display|default:"—" }}
+</div>
+<div class="text-xs opacity-60">
+{{ membership.get_eligibilite_option_display }}
+</div>
+
+{% if membership.diplome_intitule %}
+<div class="text-xs opacity-70">
+{{ membership.diplome_intitule }}
+</div>
+{% endif %}
+
+{% if membership.annee_diplome %}
+<div class="text-xs opacity-60">
+{{ membership.annee_diplome }}
+</div>
+{% endif %}
+
+{% else %}
+<span class="opacity-40">—</span>
+{% endif %}
+
+{% endwith %}
+
 
 </td>
 
     <!-- STATUT -->
-    <td class="space-y-1">
-
-        {% if profil.statut == "VALIDE" %}
-            <span class="badge badge-success">Validé</span>
-        {% elif profil.statut == "SOUMIS" %}
-            <span class="badge badge-warning">À valider</span>
-        {% else %}
-            <span class="badge badge-error">Refusé</span>
-        {% endif %}
-
-        
-
-    </td>
+<td>
+<span class="badge
+    {% if profil.statut == 'VALIDE' %}
+        badge-success
+    {% elif profil.statut == 'REFUSE' %}
+        badge-error
+    {% else %}
+        badge-warning
+    {% endif %}
+">
+    {{ profil.get_statut_display }}
+</span>
+</td>
 
     <!-- ACTION -->
     <td class="text-right">
