@@ -1,91 +1,134 @@
 {% extends "base_espace.html" %}
+{% block title %}Invitations reçues{% endblock %}
 
 {% block content %}
 
-<div class="max-w-6xl mx-auto space-y-6">
+<div class="space-y-8 max-w-6xl mx-auto">
 
 <!-- HEADER -->
-<div class="flex items-center gap-3">
-    <i class="fa-solid fa-briefcase text-2xl"></i>
-    <div>
-        <h1 class="text-2xl font-bold">Opportunités reçues</h1>
-        <p class="text-sm opacity-70">
-            Analysez les missions proposées avant d'accepter une mise en relation.
-        </p>
-    </div>
+<div class="space-y-2">
+<h1 class="text-2xl font-bold text-slate-900">
+Invitations reçues
+</h1>
+<p class="text-sm text-slate-500">
+Invitations professionnelles adressées directement à votre profil.
+</p>
 </div>
 
 
 {% if sollicitations %}
 
-<div class="grid md:grid-cols-2 gap-6">
+<!-- GRID MOBILE FIRST -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
 {% for contact in sollicitations %}
 
-<div class="card bg-base-100 shadow hover:shadow-lg transition border border-base-200">
+<div class="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-all duration-200 flex flex-col justify-between">
 
-<div class="card-body space-y-4">
+<div class="space-y-4">
 
-<!-- TITRE -->
+<!-- HEADER CARD -->
+<div class="flex justify-between items-start gap-3">
+
 <div>
-    <h2 class="card-title text-lg">
-        {{ contact.mission.titre }}
-    </h2>
+<h2 class="text-base font-semibold text-slate-900 line-clamp-2">
+{{ contact.mission.titre }}
+</h2>
 
-    <div class="badge badge-outline">
-        {{ contact.mission.domaine }}
-    </div>
+<p class="text-xs text-slate-500 mt-1">
+Proposé par :
+{{ contact.client.get_full_name|default:contact.client.email }}
+</p>
+</div>
+
+<!-- BADGE STATUT -->
+{% if contact.statut == "ENVOYE" %}
+<span class="text-[11px] px-3 py-1 rounded-full bg-amber-50 text-amber-600 font-semibold">
+Décision requise
+</span>
+
+{% elif contact.statut == "MISSION_CONFIRME" %}
+<span class="text-[11px] px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 font-semibold">
+Collaboration confirmée
+</span>
+
+{% elif contact.statut == "MISSION_TERMINEE" %}
+<span class="text-[11px] px-3 py-1 rounded-full bg-slate-100 text-slate-600 font-semibold">
+Mission terminée
+</span>
+
+{% elif contact.statut == "REFUSE" %}
+<span class="text-[11px] px-3 py-1 rounded-full bg-red-50 text-red-600 font-semibold">
+Invitation déclinée
+</span>
+
+{% elif contact.statut == "SANS_SUITE" %}
+<span class="text-[11px] px-3 py-1 rounded-full bg-slate-200 text-slate-600 font-semibold">
+Clôturée
+</span>
+{% endif %}
+
 </div>
 
 
 <!-- DESCRIPTION -->
-<p class="text-sm opacity-80 line-clamp-3">
-    {{ contact.mission.description|truncatewords:30 }}
+<p class="text-sm text-slate-600 line-clamp-3">
+{{ contact.mission.description|truncatewords:25 }}
 </p>
 
 
-<!-- META MISSION -->
-<div class="grid grid-cols-3 gap-3 text-xs">
+<!-- META -->
+<div class="grid grid-cols-3 gap-2 text-xs text-center">
 
-<div class="bg-base-200 p-3 rounded-lg text-center">
-    <div class="opacity-60">Durée</div>
-    <div class="font-semibold">
-        {{ contact.mission.duree_estimee_jours|default:"—" }} j
-    </div>
+<div class="bg-slate-100 p-2 rounded-lg">
+<div class="opacity-60">Durée</div>
+<div class="font-semibold">
+{{ contact.duree_estimee_jours|default:"—" }} j
+</div>
 </div>
 
-<div class="bg-base-200 p-3 rounded-lg text-center">
-    <div class="opacity-60">Budget</div>
-    <div class="font-semibold">
-        {{ contact.mission.budget_estime|default:"—" }}
-    </div>
+<div class="bg-slate-100 p-2 rounded-lg">
+<div class="opacity-60">Budget</div>
+<div class="font-semibold">
+{{ contact.mission.budget_estime|default:"—" }}
+</div>
 </div>
 
-<div class="bg-base-200 p-3 rounded-lg text-center">
-    <div class="opacity-60">Lieu</div>
-    <div class="font-semibold">
-        {{ contact.mission.localisation|default:"Remote" }}
-    </div>
+<div class="bg-slate-100 p-2 rounded-lg">
+<div class="opacity-60">Lieu</div>
+<div class="font-semibold">
+{{ contact.mission.localisation|default:"Remote" }}
+</div>
+</div>
+
 </div>
 
 </div>
 
 
 <!-- FOOTER -->
-<div class="flex justify-between items-center pt-3 border-t">
+<div class="flex justify-between items-center mt-6 pt-4 border-t">
 
-    <div class="text-xs opacity-60">
-        Reçue le {{ contact.cree_le|date:"d M Y" }}
-    </div>
+<span class="text-xs text-slate-400">
+Reçue le {{ contact.cree_le|date:"d M Y" }}
+</span>
 
-    <a href="{% url 'consultant_sollicitation_detail' contact.id %}"
-       class="btn btn-sm btn-primary">
-        Analyser la mission →
-    </a>
+<a href="{% url 'consultant_sollicitation_detail' contact.id %}"
+class="btn btn-sm
+{% if contact.statut == 'ENVOYE' %}
+btn-primary
+{% else %}
+btn-outline
+{% endif %}">
+{% if contact.statut == 'ENVOYE' %}
+Examiner
+{% else %}
+Voir détail
+{% endif %}
+</a>
 
 </div>
 
-</div>
 </div>
 
 {% endfor %}
@@ -94,8 +137,8 @@
 
 {% else %}
 
-<div class="alert">
-    <span>Aucune opportunité pour le moment.</span>
+<div class="bg-slate-100 rounded-xl p-8 text-center text-slate-500">
+Aucune invitation reçue pour le moment.
 </div>
 
 {% endif %}

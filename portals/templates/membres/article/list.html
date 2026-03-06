@@ -1,0 +1,113 @@
+{% extends "base_espace.html" %}
+
+{% block title %}Actualités AMEE{% endblock %}
+
+{% block content %}
+
+<div class="space-y-10">
+
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+
+<div>
+<h1 class="text-2xl font-bold text-slate-900">
+Actualités & Publications
+</h1>
+<p class="text-slate-500 text-sm">
+Restez informé des actualités du réseau AMEE.
+</p>
+</div>
+
+<div>
+
+<form method="get">
+
+<select name="type"
+        onchange="this.form.submit()"
+        class="select select-bordered select-sm w-full sm:w-52">
+
+<option value="">Tous les thèmes</option>
+
+{% for code, label in type_choices %}
+<option value="{{ code }}"
+{% if selected_type == code %}selected{% endif %}>
+{{ label }}
+</option>
+{% endfor %}
+
+</select>
+
+</form>
+
+</div>
+
+</div>
+
+<!-- GRID -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+{% for e in articles %}
+
+<div class="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-all duration-200 flex flex-col justify-between">
+
+<!-- IMAGE -->
+{% if e.image %}
+<div class="mb-4">
+<img src="{{ e.image.url }}"
+     class="rounded-xl w-full h-40 object-cover">
+</div>
+{% endif %}
+
+<!-- CONTENT -->
+<div class="space-y-3 flex-1">
+
+<div class="flex justify-between items-start gap-3">
+
+<span class="text-[11px] px-2 py-1 rounded-full bg-blue-50 text-blue-700 font-semibold">
+{{ e.get_type_display }}
+</span>
+
+<span class="text-[11px] text-slate-400">
+{{ e.date_publication|date:"d M Y" }}
+</span>
+
+</div>
+
+<h2 class="text-base font-semibold text-slate-900 line-clamp-2">
+{{ e.titre }}
+</h2>
+
+<p class="text-sm text-slate-500 line-clamp-3">
+{{ e.contenu|striptags|truncatewords:25 }}
+</p>
+
+</div>
+
+<!-- FOOTER -->
+<div class="flex justify-between items-center mt-6">
+
+<span class="text-xs text-slate-500">
+{{ e.lectures }} lectures
+</span>
+
+<a href="{% url 'article_detail' e.slug %}"
+   class="btn btn-primary btn-sm">
+Lire
+</a>
+
+</div>
+
+</div>
+
+{% empty %}
+
+<div class="col-span-full text-center text-slate-400 italic py-10">
+Aucune publication disponible pour le moment.
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+{% endblock %}

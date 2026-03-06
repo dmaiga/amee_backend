@@ -1,79 +1,180 @@
 {% extends "base_espace.html" %}
+{% block title %}Mes missions{% endblock %}
 
 {% block content %}
 
-<div class="max-w-6xl mx-auto space-y-6">
+<div class="max-w-6xl mx-auto space-y-10">
 
-    <!-- Header -->
-    <div class="flex items-center gap-3">
-        <i class="fa-solid fa-briefcase text-2xl"></i>
-        <h1 class="text-2xl font-bold">Mes missions</h1>
-    </div>
+<!-- HEADER -->
+<div class="space-y-2">
+<h1 class="text-2xl font-bold text-slate-900">
+Mes missions
+</h1>
+<p class="text-sm text-slate-500">
+Collaborations confirmées et missions réalisées.
+</p>
+</div>
 
-    {% if missions %}
 
-    <div class="overflow-x-auto">
-        <table class="table table-zebra">
+<!-- ===================================== -->
+<!-- COLLABORATIONS DIRECTES -->
+<!-- ===================================== -->
 
-            <thead>
-                <tr>
-                    <th>Client</th>
-                    <th>Mission</th>
-                    <th>Date</th>
-                    <th>Statut</th>
-                    <th></th>
-                </tr>
-            </thead>
+{% if contacts %}
 
-            <tbody>
-                {% for contact in missions %}
-                <tr>
+<div class="space-y-4">
 
-                    <td class="font-medium">
-                        {{ contact.client.get_full_name|default:contact.client.email }}
-                    </td>
+<h2 class="text-lg font-semibold text-slate-700">
+Collaborations directes
+</h2>
 
-                    <td>
-                        {{ contact.mission.titre }}
-                    </td>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
-                    <td>
-                        {{ contact.cree_le|date:"d M Y" }}
-                    </td>
+{% for contact in contacts %}
 
-                    <td>
-                        {% if contact.statut == "MISSION_CONFIRME" %}
-                            <span class="badge badge-primary">
-                                En cours
-                            </span>
-                        {% elif contact.statut == "MISSION_TERMINEE" %}
-                            <span class="badge badge-success">
-                                Terminée
-                            </span>
-                        {% endif %}
-                    </td>
+<div class="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition flex flex-col justify-between">
 
-                    <td class="text-right">
-                        <a href="{% url 'collaboration_mission_detail' contact.id %}"
-                           class="btn btn-sm btn-outline">
-                            Voir détail
-                        </a>
-                    </td>
+<div class="space-y-3">
 
-                </tr>
-                {% endfor %}
-            </tbody>
+<div class="flex justify-between items-start">
 
-        </table>
-    </div>
+<h3 class="font-semibold text-slate-900 line-clamp-2">
+{{ contact.mission.titre }}
+</h3>
 
-    {% else %}
+{% if contact.statut == "MISSION_CONFIRME" %}
+<span class="text-xs px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 font-semibold">
+En cours
+</span>
+{% elif contact.statut == "MISSION_TERMINEE" %}
+<span class="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-600 font-semibold">
+Terminée
+</span>
+{% endif %}
 
-        <div class="alert">
-            <span>Aucune mission pour le moment.</span>
-        </div>
+</div>
 
-    {% endif %}
+<p class="text-xs text-slate-500">
+Client :
+{{ contact.client.get_full_name|default:contact.client.email }}
+</p>
+
+<p class="text-sm text-slate-600 line-clamp-3">
+{{ contact.mission.description|truncatewords:20 }}
+</p>
+
+</div>
+
+<div class="flex justify-between items-center mt-6 pt-4 border-t">
+
+<span class="text-xs text-slate-400">
+Débutée le {{ contact.cree_le|date:"d M Y" }}
+</span>
+
+<a href="{% url 'consultant_mission_detail' contact.id %}"
+class="btn btn-sm btn-outline">
+Voir détail
+</a>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+{% endif %}
+
+
+
+<!-- ===================================== -->
+<!-- MISSIONS ISSUES DES CANDIDATURES -->
+<!-- ===================================== -->
+
+{% if applications %}
+
+<div class="space-y-4">
+
+<h2 class="text-lg font-semibold text-slate-700">
+Missions issues de candidatures
+</h2>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+{% for app in applications %}
+
+<div class="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition flex flex-col justify-between">
+
+<div class="space-y-3">
+
+<div class="flex justify-between items-start">
+
+<h3 class="font-semibold text-slate-900 line-clamp-2">
+{{ app.mission.titre }}
+</h3>
+
+{% if app.statut == "RETENU" %}
+<span class="text-xs px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 font-semibold">
+En cours
+</span>
+{% elif app.statut == "TERMINEE" %}
+<span class="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-600 font-semibold">
+Terminée
+</span>
+{% endif %}
+
+</div>
+
+<p class="text-xs text-slate-500">
+Client :
+{{ app.mission.client.get_full_name|default:app.mission.client.email }}
+</p>
+
+<p class="text-sm text-slate-600 line-clamp-3">
+{{ app.mission.description|truncatewords:20 }}
+</p>
+
+</div>
+
+<div class="flex justify-between items-center mt-6 pt-4 border-t">
+
+<span class="text-xs text-slate-400">
+Depuis {{ app.cree_le|date:"d M Y" }}
+</span>
+
+<a href="{% url 'consultant_mission_detail' app.mission.id %}"
+class="btn btn-sm btn-outline">
+Voir mission
+</a>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+{% endif %}
+
+
+
+<!-- ===================================== -->
+<!-- EMPTY STATE -->
+<!-- ===================================== -->
+
+{% if not contacts and not applications %}
+
+<div class="bg-slate-100 rounded-xl p-8 text-center text-slate-500">
+Vous n'avez aucune mission active ou terminée pour le moment.
+</div>
+
+{% endif %}
 
 </div>
 

@@ -62,9 +62,32 @@
                             <td class="font-medium">{{ contact.consultant.get_full_name }}</td>
                             <td>{{ contact.mission.titre }}</td>
                             <td>
-                                <span class="badge badge-outline {% if contact.statut == 'ACCEPTE' %}badge-success{% elif contact.statut == 'ENVOYE' %}badge-warning{% endif %}">
-                                    {{ contact.get_statut_display }}
-                                </span>
+<td>
+
+<span class="badge badge-outline
+{% if contact.statut == 'MISSION_CONFIRME' %}
+badge-success
+{% elif contact.statut == 'REFUSE' %}
+badge-error
+{% else %}
+badge-warning
+{% endif %}
+">
+
+{% if contact.statut == "MISSION_CONFIRME" %}
+Mise en relation effectuée
+
+{% elif contact.statut == "REFUSE" %}
+Indisponible pour cette mission
+
+{% else %}
+En attente de réponse
+
+{% endif %}
+
+</span>
+
+</td>
                             </td>
                             <td class="opacity-70">{{ contact.cree_le|date:"d M Y" }}</td>
                         </tr>
@@ -83,7 +106,28 @@
                         <span class="text-[10px] opacity-50">{{ contact.cree_le|date:"d/m/Y" }}</span>
                     </div>
                     <div class="text-xs mb-2">{{ contact.mission.titre }}</div>
-                    <div class="badge badge-sm badge-outline">{{ contact.get_statut_display }}</div>
+<div class="badge badge-sm badge-outline
+{% if contact.statut == 'MISSION_CONFIRME' %}
+badge-success
+{% elif contact.statut == 'REFUSE' %}
+badge-error
+{% else %}
+badge-warning
+{% endif %}
+">
+
+{% if contact.statut == "MISSION_CONFIRME" %}
+Mise en relation effectuée
+
+{% elif contact.statut == "REFUSE" %}
+Indisponible pour cette mission
+
+{% else %}
+En attente de réponse
+
+{% endif %}
+
+</div>
                 </div>
                 {% empty %}
                 <p class="text-center py-4 text-sm opacity-50">Aucune activité récente.</p>

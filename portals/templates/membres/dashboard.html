@@ -1,148 +1,165 @@
 {% extends "base_espace.html" %}
+
+{% block title %}Tableau de Bord{% endblock %}
+{% block page_title %}Vue d'ensemble{% endblock %}
+
 {% block content %}
+<div class="max-w-6xl mx-auto">
 
-<div class="space-y-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <div class="lg:col-span-8 space-y-6">
+            
+            <section class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                        Invitations Directes
+                    </h2>
+                    <span class="badge badge-ghost text-[10px] font-bold">{{ sollicitations_recentes|length }} en attente</span>
+                </div>
 
-<!-- ================= HEADER ================= -->
-<div class="flex justify-between items-center">
-    <div>
-        <h1 class="text-2xl font-bold">
-            Bonjour {{ request.user.first_name|default:request.user.email }}
-        </h1>
-        <p class="text-sm opacity-60">Tableau de bord AMEE</p>
+                <div class="space-y-3">
+                    {% for contact in sollicitations_recentes %}
+                    <a href="{% url 'consultant_sollicitation_detail' contact.id %}" 
+                       class="group block bg-white border border-slate-200 rounded-xl p-5 hover:border-primary transition-all shadow-sm">
+                        <div class="flex justify-between items-center">
+                            <div class="space-y-1">
+                                <h3 class="font-bold text-slate-900 group-hover:text-primary transition-colors">{{ contact.mission.titre }}</h3>
+                                <p class="text-xs text-slate-500">Par <span class="font-semibold text-slate-700">{{ contact.client.client_profile.nom_entreprise|default:"Institution AMEE" }}</span></p>
+                            </div>
+                            <div class="bg-slate-50 group-hover:bg-primary/10 p-2 rounded-lg transition-colors">
+                                <i class="fa-solid fa-chevron-right text-slate-400 group-hover:text-primary"></i>
+                            </div>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="bg-white border border-dashed border-slate-200 rounded-xl py-10 text-center">
+                        <p class="text-xs text-slate-400">Aucune invitation directe pour le moment.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Appels à missions publics</h2>
+                    <a href="{% url 'consultant_mission_list' %}" class="text-xs text-primary font-bold hover:underline">Voir le catalogue</a>
+                </div>
+                
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {% for mission in missions_publiques|slice:":4" %}
+    <div class="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-md transition-shadow flex flex-col h-full">
+        <div class="flex justify-between items-start mb-2">
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider
+                {% if mission.statut == 'ACTIVE' %} bg-emerald-100 text-emerald-700
+                {% elif mission.statut == 'BROUILLON' %} bg-slate-100 text-slate-600
+                {% elif mission.statut == 'TERMINEE' %} bg-blue-100 text-blue-700
+                {% elif mission.statut == 'ANNULEE' %} bg-rose-100 text-rose-700
+                {% endif %}">
+                {{ mission.get_statut_display }}
+            </span>
+ 
+        </div>
+
+        <h3 class="text-sm font-bold text-slate-900 line-clamp-2 mb-4 flex-grow">
+            {{ mission.titre }}
+        </h3>
+
+        <div class="flex items-center justify-between mt-auto pt-3 border-t border-slate-50">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-tag text-[10px] text-slate-400"></i>
+                <span class="text-[10px] text-slate-600 font-semibold">{{ mission.domaine|truncatechars:20 }}</span>
+            </div>
+            
+            <a href="{% url 'consultant_mission_detail' mission.id %}" 
+               class="text-xs font-bold text-primary hover:text-primary-focus flex items-center gap-1 transition-colors">
+                Détails
+                <i class="fa-solid fa-arrow-right text-[9px]"></i>
+            </a>
+        </div>
     </div>
+    {% endfor %}
 </div>
+            </section>
+        </div>
 
+        <div class="lg:col-span-4 space-y-6">
+            
+            <section class="bg-slate-900 rounded-2xl p-6 text-white space-y-6 shadow-xl">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Votre situation</p>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Adhésion</span>
+                            <div class="text-right">
+                                {% if est_membre_actif %}
+                                    <span class="text-sm font-bold text-emerald-400">Active</span>
+                                    <p class="text-[10px] text-slate-400">{{ membership.jours_restants }}j restants</p>
+                                {% else %}
+                                    <span class="text-sm font-bold text-rose-400">Expirée</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between border-t border-slate-800 pt-4">
+                            <span class="text-sm text-slate-300">Statut Roster</span>
+                            <div class="text-right">
+                                {% if est_consultant_valide %}
+                                    <span class="text-sm font-bold text-blue-400">Validé</span>
+                                {% else %}
+                                    <span class="text-sm font-bold text-amber-400">En attente</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if not est_membre_actif %}
+                <a href="{% url 'membership_detail' %}" class="btn btn-primary btn-block btn-sm">Régulariser</a>
+                {% endif %}
+            </section>
 
-<!-- ================= STATUT RAPIDE ================= -->
-<div class="grid md:grid-cols-3 gap-4">
+            <section class="space-y-4">
+                <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Opportunités</h2>
+                <div class="bg-white border border-slate-200 rounded-xl divide-y">
+                    {% for opp in opportunites|slice:":3" %}
+                    <div class="p-4">
+                        <p class="text-xs font-bold text-slate-800 mb-1">{{ opp.titre }}</p>
+                        <p class="text-[10px] text-slate-400 italic">Jusqu'au {{ opp.date_limite|date:"d/m/Y" }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
 
-<!-- ADHESION -->
-<div class="card bg-base-100 border border-base-300">
-<div class="card-body p-4">
+            <section class="space-y-4">
+                <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Bibliothèque</h2>
+                <div class="grid grid-cols-1 gap-2">
+                    {% for res in derniere_ressources|slice:":3" %}
+                    <div class="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-lg group hover:bg-slate-50 transition-colors">
+                        <div class="w-8 h-8 rounded bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
+                            <i class="fa-regular fa-file-lines text-sm"></i>
+                        </div>
+                        <span class="text-xs text-slate-700 truncate font-medium">{{ res.titre }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
 
-<p class="text-xs opacity-50 uppercase">Adhésion</p>
+        </div>
+    </div>
 
-{% if est_membre_actif %}
-<p class="font-bold text-success">Active</p>
-<p class="text-xs opacity-60">
-{{ membership.jours_restants }} jours restants
-</p>
-{% else %}
-<p class="font-bold text-error">Inactive</p>
-{% endif %}
-
-</div>
-</div>
-
-
-<!-- CONSULTANT -->
-<div class="card bg-base-100 border border-base-300">
-<div class="card-body p-4">
-
-<p class="text-xs opacity-50 uppercase">Roster</p>
-
-{% if not profil_roster %}
-<span class="text-sm">Non candidat</span>
-
-{% elif profil_roster.statut == "SOUMIS" %}
-<span class="text-primary font-semibold">Évaluation</span>
-
-{% elif profil_roster.statut == "VALIDE" %}
-<span class="text-success font-semibold">Consultant</span>
-
-{% elif profil_roster.statut == "REFUSE" %}
-<span class="text-error font-semibold">Correction requise</span>
-{% endif %}
-
-</div>
-</div>
-
-
-<!-- ACTION -->
-<div class="card bg-base-100 border border-base-300">
-<div class="card-body p-4">
-
-<p class="text-xs opacity-50 uppercase">Action</p>
-
-{% if not profil_roster %}
-<a href="{% url 'roster_profile' %}" class="btn btn-primary btn-xs mt-1">
-Postuler
-</a>
-
-{% elif profil_roster.statut == "REFUSE" or profil_roster.statut == "BROUILLON" %}
-<a href="{% url 'roster_profile' %}" class="btn btn-primary btn-xs mt-1">
-Continuer dossier
-</a>
-
-{% else %}
-<span class="opacity-60 text-sm">Aucune action</span>
-{% endif %}
-
-</div>
-</div>
-
-</div>
-
-
-<!-- ================= KPI CONSULTANT ================= -->
-{% if est_consultant_valide %}
-<div class="stats shadow-sm w-full">
-
-<div class="stat py-3">
-<div class="stat-title text-xs">Sollicitations</div>
-<div class="stat-value text-primary text-2xl">
-{{ nb_sollicitations }}
-</div>
-</div>
-
-<div class="stat py-3">
-<div class="stat-title text-xs">Missions actives</div>
-<div class="stat-value text-success text-2xl">
-{{ nb_missions_actives }}
-</div>
-</div>
+    <div class="mt-12 pt-8 border-t border-slate-200">
+        <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 text-center lg:text-left">Actualités AMEE</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for article in articles|slice:":3" %}
+            <div class="group cursor-pointer">
+                <p class="text-[10px] text-primary font-bold mb-2">{{ article.date_publication|date:"d M Y" }}</p>
+                <h3 class="font-bold text-slate-900 group-hover:underline mb-2">{{ article.titre }}</h3>
+                <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed">{{ article.contenu|striptags }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 
 </div>
-{% endif %}
-
-
-<!-- ================= CONTENU RECENT ================= -->
-<div class="grid md:grid-cols-2 gap-4">
-
-<div class="card bg-base-100 border border-base-300">
-<div class="card-body p-4">
-<p class="font-semibold text-sm">Ressources</p>
-
-{% for r in derniere_ressources %}
-<div class="text-sm opacity-80 truncate">
-• {{ r.titre }}
-</div>
-{% empty %}
-<span class="text-xs opacity-50">Aucune</span>
-{% endfor %}
-
-</div>
-</div>
-
-
-<div class="card bg-base-100 border border-base-300">
-<div class="card-body p-4">
-<p class="font-semibold text-sm">Opportunités</p>
-
-{% for o in opportunites %}
-<div class="text-sm opacity-80 truncate">
-• {{ o.titre }}
-</div>
-{% empty %}
-<span class="text-xs opacity-50">Aucune</span>
-{% endfor %}
-
-</div>
-</div>
-
-</div>
-
-</div>
-
 {% endblock %}

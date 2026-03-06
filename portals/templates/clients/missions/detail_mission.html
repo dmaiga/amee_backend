@@ -17,6 +17,8 @@
 Cette mission est clôturée. Les candidatures sont fermées.
 </div>
 {% endif %}
+
+
         <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div class="space-y-1">
                 <div class="flex items-center gap-3">
@@ -236,12 +238,48 @@ Cette mission est clôturée. Les candidatures sont fermées.
                 </div>
             </div>
 
-            <div class="card bg-base-100 shadow border border-base-200">
-                <div class="card-body p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="card-title text-xl font-bold">Experts sollicités via Roster</h2>
-                        <span class="badge badge-ghost">{{ mission.contacts.count }} contact(s)</span>
-                    </div>
+<div class="card bg-base-100 shadow border border-base-200">
+<div class="card-body p-6">
+
+<div class="flex items-center justify-between mb-4">
+<h2 class="card-title text-xl font-bold">
+Experts sollicités via Roster
+</h2>
+
+<span class="badge badge-ghost">
+{{ mission.contacts.count }} contact(s)
+</span>
+</div>
+
+{% if mission_en_retard %}
+
+<div class="alert alert-warning mb-4">
+
+<div class="flex justify-between items-center w-full">
+
+<div>
+
+<strong>Date de mission dépassée</strong>
+
+<p class="text-sm opacity-70">
+La date prévue pour cette mission est dépassée.
+Si la collaboration est terminée, vous pouvez clôturer la mission.
+</p>
+
+</div>
+
+<a href="{% url 'mission_close' mission.id %}"
+class="btn btn-sm btn-primary">
+
+Clôturer la mission
+
+</a>
+
+</div>
+
+</div>
+
+{% endif %}
                     <div class="space-y-3">
                         {% for contact in mission.contacts.all %}
                         <div class="flex justify-between items-center p-4 border rounded-xl">
@@ -256,9 +294,28 @@ Cette mission est clôturée. Les candidatures sont fermées.
                                     <div class="text-xs opacity-60">{{ contact.consultant.profil_roster.domaine_expertise }}</div>
                                 </div>
                             </div>
-                            <span class="badge {% if contact.statut == 'ACCEPTE' %}badge-success{% elif contact.statut == 'REFUSE' %}badge-error{% else %}badge-ghost{% endif %}">
-                                {{ contact.get_statut_display }}
-                            </span>
+<span class="badge 
+{% if contact.statut == 'MISSION_CONFIRME' %}
+badge-success
+{% elif contact.statut == 'REFUSE' %}
+badge-error
+{% else %}
+badge-ghost
+{% endif %}
+">
+
+{% if contact.statut == "MISSION_CONFIRME" %}
+Mise en relation effectuée
+
+{% elif contact.statut == "REFUSE" %}
+Indisponible pour cette mission
+
+{% else %}
+En attente de réponse
+
+{% endif %}
+
+</span>
                         </div>
                         {% endfor %}
                     </div>

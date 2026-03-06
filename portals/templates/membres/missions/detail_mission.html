@@ -1,222 +1,191 @@
 {% extends "base_espace.html" %}
+
+{% block title %}Mission : {{ mission.titre }}{% endblock %}
+
 {% block content %}
+<div class="max-w-5xl mx-auto space-y-6 pb-20">
 
-<div class="max-w-5xl mx-auto space-y-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <a href="{% url 'consultant_missions' %}" class="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-primary flex items-center gap-2">
+            <i class="fa-solid fa-arrow-left"></i> Retour aux missions
+        </a>
+        <div class="flex items-center gap-2">
+            {% if mission.statut == "ACTIVE" %}
+                <span class="badge badge-success text-white font-bold px-4">Mission Ouverte</span>
+            {% else %}
+                <span class="badge badge-ghost font-bold px-4">Clôturée</span>
+            {% endif %}
+        </div>
+    </div>
 
-<!-- ================================================= -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <div class="lg:col-span-8 space-y-6">
+            
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm space-y-8">
+                <header class="space-y-4">
+                    <h1 class="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
+                        {{ mission.titre }}
+                    </h1>
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-bold uppercase">
+                            <i class="fa-solid fa-tag mr-1.5 opacity-60"></i>{{ mission.domaine }}
+                        </span>
+                        <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-bold">
+                            <i class="fa-regular fa-calendar-check mr-1.5 opacity-60"></i>Limite : {{ mission.date_fin|date:"d M Y" }}
+                        </span>
+                    </div>
+                </header>
 
-<!-- MISSION -->
+                <div class="grid grid-cols-2 gap-4 py-6 border-y border-slate-50">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Budget Estimé</p>
+                        <p class="font-bold text-slate-900">{{ mission.budget_estime|default:"Non communiqué" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Durée prévue</p>
+                        <p class="font-bold text-slate-900">{{ mission.duree_estimee_jours|default:"—" }} jours</p>
+                    </div>
+                </div>
 
-<!-- ================================================= -->
+                <article class="prose prose-slate max-w-none">
+                    <h3 class="text-slate-900 font-bold">Description du besoin</h3>
+                    <div class="text-slate-600 leading-relaxed">
+                        {{ mission.description|linebreaks }}
+                    </div>
 
-<div class="card bg-base-100 shadow-lg p-6 space-y-4">
+                    {% if mission.objectifs %}
+                        <h4 class="text-slate-900 font-bold border-t pt-6">Objectifs attendus</h4>
+                        <div class="text-slate-600 italic">{{ mission.objectifs|linebreaks }}</div>
+                    {% endif %}
 
-<h1 class="text-2xl font-bold">
-{{ mission.titre }}
-</h1>
+                    {% if mission.livrables_attendus %}
+                        <h4 class="text-slate-900 font-bold border-t pt-6">Livrables</h4>
+                        <p class="text-slate-600">{{ mission.livrables_attendus|linebreaks }}</p>
+                    {% endif %}
+                </article>
 
-<div class="grid md:grid-cols-2 gap-4 text-sm text-base-content/70">
+                {% if mission.documents.all %}
+                <div class="space-y-3 pt-6">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Documents de référence</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {% for doc in mission.documents.all %}
+                        <a href="{{ doc.fichier.url }}" target="_blank" class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100 transition-colors group">
+                            <div class="flex items-center gap-3 overflow-hidden">
+                                <i class="fa-solid fa-file-pdf text-rose-500"></i>
+                                <span class="text-xs font-bold text-slate-700 truncate">{{ doc.nom }}</span>
+                            </div>
+                            <i class="fa-solid fa-download text-slate-300 group-hover:text-primary transition-colors"></i>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
 
-<div>
-<strong>Domaine :</strong> {{ mission.domaine }}
+<div class="lg:col-span-4 space-y-6">
+    
+    {% if application %}
+        <div class="bg-white border border-blue-100 rounded-2xl p-6 shadow-sm ring-1 ring-blue-50">
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-paper-plane text-blue-500"></i> Ma Candidature
+            </h3>
+            
+            <div class="p-4 rounded-xl {% if application.statut == 'EN_ATTENTE' %}bg-blue-50/50 text-blue-800{% elif application.statut == 'RETENU' %}bg-emerald-50 text-emerald-800{% else %}bg-slate-50 text-slate-600{% endif %} mb-4 text-xs border border-current/10">
+                <p class="font-bold mb-1">Statut : {{ application.get_statut_display }}</p>
+                <p class="opacity-80">
+                {% if application.statut == "EN_ATTENTE" %}
+                    Dossier en cours d'examen par l'équipe AMEE.
+                {% elif application.statut == "RETENU" %}
+                    Profil validé ! Le client a reçu vos coordonnées.
+                {% endif %}
+                </p>
+            </div>
+
+            <p class="text-[10px] text-slate-400 italic">Envoyé le {{ application.cree_le|date:"d/m/Y" }}</p>
+        </div>
+
+    {% elif mission.statut == "ACTIVE" %}
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm sticky top-6">
+            <h3 class="text-slate-900 font-bold mb-2">Prêt à postuler ?</h3>
+            <p class="text-xs text-slate-500 mb-6 leading-relaxed">Soumettez votre proposition pour cette mission.</p>
+            
+            <button id="btn-apply" class="btn btn-primary btn-block normal-case shadow-md">
+                <i class="fa-solid fa-pen-to-square mr-2"></i> Rédiger ma proposition
+            </button>
+
+            <div id="apply-form" class="hidden mt-6 pt-6 border-t border-slate-100 animate-in fade-in slide-in-from-top-4 duration-300">
+                <form method="post" enctype="multipart/form-data" class="space-y-5">
+                    {% csrf_token %}
+                    
+                    <div class="form-control">
+                        <label class="label pt-0">
+                            <span class="label-text text-slate-600 text-xs font-bold uppercase">Note de motivation</span>
+                        </label>
+                        {{ form.message }}
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-slate-600 text-xs font-bold uppercase">Offre Technique</span>
+                        </label>
+                        <div class="relative">
+                            {{ form.proposition_technique }}
+                        </div>
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text text-slate-600 text-xs font-bold uppercase">Offre Financière</span>
+                        </label>
+                        {{ form.proposition_financiere }}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block shadow-lg mt-4">
+                        Envoyer le dossier
+                    </button>
+                    <p class="text-[10px] text-center text-slate-400">
+                        <i class="fa-solid fa-lock mr-1"></i> Transmission sécurisée via AMEE
+                    </p>
+                </form>
+            </div>
+        </div>
+    {% endif %}
 </div>
 
-<div>
-<strong>Budget estimé :</strong>
-{{ mission.budget_estime|default:"Non précisé" }}
+<style>
+    /* Intégration harmonieuse des champs Django avec DaisyUI Light */
+    #apply-form textarea, 
+    #apply-form input[type="file"],
+    #apply-form input[type="text"] {
+        @apply bg-slate-50 border-slate-200 text-slate-800 text-xs rounded-xl p-3 w-full transition-all focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none;
+    }
+    
+    #apply-form textarea { min-height: 100px; }
+
+    /* Custom style pour l'input file HTML par défaut */
+    #apply-form input[type="file"]::file-selector-button {
+        @apply btn btn-xs btn-ghost normal-case mr-4 bg-slate-200 border-none;
+    }
+</style>
+    </div>
 </div>
 
-<div>
-<strong>Durée :</strong>
-{{ mission.duree_estimee_jours|default:"Non précisée" }} jours
-</div>
+<script>
+    const btn = document.getElementById("btn-apply");
+    const form = document.getElementById("apply-form");
+
+    if(btn){
+        btn.addEventListener("click", function(){
+            form.classList.toggle("hidden");
+            btn.innerHTML = form.classList.contains("hidden") 
+                ? "Rédiger ma proposition" 
+                : "Masquer le formulaire";
+            btn.classList.toggle("btn-ghost");
+        });
+    }
+</script>
 
-<div>
-<strong>Date limite :</strong>
-{{ mission.date_fin }}
-</div>
-
-</div>
-
-<hr>
-
-<div>
-<h2 class="font-semibold mb-1">Description</h2>
-<p class="text-sm leading-relaxed">
-{{ mission.description }}
-</p>
-</div>
-
-{% if mission.objectifs %}
-
-<div>
-<h2 class="font-semibold mb-1">Objectifs</h2>
-<p class="text-sm">{{ mission.objectifs }}</p>
-</div>
-{% endif %}
-
-{% if mission.livrables_attendus %}
-
-<div>
-<h2 class="font-semibold mb-1">Livrables attendus</h2>
-<p class="text-sm">{{ mission.livrables_attendus }}</p>
-</div>
-{% endif %}
-
-{% if mission.documents.all %}
-
-<div>
-<h2 class="font-semibold mb-2">Documents joints</h2>
-
-<ul class="space-y-2 text-sm">
-
-{% for doc in mission.documents.all %}
-
-<li class="flex justify-between items-center bg-base-200 p-3 rounded-lg">
-
-<span>
-📄 {{ doc.nom }}
-</span>
-
-<a href="{{ doc.fichier.url }}"
-class="btn btn-xs btn-outline"
-target="_blank">
-Télécharger </a>
-
-</li>
-{% endfor %}
-
-</ul>
-
-</div>
-{% endif %}
-
-</div>
-
-<!-- ================================================= -->
-
-<!-- STATUT CANDIDATURE -->
-
-<!-- ================================================= -->
-
-{% if application %}
-
-<div class="alert alert-info shadow">
-
-Votre candidature a été envoyée.
-
-Statut : <strong>{{ application.get_statut_display }}</strong>
-
-</div>
-
-{% else %}
-
-<!-- ================================================= -->
-
-<!-- FORMULAIRE CANDIDATURE -->
-
-<!-- ================================================= -->
-
-<div class="card bg-base-200 p-6 shadow space-y-6">
-
-<h2 class="text-lg font-semibold">
-Soumettre votre candidature
-</h2>
-
-{% if form.non_field_errors %}
-
-<div class="alert alert-error">
-{{ form.non_field_errors }}
-</div>
-{% endif %}
-
-<form method="post"
-      enctype="multipart/form-data"
-      class="space-y-4">
-
-{% csrf_token %}
-
-<!-- MESSAGE -->
-
-<div class="form-control">
-
-<label class="label">
-<span class="label-text font-medium">
-Note de motivation
-</span>
-</label>
-
-{{ form.message }}
-
-{% if form.message.errors %}
-
-<div class="text-error text-sm mt-1">
-{{ form.message.errors }}
-</div>
-{% endif %}
-
-<p class="text-xs opacity-60 mt-1">
-Expliquez brièvement pourquoi votre profil correspond à cette mission.
-</p>
-
-</div>
-
-<!-- PROPOSITION TECHNIQUE -->
-
-<div class="form-control">
-
-<label class="label">
-<span class="label-text font-medium">
-Proposition technique
-</span>
-</label>
-
-{{ form.proposition_technique }}
-
-{% if form.proposition_technique.errors %}
-
-<div class="text-error text-sm mt-1">
-{{ form.proposition_technique.errors }}
-</div>
-{% endif %}
-
-</div>
-
-<!-- PROPOSITION FINANCIERE -->
-
-<div class="form-control">
-
-<label class="label">
-<span class="label-text font-medium">
-Proposition financière
-</span>
-</label>
-
-{{ form.proposition_financiere }}
-
-{% if form.proposition_financiere.errors %}
-
-<div class="text-error text-sm mt-1">
-{{ form.proposition_financiere.errors }}
-</div>
-{% endif %}
-
-</div>
-
-<p class="text-xs opacity-60">
-Formats acceptés : PDF, DOC, DOCX – taille max 10MB
-</p>
-
-<button type="submit"
-     class="btn btn-primary w-full">
-Envoyer ma candidature </button>
-
-</form>
-
-</div>
-
-{% endif %}
-
-</div>
 
 {% endblock %}

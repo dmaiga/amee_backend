@@ -118,22 +118,26 @@ Télécharger
 
 
 <!-- ================= ACTION ================= -->
+{% if mission.statut == "TERMINEE" %}
 
-{% if contact.statut == "MISSION_CONFIRME" %}
-<div class="card bg-base-200">
-<div class="card-body">
+<div class="alert alert-success">
 
-<h2 class="card-title">Clôturer la mission</h2>
+Cette mission a été clôturée par le client.
 
-<form method="post">
-{% csrf_token %}
-<button name="action" value="terminer" class="btn btn-success">
-✅ Marquer comme terminée
-</button>
-</form>
+Nous vous remercions pour votre collaboration.
 
 </div>
+
+{% endif %}
+{% if mission.date_fin < today and mission.statut != "TERMINEE" %}
+
+<div class="alert alert-warning">
+
+La date prévue pour cette mission est dépassée.
+Le client sera invité à confirmer sa clôture.
+
 </div>
+
 {% endif %}
 
 </div>

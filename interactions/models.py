@@ -112,7 +112,7 @@ class ContactRequest(models.Model):
         self.statut = "MISSION_TERMINEE"
         self.save()
     
-        self.mission.statut = "FERMEE"
+        self.mission.statut = "TERMINEE"
         self.mission.save()
         
         

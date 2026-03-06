@@ -20,10 +20,12 @@ class Article(models.Model):
     )
 
     titre = models.CharField(max_length=255)
+
     slug = models.SlugField(unique=True, blank=True)
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     contenu = models.TextField()
     image = models.ImageField(upload_to="cms/articles/", null=True, blank=True)
+    lectures = models.PositiveIntegerField(default=0)    
     publie = models.BooleanField(default=False)
     date_publication = models.DateTimeField(
         null=True,
@@ -121,6 +123,11 @@ class Opportunity(models.Model):
     reserve_aux_membres = models.BooleanField(default=True)
     fichier_joint = models.FileField(upload_to="cms/opportunites/", null=True, blank=True)
     publie = models.BooleanField(default=True)
+    lien_externe = models.URLField(
+        blank=True,
+        null=True,
+        help_text="Lien externe"
+    )
     cree_le = models.DateTimeField(auto_now_add=True)
     publie_par = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -134,4 +141,8 @@ class Opportunity(models.Model):
             return False
         return self.date_limite < timezone.now().date()
 
-
+    @property
+    def jours_restants(self):
+        if not self.date_limite:
+            return None
+        return (self.date_limite - timezone.now().date()).days

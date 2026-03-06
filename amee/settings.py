@@ -113,6 +113,7 @@ TEMPLATES = [
                 "portals.context_processors.portal_state",
                 'portals.context_processors.cms_notifications',
                  "portals.context_processors.consultant_notifications",
+                 'portals.context_processors.notifications',
             ],
         },
     },

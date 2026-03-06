@@ -40,7 +40,8 @@ from backoffice.forms import (
     StatuerIncidentForm, EnrolementOrganisationForm,
     PaiementCreationOrganisationForm,CotisationOrganisationForm
     )
-
+from portals.models import Notification
+from django.urls import reverse
 
 
 from memberships.models import Membership
@@ -1156,7 +1157,19 @@ def article_form(request, article_id=None):
                 article.publie_par = request.user
     
             article.save()
-    
+            users = User.objects.filter(
+                role__in=["MEMBER", "CONSULTANT"]
+            )
+
+            for user in users:
+                Notification.objects.create(
+                    user=user,
+                    type="ARTICLES",
+                    message=f"Nouveau article publié : {article.titre}",
+                    url=reverse("resources_list")
+                )
+
+
             return redirect("bo_articles_list")
 
     else:
@@ -1217,6 +1230,10 @@ def ressource_detail(request, ressource_id):
         {"ressource": ressource}
     )
 
+from portals.models import Notification
+from django.urls import reverse
+from accounts.models import User
+
 @login_required
 def ressource_form(request, ressource_id=None):
 
@@ -1240,6 +1257,19 @@ def ressource_form(request, ressource_id=None):
 
             ressource.save()
 
+            # 🔔 NOTIFICATION MEMBRES / CONSULTANTS
+            users = User.objects.filter(
+                role__in=["MEMBER", "CONSULTANT"]
+            )
+
+            for user in users:
+                Notification.objects.create(
+                    user=user,
+                    type="RESOURCE",
+                    message=f"Nouvelle ressource publiée : {ressource.titre}",
+                    url=reverse("resources_list")
+                )
+
             return redirect("bo_ressources_list")
 
     else:
@@ -1253,7 +1283,6 @@ def ressource_form(request, ressource_id=None):
             "ressource": ressource,
         }
     )
-
 # -----------------------------
 
 @login_required
@@ -1312,7 +1341,17 @@ def opportunity_form(request, opportunity_id=None):
                 opportunity.publie_par = request.user
 
             opportunity.save()
+            consultants = User.objects.filter(
+                role__in=["CONSULTANT", "MEMBER"]
+            )
 
+            for user in consultants:
+                Notification.objects.create(
+                    user=user,
+                    type="OPPORTUNITY",
+                    message=f"Nouvelle opportunité publiée : {opportunity.titre}",
+                    url=reverse("opportunities_list")
+                )
             return redirect("bo_opportunities_list")
 
     else:

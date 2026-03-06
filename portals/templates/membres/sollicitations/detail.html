@@ -1,208 +1,133 @@
 {% extends "base_espace.html" %}
 
+{% block title %}Détail Invitation - {{ contact.mission.titre }}{% endblock %}
+
 {% block content %}
+<div class="max-w-4xl mx-auto space-y-6 pb-20">
 
-<div class="max-w-5xl mx-auto space-y-8">
-
-<!-- ================================================= -->
-<!-- RETOUR -->
-<!-- ================================================= -->
-<a href="{% url 'sollicitations_list' %}"
-   class="btn btn-ghost btn-sm">
-   ← Retour aux opportunités
-</a>
-
-
-<!-- ================================================= -->
-<!-- HEADER MISSION -->
-<!-- ================================================= -->
-<div class="space-y-2">
-
-<h1 class="text-3xl font-bold">
-{{ contact.mission.titre }}
-</h1>
-
-<div class="flex flex-wrap gap-2">
-
-<span class="badge badge-outline">
-📂 {{ contact.mission.domaine }}
-</span>
-
-<span class="badge badge-warning">
-Proposition reçue
-</span>
-
-</div>
-
-</div>
-
-
-<!-- ================================================= -->
-<!-- VUE RAPIDE (DECISION FAST) -->
-<!-- ================================================= -->
-<div class="stats shadow w-full">
-
-<div class="stat">
-<div class="stat-title">Durée estimée</div>
-<div class="stat-value text-primary">
-{{ contact.mission.duree_estimee_jours|default:"—" }}
-</div>
-<div class="stat-desc">jours</div>
-</div>
-
-<div class="stat">
-<div class="stat-title">Budget estimé</div>
-<div class="stat-value text-success">
-{{ contact.mission.budget_estime|default:"Non communiqué" }}
-</div>
-</div>
-
-<div class="stat">
-<div class="stat-title">Localisation</div>
-<div class="stat-value text-base">
-{{ contact.mission.localisation|default:"Remote / flexible" }}
-</div>
-</div>
-
-</div>
-
-
-<!-- ================================================= -->
-<!-- CONTEXTE MISSION -->
-<!-- ================================================= -->
-<div class="card bg-base-100 shadow">
-<div class="card-body">
-
-<h2 class="card-title">🎯 Contexte & Objectifs</h2>
-
-<p class="whitespace-pre-line leading-relaxed">
-{{ contact.mission.description }}
-</p>
-
-{% if contact.mission.objectifs %}
-<div class="divider">Objectifs attendus</div>
-<p class="whitespace-pre-line">
-{{ contact.mission.objectifs }}
-</p>
-{% endif %}
-
-{% if contact.mission.livrables_attendus %}
-<div class="divider">Livrables attendus</div>
-<p class="whitespace-pre-line">
-{{ contact.mission.livrables_attendus }}
-</p>
-{% endif %}
-
-</div>
-</div>
-
-
-<!-- ================================================= -->
-<!-- POURQUOI VOUS -->
-<!-- ================================================= -->
-{% if contact.mission.documents.all %}
-<div class="card bg-base-100 shadow">
-<div class="card-body">
-
-<h2 class="card-title">
-📎 Documents de mission
-</h2>
-
-<p class="text-sm opacity-70">
-Ces documents détaillent précisément le besoin avant votre décision.
-</p>
-
-<div class="divide-y">
-
-{% for doc in contact.mission.documents.all %}
-
-<div class="flex justify-between items-center py-4">
-
-    <div class="flex items-center gap-3">
-
-        <div class="badge badge-outline">
-            {{ doc.get_type_document_display }}
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <a href="{% url 'sollicitations_list' %}" class="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-primary flex items-center gap-2">
+            <i class="fa-solid fa-arrow-left"></i> Retour aux invitations
+        </a>
+        <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Statut actuel :</span>
+            <span class="badge {% if contact.statut == 'ENVOYE' %}badge-warning{% elif contact.statut == 'MISSION_CONFIRME' %}badge-success text-white{% else %}badge-ghost{% endif %} font-bold px-4">
+                {{ contact.get_statut_display }}
+            </span>
         </div>
-
-        <div>
-            <div class="font-medium">
-                {{ doc.nom }}
-            </div>
-
-            <div class="text-xs opacity-50">
-                Ajouté le {{ doc.cree_le|date:"d/m/Y" }}
-            </div>
-        </div>
-
     </div>
 
-    <a href="{{ doc.fichier.url }}"
-       target="_blank"
-       class="btn btn-sm btn-outline">
-        Ouvrir
-    </a>
+    <header class="space-y-4">
+        <h1 class="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
+            {{ contact.mission.titre }}
+        </h1>
+        <div class="flex flex-wrap gap-3">
+            <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2">
+                <i class="fa-solid fa-tag opacity-50"></i> {{ contact.mission.domaine }}
+            </span>
+            <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2">
+                <i class="fa-solid fa-building opacity-50"></i> {{ contact.client.client_profile.nom_entreprise|default:"Institution AMEE" }}
+            </span>
+        </div>
+    </header>
 
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Durée</p>
+            <p class="text-lg font-bold text-slate-900">{{ contact.mission.duree_estimee_jours|default:"—" }} <span class="text-sm font-medium">jours</span></p>
+        </div>
+        <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Budget</p>
+            <p class="text-lg font-bold text-emerald-600">{{ contact.mission.budget_estime|default:"À négocier" }}</p>
+        </div>
+        <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm col-span-2 md:col-span-1">
+            <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Lieu</p>
+            <p class="text-sm font-bold text-slate-900 truncate">
+                <i class="fa-solid fa-location-dot text-slate-400 mr-1"></i>
+                {{ contact.mission.localisation|default:"Remote / Flexible" }}
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="lg:col-span-2 space-y-8">
+            <section class="prose prose-slate max-w-none bg-white p-6 md:p-8 rounded-2xl border border-slate-100 shadow-sm">
+                <h3 class="text-lg font-bold text-slate-900 mt-0">Détails de la mission</h3>
+                <div class="text-slate-600 leading-relaxed">
+                    {{ contact.mission.description|linebreaks }}
+                </div>
+
+                {% if contact.mission.objectifs %}
+                <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wide border-t pt-6">Objectifs</h4>
+                <div class="text-slate-600 italic">{{ contact.mission.objectifs|linebreaks }}</div>
+                {% endif %}
+            </section>
+
+            {% if contact.message %}
+            <section class="bg-amber-50 border border-amber-100 p-6 rounded-2xl">
+                <h3 class="text-sm font-bold text-amber-800 flex items-center gap-2 mb-3">
+                    <i class="fa-solid fa-comment-dots"></i> Note du client
+                </h3>
+                <p class="text-sm text-amber-900 italic leading-relaxed">"{{ contact.message }}"</p>
+            </section>
+            {% endif %}
+        </div>
+
+        <div class="space-y-6">
+            
+            {% if contact.statut == "ENVOYE" %}
+            <div class="bg-slate-900 rounded-2xl p-6 shadow-xl sticky top-6">
+                <h3 class="text-white font-bold mb-4">Votre réponse</h3>
+                <form method="post" class="space-y-3">
+                    {% csrf_token %}
+                    <button name="action" value="accept" class="btn btn-primary btn-block normal-case">
+                        Accepter la mission
+                    </button>
+                    <button name="action" value="refuse" class="btn btn-outline btn-error btn-block btn-sm normal-case border-slate-700">
+                        Décliner l'invitation
+                    </button>
+                </form>
+                <p class="text-[10px] text-slate-500 mt-4 text-center italic">
+                    En acceptant, vos coordonnées seront partagées avec le client pour finaliser le contrat.
+                </p>
+            </div>
+            {% else %}
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 text-center">
+                <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fa-solid fa-circle-check text-slate-300 text-xl"></i>
+                </div>
+                <p class="text-sm font-bold text-slate-800">Dossier traité</p>
+                <p class="text-xs text-slate-500 mt-1">Le statut est : {{ contact.get_statut_display }}</p>
+            </div>
+            {% endif %}
+
+            {% if contact.mission.documents.all %}
+            <div class="space-y-3">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest px-2">Documents joints</h3>
+                <div class="bg-white border border-slate-200 rounded-2xl divide-y divide-slate-100 overflow-hidden">
+                    {% for doc in contact.mission.documents.all %}
+                    <a href="{{ doc.fichier.url }}" target="_blank" class="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors group">
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            <i class="fa-solid fa-file-pdf text-rose-500 group-hover:scale-110 transition-transform"></i>
+                            <div class="overflow-hidden">
+                                <p class="text-xs font-bold text-slate-800 truncate">{{ doc.nom }}</p>
+                                <p class="text-[10px] text-slate-400 uppercase">{{ doc.get_type_document_display }}</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-download text-slate-300 text-xs"></i>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
 </div>
 
-{% endfor %}
-
-</div>
-
-</div>
-</div>
-{% endif %}
-<!-- ================================================= -->
-<!-- MESSAGE CLIENT (OPTIONNEL) -->
-<!-- ================================================= -->
-{% if contact.message %}
-<div class="card bg-base-100 shadow">
-<div class="card-body">
-
-<h2 class="card-title">💬 Message complémentaire</h2>
-
-<p class="whitespace-pre-line">
-{{ contact.message }}
-</p>
-
-</div>
-</div>
-{% endif %}
-
-
-<!-- ================================================= -->
-<!-- DECISION -->
-<!-- ================================================= -->
-<div class="card bg-base-200 shadow-lg">
-<div class="card-body space-y-4">
-
-<h2 class="card-title">
-Votre décision
-</h2>
-
-<p class="text-sm opacity-70">
-Accepter déclenchera la mise en relation officielle avec le client.
-</p>
-
-<form method="post" class="flex flex-wrap gap-4">
-{% csrf_token %}
-
-<button name="action"
-        value="accept"
-        class="btn btn-success btn-lg">
-✅ Accepter la mission
-</button>
-
-<button name="action"
-        value="refuse"
-        class="btn btn-outline btn-error">
-Refuser
-</button>
-
-</form>
-
-</div>
-</div>
-
-</div>
-
+<style>
+ 
+    .prose p { margin-bottom: 1rem; }
+</style>
 {% endblock %}

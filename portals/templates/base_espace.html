@@ -1,238 +1,188 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="light">
+<html lang="fr" data-theme="corporate">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMEE | {% block title %}{% endblock %}</title>
 
-<title>Espace AMEE | {% block title %}{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-<link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; font-size: 14px; color: #1e293b; }
+        
+        .main-content { background: #f8fafc; }
 
-<style>
-body{
-    font-size:15px;
-    line-height:1.6;
-}
+        /* Styles pour les liens de navigation */
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            color: #64748b;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
 
-/* Sidebar scroll indépendante */
-.sidebar-scroll{
-    overflow-y:auto;
-    height:100vh;
-}
+        .nav-link:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
 
-/* Espacement menu */
-.menu li > a{
-    padding-top:.65rem;
-    padding-bottom:.65rem;
-}
-
-/* Lien actif */
-.menu li a.active{
-    background-color:oklch(var(--p)/0.12);
-    color:oklch(var(--p));
-    font-weight:600;
-}
-</style>
-
+        /* Classe pour le lien actif */
+        .nav-link-active {
+            background: #0f172a !important;
+            color: #ffffff !important;
+            font-weight: 500;
+        }
+    </style>
 </head>
 
-<body class="bg-base-200 min-h-screen text-base-content">
+<body class="min-h-screen">
+<div class="drawer lg:drawer-open">
+    <input id="drawer-toggle" type="checkbox" class="drawer-toggle"/>
 
-<div class="drawer lg:drawer-open min-h-screen">
-<input id="drawer" type="checkbox" class="drawer-toggle"/>
+    <div class="drawer-content flex flex-col main-content">
+        <header class="navbar bg-white border-b border-slate-200 px-4 h-16 sticky top-0 z-30">
+            <div class="flex-1 lg:hidden">
+                <label for="drawer-toggle" class="btn btn-ghost btn-square"><i class="fa-solid fa-bars"></i></label>
+            </div>
+            <div class="flex-1 px-2 font-semibold text-slate-800 hidden lg:block">
+                {% block page_title %}{% endblock %}
+            </div>
 
-<!-- ================= CONTENT ================= -->
-<div class="drawer-content flex flex-col min-h-screen">
+            <div class="flex-none gap-3 flex items-center">
+                <div class="dropdown dropdown-end">
+                    <button class="btn btn-ghost btn-circle btn-sm">
+                        <div class="indicator">
+                            <i class="fa-regular fa-bell text-lg text-slate-600"></i>
+                            {% if unread_notifications %}<span class="badge badge-primary badge-xs indicator-item"></span>{% endif %}
+                        </div>
+                    </button>
+                    <div class="dropdown-content mt-3 card card-compact w-72 bg-white border border-slate-200 shadow-xl z-[100]">
+                        <div class="card-body">
+                            <h3 class="font-bold text-sm border-b pb-2">Notifications</h3>
+                            <div class="max-h-60 overflow-y-auto">
+                                {% for notif in notifications %}
+                                <a href="{% url 'notification_redirect' notif.id %}" class="block py-2 text-xs hover:text-primary border-b last:border-0">{{ notif.message }}</a>
+                                {% empty %}
+                                <p class="text-xs text-center opacity-50 py-3">Aucune notification</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-<!-- MOBILE NAVBAR -->
-<div class="navbar bg-base-100 border-b lg:hidden">
-<label for="drawer" class="btn btn-ghost btn-square">
-<i class="fa-solid fa-bars"></i>
-</label>
+                <div class="dropdown dropdown-end">
+                    <label tabindex="0" class="btn btn-ghost btn-circle avatar">
+                        <div class="w-8 rounded-lg bg-slate-100">
+                            {% if request.user.photo %}<img src="{{ request.user.photo.url }}">
+                            {% else %}<div class="flex items-center justify-center h-full"><i class="fa-solid fa-user text-slate-400"></i></div>{% endif %}
+                        </div>
+                    </label>
+                    <ul tabindex="0" class="mt-3 p-2 shadow-xl menu menu-sm dropdown-content bg-white border rounded-lg w-52 z-[100]">
+                        <li class="menu-title text-xs opacity-50">Mon compte</li>
+                        <li><a href="{% url 'member_profile' %}"><i class="fa-solid fa-user"></i> Profil</a></li>
+                        <li><a href="{% url 'logout' %}" class="text-error"><i class="fa-solid fa-power-off"></i> Déconnexion</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
 
-<div class="font-semibold">
-AMEE — Espace membre
+        <main class="p-4 md:p-8">
+            {% if messages %}
+            <div class="toast toast-top toast-end z-50">
+                {% for message in messages %}
+                <div class="alert bg-slate-900 text-white shadow auto-dismiss">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="max-w-6xl mx-auto">{% block content %}{% endblock %}</div>
+        </main>
+    </div>
+
+    <div class="drawer-side z-40">
+        <label for="drawer-toggle" class="drawer-overlay"></label>
+        <aside class="w-64 bg-white border-r flex flex-col h-full">
+            <div class="h-16 flex items-center px-6 border-b">
+                <span class="text-xl font-bold">AMEE<span class="text-primary">.</span></span>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4">
+                <nav class="space-y-6">
+                    <div>
+                        <p class="text-xs font-bold opacity-40 uppercase px-4 mb-3 tracking-wider">Général</p>
+                        <a href="{% url 'portal_dashboard' %}" class="nav-link"><i class="fa-solid fa-grip-vertical w-5 text-center"></i> Dashboard</a>
+                        <a href="{% url 'member_profile' %}" class="nav-link"><i class="fa-solid fa-user w-5 text-center"></i> Mon profil</a>
+                        <a href="{% url 'membership_detail' %}" class="nav-link"><i class="fa-solid fa-id-card w-5 text-center"></i> Adhésion</a>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-bold opacity-40 uppercase px-4 mb-3 tracking-wider">Espace travail</p>
+                        <a href="{% url 'resources_list' %}" class="nav-link">
+                            <i class="fa-solid fa-folder w-5 text-center"></i> Ressources
+                            {% if cms_new_resources %}<span class="badge badge-primary badge-sm ml-auto">{{ cms_new_resources }}</span>{% endif %}
+                        </a>
+                        <a href="{% url 'article_list' %}" class="nav-link">
+                            <i class="fa-solid fa-calendar w-5 text-center"></i> Articles
+                            {% if cms_new_events %}<span class="badge badge-primary badge-sm ml-auto">{{ cms_new_events }}</span>{% endif %}
+                        </a>
+                        <a href="{% url 'opportunities_list' %}" class="nav-link">
+                            <i class="fa-solid fa-briefcase w-5 text-center"></i> Opportunités
+                            {% if cms_new_opportunities %}<span class="badge badge-primary badge-sm ml-auto">{{ cms_new_opportunities }}</span>{% endif %}
+                        </a>
+                    </div>
+
+                    {% if est_consultant_valide %}
+                    <div>
+                        <p class="text-xs font-bold opacity-40 uppercase px-4 mb-3 tracking-wider">Consultant</p>
+                        <a href="{% url 'sollicitations_list' %}" class="nav-link">
+                            <i class="fa-solid fa-envelope w-5 text-center"></i> Invitations
+                            {% if notif_consultant_invitations %}<span class="badge badge-error badge-sm ml-auto">{{ notif_consultant_invitations }}</span>{% endif %}
+                        </a>
+                        <a href="{% url 'consultant_mission_list' %}" class="nav-link"><i class="fa-solid fa-briefcase w-5 text-center"></i> Appels à mission</a>
+                        <a href="{% url 'consultant_missions' %}" class="nav-link">
+                            <i class="fa-solid fa-handshake w-5 text-center"></i> Mes missions
+                            {% if notif_consultant_missions %}<span class="badge badge-success badge-sm ml-auto">{{ notif_consultant_missions }}</span>{% endif %}
+                        </a>
+                    </div>
+                    {% endif %}
+                </nav>
+            </div>
+
+            <div class="p-4 border-t bg-slate-50/50">
+                <div class="flex items-center gap-3">
+                    <div class="avatar placeholder">
+                        <div class="bg-slate-900 text-white rounded-md w-9">
+                            <span class="text-xs">{{ request.user.email|slice:":1"|upper }}</span>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-xs font-bold truncate">{{ request.user.get_full_name|default:request.user.email }}</p>
+                        <p class="text-[10px] uppercase opacity-50">{{ portal_badge_label }}</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
 </div>
-</div>
-
-<!-- MAIN -->
-<main class="flex-1 p-6 md:p-8 max-w-6xl mx-auto w-full">
-
-{% if messages %}
-<div class="toast toast-top toast-end z-50">
-{% for message in messages %}
-<div class="alert alert-success shadow auto-dismiss">
-{{ message }}
-</div>
-{% endfor %}
-</div>
-{% endif %}
-
-{% block content %}{% endblock %}
-
-</main>
-
-</div>
-
-
-<!-- ================= SIDEBAR ================= -->
-<div class="drawer-side">
-<label for="drawer" class="drawer-overlay"></label>
-
-<aside class="w-72 bg-base-100 border-r flex flex-col sidebar-scroll">
-
-<!-- USER HEADER -->
-<div class="p-5 border-b flex items-center gap-3">
-
-{% if request.user.photo %}
-<img src="{{ request.user.photo.url }}"
-class="w-11 h-11 rounded-full object-cover">
-{% else %}
-<div class="w-11 h-11 rounded-full bg-base-200 flex items-center justify-center">
-<i class="fa-solid fa-user opacity-40"></i>
-</div>
-{% endif %}
-
-<div class="overflow-hidden">
-<p class="font-semibold text-sm truncate">
-{{ request.user.get_full_name|default:request.user.email }}
-</p>
-
-<span class="badge {{ portal_badge_color }} badge-xs">
-{{ portal_badge_label }}
-</span>
-</div>
-
-</div>
-
-
-<!-- NAVIGATION -->
-<ul class="menu p-4 text-[15px]">
-
-<li class="menu-title text-xs font-semibold opacity-60">
-Général
-</li>
-
-<li><a href="{% url 'portal_dashboard' %}">
-<i class="fa-solid fa-house w-5"></i> Dashboard
-</a></li>
-
-<li><a href="{% url 'member_profile' %}">
-<i class="fa-solid fa-user w-5"></i> Mon profil
-</a></li>
-
-<li><a href="{% url 'membership_detail' %}">
-<i class="fa-solid fa-id-card w-5"></i> Adhésion
-</a></li>
-
-
-<li class="menu-title text-xs font-semibold opacity-60 mt-4">
-Contenu
-</li>
-
-<li>
-<a href="{% url 'resources_list' %}">
-<i class="fa-solid fa-folder w-5"></i>
-Ressources
-{% if cms_new_resources %}
-<span class="badge badge-primary badge-sm ml-auto">
-{{ cms_new_resources }}
-</span>
-{% endif %}
-</a>
-</li>
-
-<li>
-<a href="{% url 'events_list' %}">
-<i class="fa-solid fa-calendar w-5"></i>
-Événements
-{% if cms_new_events %}
-<span class="badge badge-primary badge-sm ml-auto">
-{{ cms_new_events }}
-</span>
-{% endif %}
-</a>
-</li>
-
-<li>
-<a href="{% url 'opportunities_list' %}">
-<i class="fa-solid fa-briefcase w-5"></i>
-Opportunités
-{% if cms_new_opportunities %}
-<span class="badge badge-primary badge-sm ml-auto">
-{{ cms_new_opportunities }}
-</span>
-{% endif %}
-</a>
-</li>
-
-
-{% if est_consultant_valide %}
-<li class="menu-title text-xs font-semibold opacity-60 mt-4">
-Consultant
-</li>
-
-<li>
-<a href="{% url 'sollicitations_list' %}">
-<i class="fa-solid fa-envelope w-5"></i>
-Invitations
-{% if notif_consultant_solicitations %}
-<span class="badge badge-error badge-sm ml-auto">
-{{ notif_consultant_solicitations }}
-</span>
-{% endif %}
-</a>
-</li>
-<li>
-<a href="{% url 'consultant_mission_list' %}">
-<i class="fa-solid fa-handshake w-5"></i>
-Appels à mission
-</a>
-</li>
-
-<li>
-<a href="{% url 'consultant_missions' %}">
-<i class="fa-solid fa-handshake w-5"></i>
-Mes missions
-</a>
-</li>
-{% endif %}
-
-</ul>
-
-
-<!-- FOOTER -->
-<div class="mt-auto p-4 border-t">
-<a href="{% url 'logout' %}"
-class="btn btn-ghost btn-sm w-full text-error">
-<i class="fa-solid fa-right-from-bracket"></i>
-Déconnexion
-</a>
-</div>
-
-</aside>
-</div>
-
-</div>
-
 
 <script>
-/* Auto dismiss messages */
-setTimeout(()=>{
-document.querySelectorAll('.auto-dismiss')
-.forEach(el=>el.remove());
-},3000);
+    // Suppression auto des messages
+    document.querySelectorAll('.auto-dismiss').forEach(el => {
+        setTimeout(() => el.remove(), 4000);
+    });
 
-/* Active menu link */
-document.querySelectorAll('.menu a').forEach(link=>{
-if(link.href === window.location.href){
-link.classList.add('active');
-}
-});
+    // Gestion automatique de la classe active
+    const currentUrl = window.location.href;
+    document.querySelectorAll('.nav-link').forEach(link => {
+        if (link.href === currentUrl) {
+            link.classList.add('nav-link-active');
+        }
+    });
 </script>
-
 </body>
 </html>

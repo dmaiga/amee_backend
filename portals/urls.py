@@ -7,7 +7,7 @@ urlpatterns = [
     # ==========================================
     path("login/", plateforme_login, name="login"),
     path("logout/", plateforme_logout, name="logout"),
-
+    path(  "notifications/<int:notif_id>/", notification_redirect, name="notification_redirect"),
     # ==========================================
     # 2. ESPACE CLIENT (Institutions/Recruteurs)
     # ==========================================
@@ -64,13 +64,16 @@ urlpatterns = [
     path("espace/membership/",membership_detail, name="membership_detail",),
 
     path("espace/resources/",resources_list, name="resources_list",),
-    path("espace/events/",events_list,name="events_list",),
+    path( "espace/resources/<int:pk>/download/",resource_download, name="resource_download"),
+    
+    path("espace/articke/",article_list,name="article_list",),
+    path("espace/articles/<slug:slug>/",article_detail, name="article_detail"),
+    
     path("espace/opportunites/",opportunities_list, name="opportunities_list",),
     path("espace/opportunites/<int:pk>/",opportunity_detail, name="opportunity_detail",),
 
     path("sollicitations/", sollicitations_list,name="sollicitations_list"),
-    path(
-        "sollicitations/<int:pk>/",sollicitation_detail,name="consultant_sollicitation_detail" ),
+    path("sollicitations/<int:pk>/",sollicitation_detail,name="consultant_sollicitation_detail" ),
 
     path("missions/",consultant_missions,name="consultant_missions"),
     path("missions/<int:pk>/", mission_detail, name="collaboration_mission_detail"),

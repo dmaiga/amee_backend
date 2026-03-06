@@ -1,0 +1,98 @@
+{% extends "base_espace.html" %}
+
+{% block title %}{{ article.titre }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-8 pb-20">
+
+    <nav class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+        <a href="{% url 'article_list' %}" class="hover:text-primary transition-colors">Espace</a>
+        <i class="fa-solid fa-chevron-right text-[8px]"></i>
+        <span class="text-slate-900">Actualité</span>
+    </nav>
+
+    <div class="space-y-4">
+        <div class="flex flex-wrap gap-2">
+            <span class="badge badge-primary badge-sm font-bold uppercase tracking-tighter">
+                {{ article.get_type_display }}
+            </span>
+            {% if article.date_publication > timezone.now|add:"-48h" %}
+                <span class="badge badge-secondary badge-sm font-bold">NOUVEAU</span>
+            {% endif %}
+        </div>
+
+        <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            {{ article.titre }}
+        </h1>
+
+        <div class="flex items-center gap-4 text-xs text-slate-500 font-medium border-b border-slate-100 pb-6">
+            <div class="flex items-center gap-1.5">
+                <i class="fa-regular fa-calendar"></i>
+                {{ article.date_publication|date:"d F Y" }}
+            </div>
+            <div class="flex items-center gap-1.5">
+                <i class="fa-regular fa-eye"></i>
+                {{ article.lectures }} vue{{ article.lectures|pluralize }}
+            </div>
+        </div>
+    </div>
+
+    {% if article.image %}
+    <div class="relative group">
+        <img src="{{ article.image.url }}" 
+             alt="{{ article.titre }}"
+             class="rounded-2xl w-full max-h-[400px] object-cover shadow-lg border border-slate-100">
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        
+        <div class="lg:col-span-8">
+            <div class="prose prose-slate prose-headings:text-slate-900 prose-p:text-slate-600 prose-p:leading-relaxed max-w-none">
+                {{ article.contenu|safe|linebreaks }}
+            </div>
+
+            {% if article.lien_externe %}
+            <div class="mt-10 p-6 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3 text-slate-700">
+                    <i class="fa-solid fa-link text-primary"></i>
+                    <span class="font-bold text-sm">Ressource complémentaire disponible</span>
+                </div>
+                <a href="{{ article.lien_externe }}" 
+                   target="_blank" 
+                   class="btn btn-primary shadow-md btn-sm md:btn-md normal-case">
+                   Consulter le lien externe
+                   <i class="fa-solid fa-arrow-up-right-from-square ml-2 text-xs"></i>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="hidden lg:block lg:col-span-4 space-y-6">
+            <div class="sticky top-6">
+                    
+                    
+                    <div class="pt-4 border-t border-slate-100">
+                         <p class="text-[11px] text-slate-400 leading-relaxed font-medium italic">
+                            Publié par AMEE. Ce contenu est réservé aux membres du réseau.
+                         </p>
+                    </div>
+                 </div>
+        </div>
+
+    </div>
+
+    <div class="mt-12 text-center border-t border-slate-100 pt-10">
+        <a href="{% url 'portal_dashboard' %}" class="btn btn-ghost btn-sm text-slate-500">
+            <i class="fa-solid fa-arrow-left mr-2"></i>
+            Retour au tableau de bord
+        </a>
+    </div>
+
+</div>
+
+<style>
+    /* Correction pour l'interlignage du contenu généré par linebreaks */
+    .prose p { margin-bottom: 1.5em; }
+</style>
+{% endblock %}

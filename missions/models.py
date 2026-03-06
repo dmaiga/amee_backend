@@ -11,7 +11,7 @@ class MissionQuerySet(models.QuerySet):
 
         return self.filter(
             type_publication="PUBLIQUE",
-            statut="ACTIVE"
+            statut__in=["ACTIVE","TERMINEE"]
         ).filter(
             Q(date_fin__gte=today) | Q(date_fin__isnull=True)
         ).order_by('-cree_le')

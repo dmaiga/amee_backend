@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView
-from django.db.models import Count,Q,Exists, OuterRef
+from django.db.models import Count,Q,Exists, OuterRef,F
 from django.views.generic import CreateView
 from django.urls import reverse
 from django.utils import timezone
@@ -20,9 +20,14 @@ from django.contrib.auth import authenticate, login
 from portals.decorators import portal_access_required
 from portals.mixins import PortalAccessMixin
 from django.db.models import Count, Sum
-from django.utils import timezone
+from django.db import models
+from django.db.models import Case, When, Value, IntegerField
 
 
+ 
+from datetime import timedelta
+
+    
 # --- DJANGO REST FRAMEWORK ---
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny
@@ -32,8 +37,11 @@ from portals.serializers import ClientRegistrationSerializer
 
 # --- APPS LOCALES (AMEE) ---
 from accounts.models import User
+from portals.models import Notification
+from django.urls import reverse
 from roster.models import ConsultantProfile
 from missions.models import Mission, MissionDocument,MissionApplication
+ 
 from interactions.models import ContactRequest
 from quality_control.models import Feedback
 
@@ -46,7 +54,19 @@ from missions.forms import MissionCreateForm,MissionApplicationForm
 from quality_control.forms import FeedbackForm
 from portals.forms import ClientProfileForm
 from memberships.forms import MemberEditForm
-from django.db.models import Q
+ 
+
+# --
+ 
+from django.http import FileResponse
+ 
+ 
+
+from tresorerie.models import Transaction
+ 
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+
 
 # ==========================================
 # 1. AUTHENTIFICATION COMMUNE
@@ -56,8 +76,6 @@ class ClientRegistrationAPIView(CreateAPIView):
     serializer_class = ClientRegistrationSerializer
     permission_classes = [AllowAny]
 
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
 
 def plateforme_login(request):
     if request.user.is_authenticated:
@@ -168,7 +186,7 @@ def client_dashboard(request):
         request,
         "clients/dashboard.html",
         {
-            "missions": missions[:5],
+            "missions": missions[:3],
             "missions_actives": missions_actives,
             "demandes_en_attente": demandes_en_attente,
             "collaborations_actives": collaborations_actives,
@@ -192,6 +210,18 @@ class ClientMissionCreateView(PortalAccessMixin,LoginRequiredMixin, CreateView):
         form.instance.client = self.request.user
         if form.instance.type_publication == "PUBLIQUE":
             form.instance.publie_le = timezone.now()
+        consultants = User.objects.filter(
+            role="CONSULTANT",
+            profil_roster__statut="VALIDE"
+        )
+
+        for consultant in consultants:
+            Notification.objects.create(
+                user=consultant,
+                type="MISSION_PUBLIQUE",
+                message=f"Nouvelle mission publiée : {form.instance.titre}",
+                url=reverse("consultant_mission_list")
+            )
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -210,11 +240,25 @@ def mission_close(request, pk):
         client=request.user
     )
 
+    if mission.statut == "TERMINEE":
+        messages.info(request, "Cette mission est déjà clôturée.")
+        return redirect("client_mission_detail", pk=pk)
+
+    # clôture mission publique
     mission.statut = "TERMINEE"
     mission.save()
 
+    # clôture uniquement les applications retenues
+    MissionApplication.objects.filter(
+        mission=mission,
+        statut="RETENU"
+    ).update(statut="TERMINEE")
+
+    messages.success(request, "Mission clôturée.")
+
     return redirect("client_mission_detail", pk=pk)
 
+ 
 class ClientMissionListView(PortalAccessMixin, LoginRequiredMixin, ListView):
 
     access_level = "client"
@@ -222,30 +266,47 @@ class ClientMissionListView(PortalAccessMixin, LoginRequiredMixin, ListView):
     context_object_name = "missions"
 
     def get_queryset(self):
+
+        since = timezone.now() - timedelta(hours=24)
+
+        recent_applications = MissionApplication.objects.filter(
+            mission=OuterRef("pk"),
+            cree_le__gte=since
+        )
+
+        recent_responses = ContactRequest.objects.filter(
+            mission=OuterRef("pk"),
+            statut="MISSION_CONFIRME",
+            cree_le__gte=since
+        )
+
         return (
             Mission.objects
             .filter(client=self.request.user)
             .annotate(
-                nb_contacts=Count("contacts"),
-                nb_applications=Count("applications")
+                nb_contacts=Count("contacts", distinct=True),
+                nb_applications=Count("applications", distinct=True),
+                has_new_application=Exists(recent_applications),
+                has_new_response=Exists(recent_responses),
             )
             .order_by("-cree_le")
         )
 
     def get_context_data(self, **kwargs):
+
         context = super().get_context_data(**kwargs)
 
         missions = context["missions"]
 
         context["today"] = timezone.now().date()
 
-        # total candidatures
         context["total_applications"] = sum(
             mission.nb_applications for mission in missions
         )
 
-        # missions actives
-        context["missions_actives"] = missions.filter(statut="ACTIVE").count()
+        context["missions_actives"] = missions.filter(
+            statut="ACTIVE"
+        ).count()
 
         return context
 
@@ -301,9 +362,25 @@ class ClientMissionDetailView(PortalAccessMixin,LoginRequiredMixin, DetailView):
             reverse=True
         )
 
-        applications = mission.applications.select_related("consultant")
+        applications = mission.applications.select_related(
+            "consultant",
+            "consultant__membership"
+        )        
+        today = timezone.now().date()
 
+        date_limite_cloture = None
+        mission_en_retard = False
+
+        if mission.date_fin:
+            date_limite_cloture = mission.date_fin + timedelta(days=1)
+
+            if today > date_limite_cloture and mission.statut != "TERMINEE":
+                mission_en_retard = True
+
+        context["mission_en_retard"] = mission_en_retard
+        context["date_limite_cloture"] = date_limite_cloture
         context["applications"] = applications
+        context["applications_total"] = applications.count()       
         context["applications_attente"] = applications.filter(statut="EN_ATTENTE")
         context["applications_retenues"] = applications.filter(statut="RETENU")
         context["applications_refusees"] = applications.filter(statut="REFUSE")
@@ -315,7 +392,8 @@ class ClientMissionDetailView(PortalAccessMixin,LoginRequiredMixin, DetailView):
             .filter(client=self.request.user)
             .prefetch_related(
                 "documents",
-                "contacts__consultant",
+
+                "contacts__consultant__profil_roster"
             )
         )
 
@@ -374,6 +452,15 @@ def application_update_status(request, pk, action):
 
     if action == "retenu":
         application.statut = "RETENU"
+    
+    if action == "retenu":
+
+        Notification.objects.create(
+            user=application.consultant,
+            type="APPLICATION_ACCEPTED",
+            message=f"Vous avez été retenu pour la mission {application.mission.titre}",
+            url=reverse("consultant_mission_detail", args=[application.mission.id])
+        )
     elif action == "refuse":
         application.statut = "REFUSE"
 
@@ -526,6 +613,21 @@ def request_contact_client(request):
             message=message,
             initie_par="CLIENT",
         )
+        client_profile = getattr(request.user, "client_profile", None)
+
+        nom_affiche = (
+            client_profile.nom_entreprise
+            if client_profile
+            else request.user.get_full_name() or request.user.email
+        )
+
+        Notification.objects.create(
+            user=profil.user,
+            type="NEW_SOLLICITATION",
+            message=f"{nom_affiche} vous a contacté pour une mission.",
+            url=reverse("sollicitations_list")
+        )
+ 
     except IntegrityError:
         messages.warning(
             request,
@@ -788,55 +890,77 @@ def client_profile_settings(request):
 def portal_dashboard(request):
 
     user = request.user
-    context = {}
 
-    # -------------------------
-    # ADHESION
-    # -------------------------
     adhesion = getattr(user, "membership", None)
-
-    context["membership"] = adhesion
-    context["est_membre_actif"] = (
-        adhesion.est_actif if adhesion else False
-    )
-
-    # -------------------------
-    # CONSULTANT
-    # -------------------------
     profil = getattr(user, "profil_roster", None)
 
-    context["profil_roster"] = profil
-    context["est_consultant_valide"] = (
-        profil.est_actif_roster if profil else False
+    est_consultant = profil and profil.est_actif_roster
+
+    # -------------------------
+    # KPI consultant
+    # -------------------------
+
+    stats = ContactRequest.objects.filter(
+        consultant=user
+    ).aggregate(
+        sollicitations=Count("id", filter=Q(statut="ENVOYE")),
+        missions_actives=Count("id", filter=Q(statut="MISSION_CONFIRME")),
+        missions_terminees=Count("id", filter=Q(statut="MISSION_TERMINEE")),
     )
 
     # -------------------------
-    # KPI CONSULTANT
+    # sollicitations récentes
     # -------------------------
 
-    if context["est_consultant_valide"]:
-        context["nb_sollicitations"] = ContactRequest.objects.filter(
-            consultant=user,
-            statut="ENVOYE"
-        ).count()
+    sollicitations_recentes = (
+        ContactRequest.objects
+        .select_related(
+                "mission",
+                "client",
+                "client__client_profile"
+            )
+        .filter(consultant=user,statut="ENVOYE")
+        .order_by("-cree_le")[:5]
+    )
 
-        context["nb_missions_actives"] = ContactRequest.objects.filter(
-            consultant=user,
-            statut="MISSION_CONFIRME"
-        ).count()
+    # -------------------------
+    # missions publiques
+    # -------------------------
+
+    missions_publiques = Mission.objects.visibles()[:5]
+
     # -------------------------
     # CMS
     # -------------------------
-    context["derniere_ressources"] = Resource.objects.order_by("-cree_le")[:3]
-    context["opportunites"] = Opportunity.objects.order_by("-date_limite")[:3]
+
+    ressources = Resource.objects.order_by("-cree_le")[:3]
+    opportunites = Opportunity.objects.order_by("-date_limite")[:3]
+    articles = Article.objects.order_by("-date_publication")[:3]
+
+    context = {
+
+        "membership": adhesion,
+        "est_membre_actif": adhesion.est_actif if adhesion else False,
+
+        "profil_roster": profil,
+        "est_consultant_valide": est_consultant,
+
+        "nb_sollicitations": stats["sollicitations"],
+        "nb_missions_actives": stats["missions_actives"],
+
+        "sollicitations_recentes": sollicitations_recentes,
+        "missions_publiques": missions_publiques,
+
+        "derniere_ressources": ressources,
+        "opportunites": opportunites,
+        "articles":articles,
+    }
 
     return render(request, "membres/dashboard.html", context)
-
+ 
 # ===============
 # MISSION 
 # ===============
-from django.utils import timezone
-from django.db.models import Q
 
 class ConsultantMissionListView(PortalAccessMixin, LoginRequiredMixin, ListView):
     access_level = "member"
@@ -896,6 +1020,12 @@ class ConsultantMissionDetailView(
             application = form.save(commit=False)
             application.mission = mission
             application.consultant = request.user
+            Notification.objects.create(
+                user=mission.client,
+                type="MISSION_APPLICATION",
+                message=f"{request.user.get_full_name()} a postulé à la mission « {mission.titre} »",
+                url=reverse("client_mission_detail", args=[mission.id])
+            )            
             application.save()
 
             messages.success(request, "Votre candidature a été envoyée.")
@@ -1036,10 +1166,6 @@ def roster_profile(request):
 #  Membership
 # ===============
 
-from tresorerie.models import Transaction
-from django.utils import timezone
-
-
 @login_required
 @portal_access_required("member")
 def membership_detail(request):
@@ -1096,38 +1222,136 @@ def resources_list(request):
 
 @login_required
 @portal_access_required("member")
-def events_list(request):
+def resource_download(request, pk):
 
-    events = Article.objects.filter(
-        type__in=["EVENEMENT", "FORMATION"],
-        publie=True,
-    ).order_by("-date_publication")
+    resource = get_object_or_404(Resource, pk=pk)
 
-    return render(
-        request,
-        "membres/events/list.html",
-        {
-            "events": events,
-        },
+    # sécurité : ressource réservée
+    if resource.reserve_aux_membres:
+        membership = getattr(request.user, "membership", None)
+        if not membership or not membership.est_actif:
+            return redirect("resources_list")
+
+    # incrémentation atomique (important)
+    Resource.objects.filter(pk=resource.pk).update(
+        telechargements=F("telechargements") + 1
     )
 
+    return FileResponse(
+        resource.fichier.open(),
+        as_attachment=True,
+        filename=resource.fichier.name.split("/")[-1]
+    )
 
 
 
 @login_required
 @portal_access_required("member")
+def article_list(request):
+
+    articles = Article.objects.filter(
+        publie=True
+    ).order_by("-date_publication")
+
+    selected_type = request.GET.get("type")
+
+    if selected_type:
+        articles = articles.filter(type=selected_type)
+
+    context = {
+        "articles": articles,
+        "selected_type": selected_type,
+        "type_choices": Article.TYPE_CHOICES,
+    }
+
+    return render(
+        request,
+        "membres/article/list.html",
+        context,
+    )
+
+
+@login_required
+@portal_access_required("member")
+def article_detail(request, slug):
+
+    article = get_object_or_404(
+        Article,
+        slug=slug,
+        publie=True
+    )
+
+    # incrémentation atomique
+    Article.objects.filter(pk=article.pk).update(
+        lectures=F("lectures") + 1
+    )
+
+    # refresh valeur locale
+    article.refresh_from_db(fields=["lectures"])
+
+    return render(
+        request,
+        "membres/article/detail.html",
+        {
+            "article": article,
+        },
+    )
+
+
+from django.utils import timezone
+
+@login_required
+@portal_access_required("member")
 def opportunities_list(request):
 
+    today = timezone.now().date()
+
     opportunities = Opportunity.objects.filter(
-        publie=True
-    ).order_by("-cree_le")
+        publie=True,
+    )
+
+    # -----------------------
+    # FILTRE STATUT
+    # -----------------------
+    statut = request.GET.get("statut")
+
+    if statut == "actives":
+        opportunities = opportunities.filter(
+            Q(date_limite__gte=today) | Q(date_limite__isnull=True)
+        )
+
+    elif statut == "expirees":
+        opportunities = opportunities.filter(
+            date_limite__lt=today
+        )
+
+    # -----------------------
+    # FILTRE TYPE
+    # -----------------------
+    selected_type = request.GET.get("type")
+
+    if selected_type:
+        opportunities = opportunities.filter(type=selected_type)
+
+    # -----------------------
+    # TRI INTELLIGENT
+    # -----------------------
+    opportunities = opportunities.order_by(
+        "date_limite",  
+        "-cree_le"
+    )
+
+    context = {
+        "opportunities": opportunities,
+        "selected_type": selected_type,
+        "selected_statut": statut,
+        "type_choices": Opportunity.TYPE_CHOICES,
+    }
 
     return render(
         request,
         "membres/opportunities/list.html",
-        {
-            "opportunities": opportunities,
-        }
+        context,
     )
 
 @login_required
@@ -1149,6 +1373,10 @@ def opportunity_detail(request, pk):
     )
 
 
+
+##
+
+
 @login_required
 @portal_access_required("consultant")
 def sollicitations_list(request):
@@ -1157,10 +1385,17 @@ def sollicitations_list(request):
         ContactRequest.objects
         .filter(
             consultant=request.user,
-            statut="ENVOYE"
+            initie_par="CLIENT"
         )
         .select_related("mission", "client")
-        .order_by("-cree_le")
+        .annotate(
+            priority=Case(
+                When(statut="ENVOYE", then=Value(0)),  # décision requise en premier
+                default=Value(1),
+                output_field=IntegerField()
+            )
+        )
+        .order_by("priority", "-cree_le")
     )
 
     return render(
@@ -1168,6 +1403,8 @@ def sollicitations_list(request):
         "membres/sollicitations/list.html",
         {"sollicitations": sollicitations}
     )
+
+from django.db import models
 
 @login_required
 @portal_access_required("consultant")
@@ -1180,7 +1417,7 @@ def sollicitation_detail(request, pk):
         consultant=request.user
     )
 
-    if request.method == "POST":
+    if request.method == "POST" and contact.statut == "ENVOYE":
 
         action = request.POST.get("action")
 
@@ -1190,7 +1427,15 @@ def sollicitation_detail(request, pk):
         elif action == "refuse":
             contact.statut = "REFUSE"
 
+        Notification.objects.create(
+            user=contact.client,
+            type="CONTACT_RESPONSE",
+            message=f"{request.user.get_full_name()} a répondu à votre demande.",
+            url=reverse("client_mission_detail", args=[contact.mission.id])
+        )
+
         contact.save()
+
         return redirect("sollicitations_list")
 
     return render(
@@ -1198,29 +1443,35 @@ def sollicitation_detail(request, pk):
         "membres/sollicitations/detail.html",
         {"contact": contact}
     )
-
-
 @login_required
 @portal_access_required("consultant")
 def consultant_missions(request):
 
-    missions = (
+    contacts = (
         ContactRequest.objects
         .filter(
             consultant=request.user,
-            statut__in=[
-                "MISSION_CONFIRME",
-                "MISSION_TERMINEE"
-            ]
+            statut__in=["MISSION_CONFIRME", "MISSION_TERMINEE"]
         )
         .select_related("mission", "client")
-        .order_by("-cree_le")
+    )
+
+    applications = (
+        MissionApplication.objects
+        .filter(
+            consultant=request.user,
+            statut__in=["RETENU", "TERMINEE"]
+        )
+        .select_related("mission", "mission__client")
     )
 
     return render(
         request,
         "membres/missions/list.html",
-        {"missions": missions}
+        {
+            "contacts": contacts,
+            "applications": applications,
+        }
     )
 
 
@@ -1249,26 +1500,6 @@ def mission_detail(request, pk):
     ]:
         return redirect("consultant_missions")
 
-    # ACTIONS
-    if request.method == "POST":
-
-        action = request.POST.get("action")
-
-        if action == "terminer":
-            try:
-                contact.terminer()
-                messages.success(
-                    request,
-                    "Mission marquée comme terminée."
-                )
-            except ValueError:
-                messages.warning(
-                    request,
-                    "Impossible de terminer cette mission."
-                )
-
-            return redirect("consultant_mission_detail", pk=contact.pk)
-
     return render(
         request,
         "membres/missions/detail.html",
@@ -1279,3 +1510,19 @@ def mission_detail(request, pk):
     )
 
 
+@login_required
+def notification_redirect(request, notif_id):
+
+    notif = get_object_or_404(
+        Notification,
+        id=notif_id,
+        user=request.user
+    )
+
+    notif.is_read = True
+    notif.save(update_fields=["is_read"])
+
+    if notif.url:
+        return redirect(notif.url)
+
+    return redirect("portal_dashboard")

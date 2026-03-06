@@ -2,6 +2,31 @@
 
 from django.db import models
 from django.conf import settings
+from accounts.models import User
+
+class Notification(models.Model):
+
+    TYPES = (
+        ("MISSION_PUBLIQUE", "Mission publique"),
+        ("MISSION_APPLICATION", "Candidature mission"),
+        ("NEW_SOLLICITATION", "Nouvelle sollicitation"),
+        ("CONTACT_RESPONSE", "Réponse sollicitation"),
+        ("APPLICATION_ACCEPTED", "Application acceptée"),
+        ("CMS_ARTICLE", "Article"),
+        ("OPPORTUNITY", "Opportunité"),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    type = models.CharField(max_length=50, choices=TYPES)
+    
+    message = models.TextField()
+
+    url = models.CharField(max_length=255, blank=True)
+
+    is_read = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
 
 class ClientProfile(models.Model):
 

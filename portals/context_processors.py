@@ -1,57 +1,15 @@
 from interactions.models import ContactRequest
 
-def client_notifications(request):
+from cms.models import Resource, Article, Opportunity
+from django.utils import timezone
+from datetime import timedelta
 
-    if not request.user.is_authenticated:
-        return {}
-
-    if not hasattr(request.user, "client_profile"):
-        return {}
-
-    feedbacks_a_faire = ContactRequest.objects.filter(
-        mission__client=request.user,
-        statut="MISSION_TERMINEE",
-        feedback__isnull=True
-    ).count()
-
-    demandes_en_attente = ContactRequest.objects.filter(
-        mission__client=request.user,
-        statut="ENVOYE"
-    ).count()
-
-    return {
-        "notif_feedbacks": feedbacks_a_faire,
-        "notif_attente": demandes_en_attente,
-    }
+from portals.models import Notification
 
 from interactions.models import ContactRequest
-
-
-def consultant_notifications(request):
-
-    if not request.user.is_authenticated:
-        return {}
-
-    profil = getattr(request.user, "profil_roster", None)
-
-    # uniquement consultant validé
-    if not profil or profil.statut != "VALIDE":
-        return {}
-
-    sollicitations = ContactRequest.objects.filter(
-        consultant=request.user,
-        statut="ENVOYE"
-    ).count()
-
-    missions_en_cours = ContactRequest.objects.filter(
-        consultant=request.user,
-        statut="MISSION_CONFIRME"
-    ).count()
-
-    return {
-        "notif_consultant_solicitations": sollicitations,
-        "notif_consultant_missions": missions_en_cours,
-    }
+from django.utils import timezone
+from datetime import timedelta
+from missions.models import MissionApplication
 
 def portal_state(request):
 
@@ -97,9 +55,83 @@ def portal_state(request):
     }
 
 
-from cms.models import Resource, Article, Opportunity
-from django.utils import timezone
-from datetime import timedelta
+def client_notifications(request):
+
+    if not request.user.is_authenticated:
+        return {}
+
+    if not hasattr(request.user, "client_profile"):
+        return {}
+
+    since = timezone.now() - timedelta(hours=24)
+
+    # candidatures sur missions publiques
+    postulations = MissionApplication.objects.filter(
+        mission__client=request.user,
+        cree_le__gte=since
+    ).count()
+
+    # consultant qui accepte collaboration
+    collaborations_confirmees = ContactRequest.objects.filter(
+        mission__client=request.user,
+        statut="MISSION_CONFIRME",
+        cree_le__gte=since
+    ).count()
+
+    # feedback à faire (collaboration terminée)
+    feedbacks_a_faire = ContactRequest.objects.filter(
+        mission__client=request.user,
+        statut="MISSION_TERMINEE",
+        feedback__isnull=True
+    ).count()
+
+    return {
+        "notif_postulations": postulations,
+        "notif_collaborations": collaborations_confirmees,
+        "notif_feedbacks": feedbacks_a_faire,
+    }
+
+
+
+def consultant_notifications(request):
+
+    if not request.user.is_authenticated:
+        return {}
+
+    profil = getattr(request.user, "profil_roster", None)
+
+    if not profil or profil.statut != "VALIDE":
+        return {}
+
+    since = timezone.now() - timedelta(hours=24)
+
+    # invitations reçues
+    invitations = ContactRequest.objects.filter(
+        consultant=request.user,
+        statut="ENVOYE",
+        cree_le__gte=since
+    ).count()
+
+    # missions confirmées récemment
+    missions_confirmees = ContactRequest.objects.filter(
+        consultant=request.user,
+        statut="MISSION_CONFIRME",
+        cree_le__gte=since
+    ).count()
+
+    # feedback attendu
+    feedbacks = ContactRequest.objects.filter(
+        consultant=request.user,
+        statut="MISSION_TERMINEE",
+        feedback__isnull=True
+    ).count()
+
+    return {
+        "notif_consultant_invitations": invitations,
+        "notif_consultant_missions": missions_confirmees,
+        "notif_consultant_feedbacks": feedbacks,
+    }
+
 
 
 def cms_notifications(request):
@@ -108,14 +140,14 @@ def cms_notifications(request):
         return {}
 
     # fenêtre "nouveau contenu"
-    since = timezone.now() - timedelta(days=7)
+    since = timezone.now() - timedelta(hours=24)
 
     new_resources = Resource.objects.filter(
         cree_le__gte=since
     ).count()
 
     new_events = Article.objects.filter(
-        type__in=["EVENEMENT", "FORMATION"],
+        type__in=["EVENEMENT", "FORMATION","COMMUNIQUE"],
         publie=True,
         date_publication__gte=since,
     ).count()
@@ -137,3 +169,24 @@ def cms_notifications(request):
         "cms_new_opportunities": new_opportunities,
         "cms_notifications_total": total_notifications,
     }
+
+
+
+def notifications(request):
+
+    if request.user.is_authenticated:
+
+        qs = Notification.objects.filter(
+            user=request.user
+        )
+
+        unread = qs.filter(is_read=False).count()
+
+        notifications = qs.order_by("-created_at")[:5]
+
+        return {
+            "notifications": notifications,
+            "unread_notifications": unread
+        }
+
+    return {}

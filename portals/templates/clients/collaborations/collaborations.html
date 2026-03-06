@@ -33,10 +33,10 @@
                     <label class="label pt-0"><span class="label-text font-bold text-xs uppercase opacity-50">Statut</span></label>
                     <select name="statut" class="select select-bordered w-full font-medium">
                         <option value="">Tous les statuts</option>
-                        <option value="ENVOYE" {% if selected_statut == "ENVOYE" %}selected{% endif %}>⏱️ Demande envoyée</option>
-                        <option value="MISSION_CONFIRME" {% if selected_statut == "MISSION_CONFIRME" %}selected{% endif %}>✅ Collaboration active</option>
-                        <option value="REFUSE" {% if selected_statut == "REFUSE" %}selected{% endif %}>❌ Refusé</option>
-                        <option value="MISSION_TERMINEE" {% if selected_statut == "MISSION_TERMINEE" %}selected{% endif %}>🏁 Terminée</option>
+                        <option value="ENVOYE" {% if selected_statut == "ENVOYE" %}selected{% endif %}>Demande envoyée</option>
+                        <option value="MISSION_CONFIRME" {% if selected_statut == "MISSION_CONFIRME" %}selected{% endif %}>Collaboration active</option>
+                        <option value="REFUSE" {% if selected_statut == "REFUSE" %}selected{% endif %}>Refusé</option>
+                        <option value="MISSION_TERMINEE" {% if selected_statut == "MISSION_TERMINEE" %}selected{% endif %}>Terminée</option>
                     </select>
                 </div>
 
@@ -96,7 +96,7 @@
                             {% elif contact.statut == "MISSION_TERMINEE" %}
                                 <div class="badge badge-neutral font-bold py-3 px-4">TERMINÉE</div>
                             {% elif contact.statut == "REFUSE" %}
-                                <div class="badge badge-error badge-outline font-bold py-3 px-4">REFUSÉ</div>
+                                <div class="badge badge-error badge-outline font-bold py-3 px-4">INDISPONIBLE</div>
                             {% else %}
                                 <div class="badge badge-ghost font-bold py-3 px-4 italic">SANS SUITE</div>
                             {% endif %}
@@ -187,7 +187,7 @@ Collaborations (missions publiques)
    class="btn btn-xs btn-ghost">
    Mission
 </a>
-
+{% if app.mission.statut == "TERMINEE" %}
 {% if app.feedback %}
 <a href="{% url 'client_feedback_detail' app.feedback.id %}"
    class="btn btn-xs btn-success btn-ghost gap-1">
@@ -204,7 +204,7 @@ Collaborations (missions publiques)
 </a>
 
 {% endif %}
-
+{% endif %}
 </div>
 </td>
 

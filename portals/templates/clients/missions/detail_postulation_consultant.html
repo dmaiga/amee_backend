@@ -13,7 +13,7 @@
                 <a href="{% url 'application_update_status' application.id 'retenu' %}" class="btn btn-success btn-sm">Retenir</a>
                 <a href="{% url 'application_update_status' application.id 'refuse' %}" class="btn btn-error btn-sm">Refuser</a>
             {% else %}
-                <span class="badge badge-lg {% if application.statut == 'retenu' %}badge-success{% else %}badge-error{% endif %} font-bold uppercase p-4">
+                <span class="badge badge-lg font-bold uppercase p-4">
                     {{ application.get_statut_display }}
                 </span>
             {% endif %}

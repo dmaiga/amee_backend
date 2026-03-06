@@ -139,7 +139,7 @@ Contactez l’administration.
 <div class="card bg-base-100 border border-base-300 shadow-sm">
 <div class="card-body space-y-4">
 
-<h3 class="text-xs uppercase font-black opacity-50">
+<h3 class="text-xs uppercase font-black">
 Dossier d’adhésion
 </h3>
 
@@ -148,14 +148,14 @@ Dossier d’adhésion
 <div class="space-y-3 text-sm">
 
 <div>
-<span class="opacity-50 text-xs uppercase">Éligibilité</span>
+<span class=" text-xs uppercase">Éligibilité</span>
 <p class="font-semibold">
 {{ membership.get_eligibilite_option_display }}
 </p>
 </div>
 
 <div>
-<span class="opacity-50 text-xs uppercase">Diplôme</span>
+<span class="text-xs uppercase">Diplôme</span>
 <p class="font-semibold">
 {{ membership.get_diplome_niveau_display }}
 {% if membership.diplome_intitule %}
@@ -166,7 +166,7 @@ Dossier d’adhésion
 
 {% if membership.cv_document %}
 <div class="flex justify-between items-center">
-<span class="opacity-50 text-xs uppercase">CV soumis</span>
+<span class="text-xs uppercase">CV soumis</span>
 
 <a href="{{ membership.cv_document.url }}"
 class="btn btn-xs btn-outline">
@@ -177,7 +177,7 @@ Voir
 
 {% if membership.diplome_document %}
 <div class="flex justify-between items-center">
-<span class="opacity-50 text-xs uppercase">Diplôme</span>
+<span class="text-xs uppercase">Diplôme</span>
 
 <a href="{{ membership.diplome_document.url }}"
 class="btn btn-xs btn-outline">
