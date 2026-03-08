@@ -1,0 +1,79 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="max-w-5xl mx-auto space-y-6">
+
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Fonctions du Bureau</h1>
+
+        <a href="{% url 'boardrole_create' %}" 
+           class="btn btn-primary">
+            + Nouvelle fonction
+        </a>
+    </div>
+
+    <div class="card bg-base-100 shadow-md">
+        <div class="card-body">
+
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Ordre</th>
+                            <th>Titre</th>
+                            <th>Statut</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for role in roles %}
+                        <tr>
+                            <td>{{ role.ordre }}</td>
+                            <td class="font-semibold">
+                                {{ role.titre }}
+                            </td>
+                            <td>
+                                {% if role.actif %}
+                                    <span class="badge badge-success">Actif</span>
+                                {% else %}
+                                    <span class="badge badge-ghost">Inactif</span>
+                                {% endif %}
+                            </td>
+<td class="text-right space-x-2">
+
+    <a href="{% url 'boardrole_update' role.id %}"
+       class="btn btn-xs btn-outline">
+        Modifier
+    </a>
+
+    {% if role.actif %}
+        <a href="{% url 'boardrole_toggle' role.id %}"
+           class="btn btn-xs btn-error">
+            Désactiver
+        </a>
+    {% else %}
+        <a href="{% url 'boardrole_toggle' role.id %}"
+           class="btn btn-xs btn-success">
+            Activer
+        </a>
+    {% endif %}
+
+</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-gray-400">
+                                Aucune fonction créée
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

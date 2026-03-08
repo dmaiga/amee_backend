@@ -60,9 +60,15 @@
 
                     <h3 class="card-title text-lg mt-8 mb-4 text-secondary">Domaines d'expertise</h3>
                     <div class="flex flex-wrap gap-2">
-                        {% for domaine in consultant.profil_roster.domaines_expertise.split %}
-                            <span class="badge badge-outline badge-secondary">{{ domaine|default:"-" }}</span>
-                        {% endfor %}
+                        
+                            <span >{{ consultant.profil_roster.domaines_expertise|default:"-" }}</span>
+ 
+                    </div>
+                    <h3 class="card-title text-lg mt-8 mb-4 ">Expérience Géo </h3>
+                    <div class="flex flex-wrap gap-2">
+                        
+                            <span >{{ consultant.profil_roster.experience_geographique|default:"Non renseignée"  }}</span>
+ 
                     </div>
                 </div>
             </div>
@@ -71,15 +77,15 @@
                 <div class="card bg-base-100 shadow border border-base-200">
                     <div class="card-body">
                         <h3 class="font-bold flex items-center gap-2 mb-3">
-                            <i data-lucide="globe" class="w-4 h-4 text-primary"></i> Expérience Géo
+                            <i data-lucide="globe" class="w-4 h-4 text-primary"></i> Certifications
                         </h3>
-                        <p class="text-sm opacity-80">{{ consultant.profil_roster.experience_geographique|default:"Non renseignée" }}</p>
+                        <p class="text-sm opacity-80">{{ consultant.profil_roster.certifications|default:"Non renseignée" }}</p>
                     </div>
                 </div>
                 <div class="card bg-base-100 shadow border border-base-200">
                     <div class="card-body">
                         <h3 class="font-bold flex items-center gap-2 mb-3">
-                            <i data-lucide="scroll-text" class="w-4 h-4 text-primary"></i> Certifications
+                            <i data-lucide="scroll-text" class="w-4 h-4 text-primary"></i> Attestation
                         </h3>
                         <p class="text-sm opacity-80">{{ consultant.profil_roster.attestations|default:"Aucune attestation listée" }}</p>
                     </div>

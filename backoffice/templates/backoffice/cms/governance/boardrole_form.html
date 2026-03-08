@@ -1,0 +1,52 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+
+    <div class="card bg-base-100 shadow-md">
+        <div class="card-body">
+
+            <h2 class="card-title">
+                {{ title }}
+            </h2>
+
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+
+                <div class="form-control">
+                    <label class="label">Titre</label>
+                    {{ form.titre }}
+                </div>
+
+                <div class="form-control">
+                    <label class="label">Ordre</label>
+                    {{ form.ordre }}
+                </div>
+
+                <div class="form-control">
+                    <label class="cursor-pointer label">
+                        <span class="label-text">Actif</span>
+                        {{ form.actif }}
+                    </label>
+                </div>
+
+                <div class="flex gap-4 pt-4">
+
+                    <a href="{% url 'boardrole_list' %}"
+                       class="btn btn-outline w-1/2">
+                        ← Retour
+                    </a>
+
+                    <button class="btn btn-primary w-1/2">
+                        Enregistrer
+                    </button>
+
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

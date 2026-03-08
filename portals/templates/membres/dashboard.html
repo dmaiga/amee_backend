@@ -9,37 +9,103 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <div class="lg:col-span-8 space-y-6">
-            
-            <section class="space-y-4">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                        <span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
-                        Invitations Directes
-                    </h2>
-                    <span class="badge badge-ghost text-[10px] font-bold">{{ sollicitations_recentes|length }} en attente</span>
-                </div>
+            {% if est_consultant_valide %}
 
-                <div class="space-y-3">
-                    {% for contact in sollicitations_recentes %}
-                    <a href="{% url 'consultant_sollicitation_detail' contact.id %}" 
-                       class="group block bg-white border border-slate-200 rounded-xl p-5 hover:border-primary transition-all shadow-sm">
-                        <div class="flex justify-between items-center">
-                            <div class="space-y-1">
-                                <h3 class="font-bold text-slate-900 group-hover:text-primary transition-colors">{{ contact.mission.titre }}</h3>
-                                <p class="text-xs text-slate-500">Par <span class="font-semibold text-slate-700">{{ contact.client.client_profile.nom_entreprise|default:"Institution AMEE" }}</span></p>
-                            </div>
-                            <div class="bg-slate-50 group-hover:bg-primary/10 p-2 rounded-lg transition-colors">
-                                <i class="fa-solid fa-chevron-right text-slate-400 group-hover:text-primary"></i>
-                            </div>
-                        </div>
-                    </a>
-                    {% empty %}
-                    <div class="bg-white border border-dashed border-slate-200 rounded-xl py-10 text-center">
-                        <p class="text-xs text-slate-400">Aucune invitation directe pour le moment.</p>
-                    </div>
-                    {% endfor %}
+<section class="space-y-4">
+
+    <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+            <span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+            Invitations Directes
+        </h2>
+        <span class="badge badge-ghost text-[10px] font-bold">
+            {{ sollicitations_recentes|length }} en attente
+        </span>
+    </div>
+
+    <div class="space-y-3">
+        {% for contact in sollicitations_recentes %}
+        <a href="{% url 'consultant_sollicitation_detail' contact.id %}" 
+           class="group block bg-white border border-slate-200 rounded-xl p-5 hover:border-primary transition-all shadow-sm">
+
+            <div class="flex justify-between items-center">
+                <div class="space-y-1">
+                    <h3 class="font-bold text-slate-900 group-hover:text-primary transition-colors">
+                        {{ contact.mission.titre }}
+                    </h3>
+                    <p class="text-xs text-slate-500">
+                        Par 
+                        <span class="font-semibold text-slate-700">
+                            {{ contact.client.client_profile.nom_entreprise|default:"Institution AMEE" }}
+                        </span>
+                    </p>
                 </div>
-            </section>
+                <div class="bg-slate-50 group-hover:bg-primary/10 p-2 rounded-lg transition-colors">
+                    <i class="fa-solid fa-chevron-right text-slate-400 group-hover:text-primary"></i>
+                </div>
+            </div>
+
+        </a>
+        {% empty %}
+        <div class="bg-white border border-dashed border-slate-200 rounded-xl py-10 text-center">
+            <p class="text-xs text-slate-400">
+                Aucune invitation directe pour le moment.
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+
+</section>
+
+{% else %}
+
+<!-- ======================================= -->
+<!-- INCITATION À DEVENIR CONSULTANT -->
+<!-- ======================================= -->
+
+<section class="space-y-4">
+
+    <div class="flex items-center gap-2">
+        <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">
+            Invitations Directes
+        </h2>
+        <span class="badge badge-warning text-[10px] font-bold">
+            Accès restreint
+        </span>
+    </div>
+
+    <div class="bg-gradient-to-r from-primary/5 to-secondary/5 
+                border border-primary/20 
+                rounded-2xl p-6 shadow-sm space-y-4">
+
+        <div class="space-y-2">
+            <h3 class="text-base font-semibold text-slate-900">
+                Devenez expert consultant
+            </h3>
+
+            <p class="text-sm text-slate-600 leading-relaxed">
+                Activez votre profil expert pour recevoir des invitations
+                directes de la part des institutions et entreprises.
+            </p>
+        </div>
+
+        <ul class="text-sm text-slate-600 space-y-1">
+            <li>• Visibilité auprès des employeurs</li>
+            <li>• Opportunités de collaboration directe</li>
+        </ul>
+
+        <div class="pt-3">
+            <a href="{% url 'roster_profile' %}"
+               class="btn btn-primary btn-sm">
+               Activer mon profil expert
+            </a>
+        </div>
+
+    </div>
+
+</section>
+
+{% endif %}
 
             <section class="space-y-4">
                 <div class="flex items-center justify-between">
@@ -101,16 +167,16 @@
                                 {% endif %}
                             </div>
                         </div>
+                           {% if est_consultant_valide %}
                         <div class="flex items-center justify-between border-t border-slate-800 pt-4">
+                       
                             <span class="text-sm text-slate-300">Statut Roster</span>
                             <div class="text-right">
-                                {% if est_consultant_valide %}
+                                
                                     <span class="text-sm font-bold text-blue-400">Validé</span>
-                                {% else %}
-                                    <span class="text-sm font-bold text-amber-400">En attente</span>
-                                {% endif %}
                             </div>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
                 

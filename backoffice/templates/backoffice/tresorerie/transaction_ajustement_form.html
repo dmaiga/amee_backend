@@ -1,0 +1,62 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto space-y-6">
+
+    <nav class="text-sm breadcrumbs">
+        <ol>
+            <li><a href="{% url 'bo_transactions' %}">Transactions</a></li>
+            <li>Ajustement</li>
+        </ol>
+    </nav>
+
+    <div class="card bg-base-100 shadow-lg">
+        <div class="card-body space-y-4">
+
+            <h2 class="text-xl font-bold">
+                Ajustement de la transaction #{{ transaction.id }}
+            </h2>
+
+            <div class="alert alert-info">
+                <p><strong>Transaction originale :</strong></p>
+                <p>Type : {{ transaction.type_transaction }}</p>
+                <p>Montant : {{ transaction.montant }}</p>
+                <p>Date : {{ transaction.date_transaction }}</p>
+            </div>
+
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+
+                <div class="form-control">
+                    <label class="label">Type d’ajustement</label>
+                    {{ form.type_transaction }}
+                </div>
+
+                <div class="form-control">
+                    <label class="label">Montant d’ajustement</label>
+                    {{ form.montant }}
+                </div>
+
+                <div class="form-control">
+                    <label class="label">Motif</label>
+                    {{ form.description }}
+                </div>
+
+                <div class="flex gap-4 pt-4">
+                    <a href="{% url 'bo_transaction_detail' transaction.id %}"
+                       class="btn btn-outline w-1/2">
+                        ← Retour
+                    </a>
+
+                    <button class="btn btn-warning w-1/2">
+                        Créer ajustement
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -30,8 +30,8 @@ from drf_spectacular.views import (
     SpectacularRedocView
 )
 from django.views.generic import RedirectView
+from portals.views import register_view,plateforme_login
 
- 
 urlpatterns = [
     path('admin/', admin.site.urls),
         
@@ -39,10 +39,16 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema')),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema')),
     
-    path('', RedirectView.as_view(url='/portals/login/', permanent=False)),
+    path('', RedirectView.as_view(url='/login/', permanent=False)),
+    
+    path('login/', plateforme_login, name='login' ),    
+    path('inscription/', register_view, name='inscription' ),
+
+
+
     path('api/auth/login/', LoginView.as_view()),
     path('api/auth/refresh/', TokenRefreshView.as_view()),
-    path('api/auth/register/', RegisterView.as_view(), name='register'),
+ 
 
     path('api/accounts/', include('accounts.urls')),
     path('api/memberships/', include('memberships.urls')),

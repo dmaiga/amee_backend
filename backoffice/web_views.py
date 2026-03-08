@@ -25,7 +25,7 @@ from backoffice.permissions.roster import can_manage_roster
 
 from accounts.models import User
 from roster.models import ConsultantProfile
-from missions.models import Mission
+from missions.models import Mission,MissionApplication
 from interactions.models import ContactRequest
 from cms.models import Article, Resource, Opportunity
 
@@ -58,6 +58,8 @@ from django.utils import timezone
 
 from backoffice.service_paiement import PaiementService
 from tresorerie.services import TresorerieService
+from tresorerie.forms import TransactionAjustementForm
+
 from django.contrib.auth import logout
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect
@@ -85,8 +87,21 @@ User = get_user_model()
 #-----------------------------
 #
 #-----------------------------
+from django.shortcuts import redirect
+from django.contrib import messages
 
- 
+def bureau_required(view_func):
+    def wrapper(request, *args, **kwargs):
+
+        if not request.user.est_membre_bureau_actif:
+            messages.error(request, "Accès réservé au bureau exécutif.")
+            return redirect("portal_dashboard")
+
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
+
+#@bureau_required 
 @login_required
 def dashboard(request):
     now = timezone.now()
@@ -389,7 +404,7 @@ def tresorerie_activation(request, user_id):
                     "categorie": "COTISATION",
                     "montant": data["montant_cotisation"],
                     "membre": user,
-                     "email_payeur": user.email,
+                    "email_payeur": user.email,
                     "description": "Cotisation annuelle",
                 }
             )
@@ -493,6 +508,46 @@ def transaction_detail(request, transaction_id):
         {"transaction": transaction}
     )
 
+@login_required
+def transaction_ajuster(request, transaction_id):
+
+    transaction = get_object_or_404(Transaction, pk=transaction_id)
+
+    if transaction.statut != "VALIDEE":
+        messages.error(request, "Seules les transactions validées peuvent être ajustées.")
+        return redirect("transaction_detail", transaction_id=transaction.id)
+
+    form = TransactionAjustementForm(request.POST or None)
+
+    if form.is_valid():
+        ajustement = form.save(commit=False)
+
+        ajustement.categorie = transaction.categorie
+        ajustement.membre = transaction.membre
+        ajustement.organization = transaction.organization
+
+        ajustement.transaction_reference = transaction
+        ajustement.est_ajustement = True
+        ajustement.statut = "VALIDEE"
+        ajustement.cree_par = request.user
+
+        ajustement.save()
+
+        # ⚠️ Important : appliquer logique métier si ENTREE
+        from tresorerie.services import appliquer_transaction
+        appliquer_transaction(ajustement)
+
+        messages.success(request, "Ajustement appliqué.")
+        return redirect("bo_transaction_detail", transaction_id=transaction.id)
+
+    return render(
+        request,
+        "backoffice/tresorerie/transaction_ajustement_form.html",
+        {
+            "form": form,
+            "transaction": transaction
+        }
+    )
 #-----------------------------
 #
 #-----------------------------
@@ -738,6 +793,7 @@ def refuser_client(request, pk):
     messages.warning(request, "Client refusé.")
 
     return redirect("clients_list")
+
 #-----------------------------
 #
 #-----------------------------
@@ -841,27 +897,51 @@ def roster_decision(request, profil_id):
 #
 #-----------------------------
 
+from django.db.models import Count, Q
+
+from django.db.models import Count, Q
+
 @login_required
 def missions_list(request):
 
-    collaborations = (
-        ContactRequest.objects
-        .select_related(
-            "mission",
-            "client",
-            "consultant",
-            "feedback",
+    # Missions ciblées (via ContactRequest)
+    missions_ciblees = (
+        Mission.objects
+        .filter(contacts__isnull=False)
+        .select_related("client")
+        .annotate(
+            nb_consultants=Count("contacts", distinct=True)
         )
-        .order_by("-id")
+        .distinct()
+        .order_by("-cree_le")
+    )
+
+    # Missions publiques avec au moins un RETENU
+    missions_publiques = (
+        Mission.objects
+        .filter(applications__statut="RETENU")
+        .select_related("client")
+        .annotate(
+            nb_consultants=Count(
+                "applications",
+                filter=Q(applications__statut="RETENU"),
+                distinct=True
+            )
+        )
+        .distinct()
+        .order_by("-cree_le")
     )
 
     return render(
         request,
         "backoffice/missions/missions_list.html",
         {
-            "collaborations": collaborations
+            "missions_ciblees": missions_ciblees,
+            "missions_publiques": missions_publiques,
         }
     )
+
+from django.db.models import Count, Q
 
 @login_required
 def mission_detail(request, mission_id):
@@ -874,11 +954,19 @@ def mission_detail(request, mission_id):
     contacts = (
         ContactRequest.objects
         .filter(mission=mission)
-        .select_related(
-            "consultant",
-            "feedback",
-            "feedback__incident"   
-        )
+        .select_related("consultant", "feedback", "feedback__incident")
+    )
+
+    # ✅ Mises en relation réelles (confirmées)
+    mises_en_relation = contacts.filter(
+        statut__in=["MISSION_CONFIRME", "MISSION_TERMINEE"]
+    )
+
+    # ✅ Applications publiques retenues uniquement
+    applications_retenues = (
+        mission.applications
+        .filter(statut="RETENU")
+        .select_related("consultant")
     )
 
     return render(
@@ -887,8 +975,11 @@ def mission_detail(request, mission_id):
         {
             "mission": mission,
             "contacts": contacts,
+            "applications_retenues": applications_retenues,
+            "mises_en_relation_count": mises_en_relation.count(),
         }
     )
+
 
 
 @login_required
@@ -1512,3 +1603,132 @@ def organisation_form(request, organisation_id=None):
             "organisation": organisation,
         }
     )
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from cms.models import Mandat, BoardRole, BoardMembership
+from cms.forms import MandatForm, BoardRoleForm, BoardMembershipForm
+
+
+ 
+def mandat_list(request):
+    mandats = Mandat.objects.all().order_by("-date_debut")
+    return render(request, "backoffice/cms/governance/mandat_list.html", {"mandats": mandats})
+
+def mandat_create(request):
+    form = MandatForm(request.POST or None)
+
+    if form.is_valid():
+        form.save()
+        return redirect("mandat_list")
+
+    return render(request, "backoffice/cms/governance/mandat_form.html", {"form": form})
+
+def mandat_detail(request, pk):
+    mandat = get_object_or_404(Mandat, pk=pk)
+
+    membres = BoardMembership.objects.filter(
+        mandat=mandat
+    ).select_related("membership__user", "role")
+
+    return render(request, "backoffice/cms/governance/mandat_detail.html", {
+        "mandat": mandat,
+        "membres": membres
+    })
+ 
+from django.contrib import messages
+from django.core.exceptions import ValidationError
+
+def mandat_toggle(request, pk):
+    mandat = get_object_or_404(Mandat, pk=pk)
+
+    mandat.actif = not mandat.actif
+
+    try:
+        mandat.save()
+        messages.success(request, "Statut du mandat mis à jour.")
+    except ValidationError as e:
+        messages.error(request, e.message_dict.get("__all__", ["Erreur"])[0])
+
+    return redirect("mandat_list")
+
+
+def boardmembership_add(request, mandat_id):
+    mandat = get_object_or_404(Mandat, pk=mandat_id)
+
+    form = BoardMembershipForm(request.POST or None, mandat=mandat)
+
+    if form.is_valid():
+        instance = form.save(commit=False)
+        instance.mandat = mandat
+        instance.save()
+        return redirect("mandat_detail", pk=mandat.id)
+
+    return render(request, "backoffice/cms/governance/boardmembership_form.html", {
+        "form": form,
+        "mandat": mandat
+    })
+ 
+def boardmembership_update(request, pk):
+    membership = get_object_or_404(BoardMembership, pk=pk)
+
+    form = BoardMembershipForm(request.POST or None, instance=membership)
+
+    if form.is_valid():
+        form.save()
+        return redirect("mandat_detail", pk=membership.mandat.id)
+
+    return render(request, "backoffice/cms/governance/boardmembership_form.html",
+     {
+        "form": form,
+        "mandat": membership.mandat
+    })
+
+def boardmembership_delete(request, pk):
+    membership = get_object_or_404(BoardMembership, pk=pk)
+    mandat_id = membership.mandat.id
+
+    if request.method == "POST":
+        membership.delete()
+        return redirect("mandat_detail", pk=mandat_id)
+
+    return render(request, "backoffice/cms/governance/confirm_delete.html", {
+        "membership": membership
+    }) 
+ 
+def boardrole_list(request):
+    roles = BoardRole.objects.all()
+    return render(request, "backoffice/cms/governance/boardrole_list.html", {
+        "roles": roles
+    })
+
+def boardrole_create(request):
+    form = BoardRoleForm(request.POST or None)
+
+    if form.is_valid():
+        form.save()
+        return redirect("boardrole_list")
+
+    return render(request, "backoffice/cms/governance/boardrole_form.html", {
+        "form": form,
+        "title": "Créer une fonction"
+    })
+
+def boardrole_update(request, pk):
+    role = get_object_or_404(BoardRole, pk=pk)
+    form = BoardRoleForm(request.POST or None, instance=role)
+
+    if form.is_valid():
+        form.save()
+        return redirect("boardrole_list")
+
+    return render(request, "backoffice/cms/governance/boardrole_form.html", {
+        "form": form,
+        "title": "Modifier la fonction"
+    })
+ 
+def boardrole_toggle(request, pk):
+    role = get_object_or_404(BoardRole, pk=pk)
+    role.actif = not role.actif
+    role.save()
+    return redirect("boardrole_list")

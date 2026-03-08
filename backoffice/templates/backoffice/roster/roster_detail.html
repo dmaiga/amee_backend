@@ -190,27 +190,60 @@ Aucun dossier d’éligibilité enregistré.
 
 <!-- DOCUMENTS -->
 <div class="card bg-base-100 shadow border">
-<div class="card-body">
-<h2 class="card-title text-primary">Documents</h2>
+    <div class="card-body">
+        <h2 class="card-title text-primary flex items-center gap-2">
+            <i class="fa-solid fa-folder-open"></i>
+            Documents & Portfolio
+        </h2>
 
-<div class="flex flex-wrap gap-3 mt-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            
+            <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-sm uppercase tracking-wider">CV Interne</span>
+                    <div class="badge badge-ghost badge-sm border-base-300 italic">Usage Bureau</div>
+                </div>
+                <p class="text-xs opacity-60">Document complet utilisé pour l'évaluation de l'expert par l'AMEE.</p>
+                {% if profil.cv_document %}
+                <a href="{{ profil.cv_document.url }}" target="_blank"
+                   class="btn btn-primary btn-sm w-full md:w-auto">
+                    <i class="fa-solid fa-file-shield mr-2"></i> Voir CV soumis
+                </a>
+                {% else %}
+                <div class="text-error text-xs italic font-medium">Aucun document soumis</div>
+                {% endif %}
+            </div>
 
-{% if profil.cv_document %}
-<a href="{{ profil.cv_document.url }}" target="_blank"
-   class="btn btn-primary btn-sm">
-Voir CV soumis
-</a>
-{% endif %}
+            <div class="space-y-2 border-l-0 md:border-l md:pl-6 border-base-200">
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-sm uppercase tracking-wider text-info">CV Public</span>
+                    <div class="badge badge-info badge-outline badge-sm italic">Visible Clients</div>
+                </div>
+                <p class="text-xs opacity-60">Version destinée à être publiée dans le roster pour les partenaires.</p>
+                {% if profil.cv_public %}
+                <a href="{{ profil.cv_public.url }}" target="_blank"
+                   class="btn btn-info btn-outline btn-sm w-full md:w-auto">
+                    <i class="fa-solid fa-eye mr-2"></i> Voir CV Public
+                </a>
+                {% else %}
+                <div class="text-warning text-xs italic">Non fourni (Version anonymisée manquante)</div>
+                {% endif %}
+            </div>
 
-{% if profil.lien_linkedin %}
-<a href="{{ profil.lien_linkedin }}" target="_blank"
-   class="btn btn-outline btn-info btn-sm">
-LinkedIn
-</a>
-{% endif %}
+        </div>
 
-</div>
-</div>
+        {% if profil.lien_linkedin %}
+        <div class="mt-6 pt-4 border-t border-base-200">
+            <span class="text-xs font-bold opacity-50 block mb-2">Réseaux Professionnels</span>
+            <a href="{{ profil.lien_linkedin }}" target="_blank"
+               class="btn btn-ghost btn-sm text-info normal-case">
+                <i class="fa-brands fa-linkedin text-lg mr-2"></i>
+                Consulter le profil LinkedIn
+            </a>
+        </div>
+        {% endif %}
+
+    </div>
 </div>
 
 
@@ -251,7 +284,7 @@ LinkedIn
 <!-- ================= SIDEBAR DECISION ================= -->
 <div class="space-y-6">
 
-<div class="card bg-neutral text-neutral-content shadow-xl sticky top-6">
+<div class="card bg-neutral text-neutral-content shadow-xl ">
 <div class="card-body">
 
 <h2 class="card-title text-sm uppercase">Validation AMEE</h2>

@@ -1,0 +1,65 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+<nav class="text-sm breadcrumbs mb-4">
+  <ol>
+    <li><a href="{% url 'mandat_list' %}">Mandats</a></li>
+    <li><a href="{% url 'mandat_detail' mandat.id %}">{{ mandat.nom }}</a></li>
+    <li>Affectation</li>
+  </ol>
+</nav>
+    <div class="card bg-base-100 shadow-md">
+        <div class="card-body">
+
+            <h2 class="card-title">
+                Ajouter un membre au mandat
+            </h2>
+
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+
+                <!-- 🔴 Erreurs globales -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-error">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="form-control">
+                    <label class="label">Membre</label>
+                    {{ form.membership }}
+
+                    {% if form.membership.errors %}
+                        <p class="text-error text-sm mt-1">
+                            {{ form.membership.errors }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <div class="form-control">
+                    <label class="label">Fonction</label>
+                    {{ form.role }}
+
+                    {% if form.role.errors %}
+                        <p class="text-error text-sm mt-1">
+                            {{ form.role.errors }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <button class="btn btn-primary w-full">
+                    Affecter
+                </button>
+                <a href="{% url 'mandat_detail' mandat.id %}" 
+   class="btn btn-ghost w-full mt-2">
+   ← Retour au mandat
+</a>
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

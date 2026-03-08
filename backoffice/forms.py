@@ -44,7 +44,7 @@ class ArticleForm(forms.ModelForm):
                 "class": "input input-bordered w-full"
             }),
 
-            "lien_externe": forms.URLInput(attrs={
+            "lien_externe": forms.Textarea(attrs={
                 "class": "input input-bordered w-full"
             }),
 
@@ -66,7 +66,7 @@ class ResourceForm(forms.ModelForm):
             "description",
             "fichier",
             "categorie",
-            "reserve_aux_membres",
+            
         ]
 
         labels = {
@@ -97,9 +97,7 @@ class ResourceForm(forms.ModelForm):
                 "class": "file-input file-input-bordered w-full"
             }),
 
-            "reserve_aux_membres": forms.CheckboxInput(attrs={
-                "class": "toggle toggle-warning"
-            }),
+ 
         }
 
     # ✅ EN DEHORS DE META
@@ -122,7 +120,7 @@ class OpportunityForm(forms.ModelForm):
             "description",
             "type",
             "date_limite",
-            "reserve_aux_membres",
+            "lien_externe",
             "fichier_joint",
             "publie",
         ]
@@ -150,8 +148,8 @@ class OpportunityForm(forms.ModelForm):
                 "class": "file-input file-input-bordered w-full"
             }),
 
-            "reserve_aux_membres": forms.CheckboxInput(attrs={
-                "class": "toggle toggle-warning"
+            "lien_externe": forms.Textarea(attrs={
+                "class": "input input-bordered w-full"
             }),
 
             "publie": forms.CheckboxInput(attrs={
@@ -168,9 +166,7 @@ class AffecterIncidentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        enqueteurs = User.objects.filter(
-            role__in=["BUREAU", "SUPERADMIN", "SECRETARIAT"]
-        ).select_related("adhesion")
+        enqueteurs = User.objects.all()
 
         self.fields["enqueteur"].queryset = enqueteurs
 
@@ -580,3 +576,5 @@ class CotisationOrganisationForm(forms.Form):
             )
 
         return cleaned
+
+

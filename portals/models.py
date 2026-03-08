@@ -14,6 +14,8 @@ class Notification(models.Model):
         ("APPLICATION_ACCEPTED", "Application acceptée"),
         ("CMS_ARTICLE", "Article"),
         ("OPPORTUNITY", "Opportunité"),
+        ("ROSTER_VALIDE", "Validation Roster"),
+        ("ROSTER_REFUSE", "Refus Roster"),
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)

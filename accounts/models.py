@@ -65,6 +65,7 @@ class User(AbstractUser):
         ('MEMBER', 'Membre Adhérent'),
         ('CONSULTANT', 'Expert Roster'),
         ('CLIENT', 'Institution / Recruteur'),
+        ('VISITEUR', 'Visiteur'),
     )
 
     STATUT_QUALITE = (
@@ -192,4 +193,17 @@ class User(AbstractUser):
         )
     
         return feedbacks.count() >= 5
+
+    @property
+    def est_membre_bureau_actif(self):
+        from cms.models import Mandat, BoardMembership
     
+        mandat_actif = Mandat.objects.filter(actif=True).first()
+    
+        if not mandat_actif:
+            return False
+    
+        return BoardMembership.objects.filter(
+            mandat=mandat_actif,
+            membership__user=self
+        ).exists()

@@ -24,6 +24,7 @@ from django.db import models
 from django.db.models import Case, When, Value, IntegerField
 
 
+from django.core.mail import send_mail
  
 from datetime import timedelta
 
@@ -71,10 +72,157 @@ from django.contrib.auth import authenticate, login
 # ==========================================
 # 1. AUTHENTIFICATION COMMUNE
 # ==========================================
+from django.shortcuts import render, redirect
+from .forms import ClientRegistrationForm, MembershipRegistrationForm
+from django.contrib.auth import get_user_model
+from memberships.models import Membership
+from portals.models import ClientProfile
+import secrets
 
+User = get_user_model()
 class ClientRegistrationAPIView(CreateAPIView):
     serializer_class = ClientRegistrationSerializer
     permission_classes = [AllowAny]
+
+from django.contrib import messages
+
+def register_view(request):
+
+    user_type = request.GET.get("type")
+
+    client_form = ClientRegistrationForm()
+    member_form = MembershipRegistrationForm()
+
+    if request.method == "POST":
+
+        user_type = request.POST.get("user_type")
+
+        # ================= CLIENT =================
+        if user_type == "client":
+
+            client_form = ClientRegistrationForm(request.POST)
+
+            if client_form.is_valid():
+
+                data = client_form.cleaned_data
+                email = data["email_pro"].lower()
+
+                if User.objects.filter(email=email).exists():
+                    client_form.add_error(
+                        "email_pro",
+                        "Un compte existe déjà avec cet email."
+                    )
+
+                else:
+                    domain = email.split("@")[1]
+                    providers_publics = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"]
+                    auto_valide = domain not in providers_publics
+
+                    password = "changeMe"
+
+                    user = User.objects.create_user(
+                        email=email,
+                        password=password,
+                        role="CLIENT",
+                        is_active=auto_valide,
+                    )
+
+                    client = ClientProfile.objects.create(
+                        user=user,
+                        est_verifie=auto_valide,
+                        **data
+                    )
+
+                    # EMAIL
+                    if auto_valide:
+                        send_mail(
+                            subject="Accès à votre espace AMEE",
+                            message=(
+                            f"Bonjour {client.nom_contact},\n\n"
+                            f"Votre entreprise a été enregistrée.\n\n"
+                            f"Identifiant : {email}\n"
+                            f"Mot de passe : {password}\n\n"
+                            f"Merci de modifier votre mot de passe après connexion.\n\n"
+                            f"L’équipe AMEE"
+                          ),
+                            from_email=None,
+                            recipient_list=[email],
+                            fail_silently=True,
+                        )
+                    else:
+                        send_mail(
+                            subject="Demande reçue - AMEE",
+                            message=(
+                            f"Bonjour {client.nom_contact},\n\n"
+                            f"Votre demande d'inscription a bien été reçue.\n"
+                            f"Notre bureau examinera votre dossier.\n\n"
+                            f"Vous recevrez un email après validation.\n\n"
+                            f"L’équipe AMEE"
+                        ),
+                            from_email=None,
+                            recipient_list=[email],
+                            fail_silently=True,
+                        )
+
+                    messages.success(
+                        request,
+                        "Inscription réussie. Consultez votre email pour la suite."
+                    )
+
+                    return redirect("login")
+
+        # ================= MEMBER =================
+        elif user_type == "member":
+
+            member_form = MembershipRegistrationForm(
+                request.POST,
+                request.FILES
+            )
+
+            if member_form.is_valid():
+
+                data = member_form.cleaned_data
+                email = data["email"]
+
+                if User.objects.filter(email=email).exists():
+                    member_form.add_error(
+                        "email",
+                        "Un compte existe déjà avec cet email."
+                    )
+                else:
+                    user = User.objects.create(
+                        email=email,
+                        first_name=data["first_name"],
+                        last_name=data["last_name"],
+                        phone=data.get("phone"),
+                        role="VISITEUR",
+                        is_active=True
+                    )
+
+                    Membership.objects.create(
+                        user=user,
+                        eligibilite_option=data["eligibilite_option"],
+                        diplome_niveau=data.get("diplome_niveau"),
+                        diplome_intitule=data.get("diplome_intitule"),
+                        annee_diplome=data.get("annee_diplome"),
+                        cv_document=data.get("cv_document"),
+                        diplome_document=data.get("diplome_document"),
+                        statut="EN_ATTENTE",
+                    )
+
+                    messages.success(
+                        request,
+                        "Votre demande a été enregistrée. Consultez votre email pour la suite."
+                    )
+
+                    return redirect("login")
+
+    return render(request, "auth/register.html", {
+        "client_form": client_form,
+        "member_form": member_form,
+        "user_type": user_type
+    })
+
 
 
 def plateforme_login(request):
@@ -123,7 +271,8 @@ def redirect_user_by_role(user):
 def plateforme_logout(request):
     logout(request)
     return redirect("login")
-  
+
+
 # ###########################################
 #
 # 2. ESPACE CLIENT (Institutions/Recruteurs)
@@ -640,29 +789,31 @@ def request_contact_client(request):
 @portal_access_required("client")
 def client_collaborations(request):
 
+    mission_id = request.GET.get("mission")
+    statut = request.GET.get("statut")
+
     contacts = (
         ContactRequest.objects
-        .filter(
-            mission__client=request.user
-        )
-        .select_related(
-            "mission",
-            "consultant",
-            "consultant__profil_roster",
-        )
-    )
+        .filter(mission__client=request.user)
+        .select_related("mission", "consultant", "consultant__profil_roster")
+    ).order_by('statut')
+
+    if mission_id:
+        contacts = contacts.filter(mission_id=mission_id)
+
+    if statut:
+        contacts = contacts.filter(statut=statut)
 
     applications = (
         MissionApplication.objects
         .filter(
             mission__client=request.user,
-            statut="RETENU"
+            statut__in=["RETENU", "TERMINEE"]
         )
-        .select_related(
-            "mission",
-            "consultant"
-        )
+        .select_related("mission", "consultant")
     )
+    if mission_id:
+        applications = applications.filter(mission_id=mission_id)
 
     missions = request.user.missions.all().order_by("-cree_le")
 
@@ -673,6 +824,8 @@ def client_collaborations(request):
             "contacts": contacts,
             "applications": applications,
             "missions": missions,
+            "selected_mission": mission_id,
+            "selected_statut": statut,
         },
     )
 

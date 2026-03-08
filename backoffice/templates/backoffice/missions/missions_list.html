@@ -1,121 +1,160 @@
 {% extends "backoffice/base.html" %}
-
 {% block content %}
 
-<h1 class="text-2xl font-semibold mb-6">
-Collaborations missions
-</h1>
+<div class="space-y-12">
 
-<div class="overflow-x-auto">
+    <!-- ============================= -->
+    <!-- MISSIONS CIBLEES -->
+    <!-- ============================= -->
 
-<table class="table table-zebra">
+ 
+<div>
+    <h2 class="text-2xl font-bold mb-6">
+        Missions ciblées
+    </h2>
 
-<thead>
-<tr>
-    <th>ID</th>
-    <th>Client</th>
-    <th>Mission</th>
-    <th>Consultant</th>
-    <th>Statut</th>
-    <th>Feedback</th>
-    <th>Incident</th>
-    <th>Action</th>
-</tr>
-</thead>
+    <div class="overflow-x-auto bg-base-100 shadow rounded-lg">
+        <table class="table table-sm table-zebra">
 
-<tbody>
+            <thead>
+                <tr>
+                    <th>Mission</th>
+                    <th>Domaine</th>
+                    <th>Client</th>
+                    <th>Consultants</th>
+                    <th>Début</th>
+                    <th>Fin</th>
+                    <th></th>
+                </tr>
+            </thead>
 
-{% for c in collaborations %}
-<tr>
+            <tbody>
+            {% for mission in missions_ciblees %}
+                <tr>
 
-    <!-- ID collaboration -->
-    <td>#{{ c.id }}</td>
+                    <td class="font-semibold">
+                        {{ mission.titre }}
+                    </td>
 
-    <!-- CLIENT -->
-    <td>
-        <div class="font-medium">
-            {{ c.client.email }}
-        </div>
-    </td>
+                    <td>
+                        {{ mission.domaine }}
+                    </td>
 
-    <!-- MISSION -->
-    <td>
-        <div class="font-medium">
-            {{ c.mission.titre }}
-        </div>
-        <div class="text-xs opacity-60">
-            {{ c.mission.domaine }}
-        </div>
-    </td>
+                    <td>
+                        {{ mission.client.email }}
+                    </td>
 
-    <!-- CONSULTANT -->
-    <td>
-        {{ c.consultant.get_full_name }}
-    </td>
+                    <td>
+                        <span class="badge badge-primary badge-sm">
+                            {{ mission.nb_consultants }}
+                        </span>
+                    </td>
 
-    <!-- STATUT -->
-    <td>
-        {% if c.statut == "ENVOYE" %}
-            <span class="badge badge-ghost">Envoyé</span>
+                    <td>
+                        {{ mission.cree_le|date:"d/m/Y" }}
+                    </td>
 
-        {% elif c.statut == "MISSION_CONFIRME" %}
-            <span class="badge badge-info">En cours</span>
+                    <td>
+                        {{ mission.date_fin|date:"d/m/Y" }}
+                    </td>
 
-        {% elif c.statut == "MISSION_TERMINEE" %}
-            <span class="badge badge-success">Terminée</span>
+                    <td class="text-right">
+                        <a href="{% url 'bo_mission_detail' mission.id %}"
+                           class="btn btn-xs btn-outline">
+                            Détail
+                        </a>
+                    </td>
 
-        {% elif c.statut == "REFUSE" %}
-            <span class="badge badge-error">Refusée</span>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center opacity-50">
+                        Aucune mission ciblée.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
 
-        {% else %}
-            <span class="badge badge-outline">
-                {{ c.get_statut_display }}
-            </span>
-        {% endif %}
-    </td>
-
-    <!-- FEEDBACK -->
-    <td>
-        {% if c.feedback %}
-            ⭐ {{ c.feedback.note }}/5
-        {% else %}
-            —
-        {% endif %}
-    </td>
-
-    <!-- INCIDENT -->
-    <td>
-        {% if c.feedback and c.feedback.incident_signale %}
-            <span class="badge badge-error">
-                ⚠ Incident
-            </span>
-        {% else %}
-            <span class="opacity-50">OK</span>
-        {% endif %}
-    </td>
-
-    <!-- ACTION -->
-    <td>
-        <a href="{% url 'bo_mission_detail' c.mission.id %}"
-           class="btn btn-sm btn-outline">
-            Voir mission
-        </a>
-    </td>
-
-</tr>
-
-{% empty %}
-<tr>
-<td colspan="8" class="text-center opacity-60">
-Aucune collaboration enregistrée.
-</td>
-</tr>
-{% endfor %}
-
-</tbody>
-
-</table>
-
+        </table>
+    </div>
 </div>
+    </div>
+
+
+    <!-- ============================= -->
+    <!-- MISSIONS PUBLIQUES -->
+    <!-- ============================= -->
+
+<div>
+    <h2 class="text-2xl font-bold mb-6">
+        Missions publiques (retenus)
+    </h2>
+
+    <div class="overflow-x-auto bg-base-100 shadow rounded-lg">
+        <table class="table table-sm table-zebra">
+
+            <thead>
+                <tr>
+                    <th>Mission</th>
+                    <th>Domaine</th>
+                    <th>Client</th>
+                    <th>Retenus</th>
+                    <th>Début</th>
+                    <th>Fin</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for mission in missions_publiques %}
+                <tr>
+
+                    <td class="font-semibold">
+                        {{ mission.titre }}
+                    </td>
+
+                    <td>
+                        {{ mission.domaine }}
+                    </td>
+
+                    <td>
+                        {{ mission.client.email }}
+                    </td>
+
+                    <td>
+                        <span class="badge badge-success badge-sm">
+                            {{ mission.nb_consultants }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ mission.cree_le|date:"d/m/Y" }}
+                    </td>
+
+                    <td>
+                        {{ mission.date_fin|date:"d/m/Y" }}
+                    </td>
+
+                    <td class="text-right">
+                        <a href="{% url 'bo_mission_detail' mission.id %}"
+                           class="btn btn-xs btn-outline">
+                            Détail
+                        </a>
+                    </td>
+
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center opacity-50">
+                        Aucune mission publique retenue.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+</div>
+ 
 
 {% endblock %}

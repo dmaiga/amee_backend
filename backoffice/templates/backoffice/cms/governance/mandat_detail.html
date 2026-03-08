@@ -1,0 +1,113 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="max-w-5xl mx-auto space-y-6">
+<nav class="text-sm breadcrumbs mb-4">
+  <ol>
+    <li><a href="{% url 'mandat_list' %}">Mandats</a></li>
+    <li>Création</li>
+  </ol>
+</nav>
+<div class="flex justify-between items-center">
+    <h1 class="text-2xl font-bold">
+        {{ mandat.nom }}
+    </h1>
+
+    <div class="flex gap-2">
+        <a href="{% url 'mandat_list' %}"
+           class="btn btn-ghost">
+            ← Retour
+        </a>
+
+        <a href="{% url 'boardmembership_add' mandat.id %}"
+           class="btn btn-success">
+            + Ajouter un membre
+        </a>
+    </div>
+</div>
+
+    <div class="card bg-base-100 shadow-md">
+        <div class="card-body">
+
+            <h3 class="text-lg font-semibold mb-4">
+                Organigramme
+            </h3>
+            {% if mandat.mot_president %}
+<div class="card bg-base-200">
+    <div class="card-body">
+        <h3 class="font-semibold text-lg mb-2">
+            Mot du Président
+        </h3>
+        <p class="whitespace-pre-line">
+            {{ mandat.mot_president }}
+        </p>
+    </div>
+</div>
+{% endif %}
+<div class="grid md:grid-cols-2 gap-4">
+
+    {% for membre in membres %}
+<div class="card-body flex items-center justify-between gap-4">
+
+    <div class="flex items-center gap-4">
+
+        <!-- Photo -->
+        <div class="avatar">
+            <div class="w-16 rounded-full">
+                {% if membre.membership.user.photo %}
+                    <img src="{{ membre.membership.user.photo.url }}" />
+                {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ membre.membership.user.first_name }}+{{ membre.membership.user.last_name }}" />
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Infos -->
+        <div>
+            <h4 class="font-bold text-primary">
+                {{ membre.role.titre }}
+            </h4>
+
+            <p class="text-sm font-semibold">
+                {{ membre.membership.user.first_name }}
+                {{ membre.membership.user.last_name }}
+            </p>
+
+            <p class="text-xs text-gray-500">
+                {{ membre.membership.user.email }}
+            </p>
+        </div>
+
+    </div>
+
+    <!-- Actions -->
+    <div class="flex gap-2">
+
+        <a href="{% url 'boardmembership_update' membre.id %}"
+           class="btn btn-sm btn-outline btn-primary">
+            Modifier
+        </a>
+
+        <a href="{% url 'boardmembership_delete' membre.id %}"
+           class="btn btn-sm btn-outline btn-error"
+           onclick="return confirm('Supprimer ce membre du mandat ?');">
+            Supprimer
+        </a>
+
+    </div>
+
+</div>
+    {% empty %}
+        <div class="text-gray-400">
+            Aucun membre affecté pour ce mandat.
+        </div>
+    {% endfor %}
+
+</div>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

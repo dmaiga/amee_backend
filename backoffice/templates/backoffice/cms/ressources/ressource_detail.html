@@ -17,15 +17,7 @@
                     {{ ressource.get_categorie_display }}
                 </span>
 
-                {% if ressource.reserve_aux_membres %}
-                    <span class="badge badge-warning">
-                        Membres uniquement
-                    </span>
-                {% else %}
-                    <span class="badge badge-success">
-                        Public
-                    </span>
-                {% endif %}
+
 
             </div>
         </div>
@@ -106,19 +98,7 @@
 </div>
                     <div class="text-sm space-y-2">
 
-                        <div>
-                            <span class="text-base-content/60">
-                                Accès :
-                            </span><br>
 
-                            {% if ressource.reserve_aux_membres %}
-                                 Réservé aux membres
-                            {% else %}
-                                 Public
-                            {% endif %}
-                        </div>
-
-                    </div>
 
                 </div>
             </div>

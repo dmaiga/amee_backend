@@ -73,3 +73,24 @@ class OpportunityDetailView(RetrieveAPIView):
 # =====================================================
 #
 # =====================================================
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from cms.models import Mandat
+from .serializers import MandatActifSerializer
+from django.views.decorators.cache import cache_page
+
+class MandatActifAPIView(APIView):
+
+    def get(self, request):
+        mandat = Mandat.objects.filter(actif=True).first()
+
+        if not mandat:
+            return Response(
+                {"detail": "Aucun mandat actif."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = MandatActifSerializer(mandat)
+        return Response(serializer.data)

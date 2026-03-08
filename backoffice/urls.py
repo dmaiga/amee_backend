@@ -1,6 +1,7 @@
 from django.urls import path, include
 from .web_views import *
 from backoffice import views, web_views
+from portals.decorators import bureau_required
 
 urlpatterns = [
     # --- AUTHENTIFICATION & ACCÈS ---
@@ -10,18 +11,10 @@ urlpatterns = [
     path("tresorerie/", include("backoffice.api.tresorerie.urls")),
     path("tresorerie/dashboard/",web_views.enrolement_dashboard,name="bo_enrolement_dashboard"),
     
-    path(
-        "backoffice/tresorerie/paiement-bureau/",
-        web_views.paiement_bureau,
-        name="bo_paiement_bureau"
-    ),
+    path("backoffice/tresorerie/paiement-bureau/",web_views.paiement_bureau,name="bo_paiement_bureau"  ),
 
-    path(
-        "backoffice/tresorerie/paiement-bureau/<int:organisation_id>/",
-        web_views.paiement_bureau,
-        name="bo_paiement_bureau_org"
-    ),
-    
+    path( "backoffice/tresorerie/paiement-bureau/<int:organisation_id>/",web_views.paiement_bureau, name="bo_paiement_bureau_org"),
+
     path("tresorerie/paiement/", enroulement_paiement, name="bo_enregistrer_paiement"),
     path("tresorerie/paiement/cotisation", tresorerie_paiement_simple, name="bo_paiement_simple"),
     path("tresorerie/paiement/activation/<int:user_id>/", tresorerie_activation, name="bo_activation"),
@@ -29,6 +22,7 @@ urlpatterns = [
     path("tresorerie/transactions/",transactions_list,name="bo_transactions"),
     path("tresorerie/transactions/<int:transaction_id>/", transaction_detail, name="bo_transaction_detail"),
 
+    path( "tresorerie/transactions/<int:transaction_id>/ajuster/",transaction_ajuster,name="transaction_ajuster"),
     path("tresorerie/depense/",tresorerie_depense,name="bo_depense"),
     
     # --- ESPACE MEMBRES (Gestion administrative) ---
@@ -77,6 +71,21 @@ urlpatterns = [
     path("cms/opportunities/<int:opportunity_id>/", web_views.opportunity_detail, name="bo_opportunity_detail"),
     path("cms/opportunities/<int:opportunity_id>/edit/", web_views.opportunity_form, name="bo_opportunity_edit"),
 
+    # ---  ---
+
+    path("mandats/", web_views.mandat_list, name="mandat_list"),
+    path("mandats/create/", web_views.mandat_create, name="mandat_create"),
+    path("mandats/<int:pk>/", web_views.mandat_detail, name="mandat_detail"),
+    path("mandats/<int:mandat_id>/add-member/", web_views.boardmembership_add, name="boardmembership_add"),
+    path("affectations/<int:pk>/edit/", web_views.boardmembership_update, name="boardmembership_update"),
+    path("affectations/<int:pk>/delete/", web_views.boardmembership_delete, name="boardmembership_delete"),
+    path("mandats/<int:pk>/toggle/", web_views.mandat_toggle, name="mandat_toggle"),
+    
+    path("fonctions/", web_views.boardrole_list, name="boardrole_list"),
+    path("fonctions/create/", web_views.boardrole_create, name="boardrole_create"),
+    path("fonctions/<int:pk>/edit/", web_views.boardrole_update, name="boardrole_update"),
+    path("fonctions/<int:pk>/toggle/", web_views.boardrole_toggle, name="boardrole_toggle"), 
+    
     # ---  ---
     
     path("organisations/", web_views.organisations_list, name="bo_organisations_list"),

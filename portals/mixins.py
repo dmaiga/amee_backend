@@ -61,3 +61,4 @@ class PortalAccessMixin:
                 return redirect("portal_dashboard")
 
         return super().dispatch(request, *args, **kwargs)
+    

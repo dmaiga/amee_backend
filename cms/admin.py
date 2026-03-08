@@ -119,3 +119,19 @@ class OpportunityAdmin(admin.ModelAdmin):
 # =====================================================
 # 
 # =====================================================
+from django.contrib import admin
+from cms.models import BoardMembership,BoardRole,Mandat
+
+# Register your models here.
+@admin.register(BoardRole)
+class BoardRoleAdmin(admin.ModelAdmin):
+    list_display = ("titre", "ordre", "actif")
+    list_editable = ("ordre", "actif")
+
+@admin.register(Mandat)
+class MandatAdmin(admin.ModelAdmin):
+    list_display = ("nom", "date_debut", "date_fin", "actif")
+
+@admin.register(BoardMembership)
+class BoardMembershipAdmin(admin.ModelAdmin):
+    list_display = ("membership", "mandat", "role")   

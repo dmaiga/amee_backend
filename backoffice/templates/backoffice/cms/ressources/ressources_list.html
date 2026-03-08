@@ -60,7 +60,7 @@
 <tr>
     <th>Titre</th>
     <th>Catégorie</th>
-    <th>Membres</th>
+    
     <th>Téléchargements</th>
     <th></th>
 </tr>
@@ -72,14 +72,7 @@
     <td>{{ r.titre }}</td>
     <td>{{ r.get_categorie_display }}</td>
 
-    <td>
-        {% if r.reserve_aux_membres %}
-            🔒 Membres
-        {% else %}
-            Public
-        {% endif %}
-    </td>
-
+  
     <td>{{ r.telechargements }}</td>
 
     <td>

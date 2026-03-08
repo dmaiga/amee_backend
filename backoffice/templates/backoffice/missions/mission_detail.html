@@ -42,7 +42,7 @@
     <div class="stats stats-vertical shadow-sm border border-base-200">
         <div class="stat">
             <div class="stat-title text-xs uppercase">Mises en relation</div>
-            <div class="stat-value text-2xl text-primary">{{ contacts|length }}</div>
+            <div class="stat-value text-2xl text-primary">{{ mises_en_relation_count }}</div>
         </div>
         <div class="stat">
             <div class="stat-title text-xs uppercase">Feedbacks reçus</div>
@@ -238,6 +238,53 @@ Aucune mise en relation enregistrée pour cette mission.
             </div>
         </div>
     </div>
+
+<div>
+    <div class="flex items-center gap-2 mb-4">
+        <h2 class="text-xl font-bold"> Candidatures retenues (Mission publique)</h2>
+        <div class="h-px flex-1 bg-base-300"></div>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="table table-md">
+
+                <thead class="bg-base-200">
+                    <tr>
+                        <th>Consultant</th>
+                        <th>Email</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for app in applications_retenues %}
+                    <tr>
+                        <td class="font-semibold">
+                            {{ app.consultant.get_full_name|default:app.consultant.email }}
+                        </td>
+                        <td>
+                            {{ app.consultant.email }}
+                        </td>
+                        <td class="text-right">
+                            <span class="badge badge-success">
+                                Retenu
+                            </span>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" class="py-6 text-center opacity-40 italic">
+                            Aucun consultant retenu pour cette mission.
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
 </div>
 
 {% endblock %}

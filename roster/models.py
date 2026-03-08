@@ -7,7 +7,8 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 
-
+from portals.models import Notification
+from django.urls import reverse
 
 # =====================================================
 # DOSSIER CONSULTANT AMEE (VALIDATION INTERNE)
@@ -68,6 +69,15 @@ class ConsultantProfile(models.Model):
     secteurs_experience = models.TextField(blank=True)
 
     langues = models.CharField(max_length=255, blank=True)
+    
+    domaines_expertise = models.CharField(max_length=500)
+    experience_geographique = models.TextField(blank=True)
+    certifications = models.TextField(blank=True)
+    attestations = models.TextField(
+        blank=True,
+        help_text="Certifications Banque mondiale, IFC, ISO..."
+    )
+
 
 
     # ================= DOCUMENTS =================
@@ -77,9 +87,14 @@ class ConsultantProfile(models.Model):
         null=True,
         blank=True
     )
+    cv_document = models.FileField(
+        upload_to="roster/cv_evaluation/",
+        null=True,
+        blank=True
+    )
 
-    lien_cv = models.URLField(blank=True)
-    lien_linkedin = models.URLField(blank=True)
+    lien_cv = models.CharField(blank=True)
+    lien_linkedin = models.CharField(blank=True)
 
     # ================= DISPONIBILITE =================
 
@@ -93,23 +108,6 @@ class ConsultantProfile(models.Model):
 
     mis_a_jour_le = models.DateTimeField(auto_now=True)
 
-    domaines_expertise = models.CharField(max_length=500)
-
-    experience_geographique = models.TextField(blank=True)
-
-    certifications = models.TextField(blank=True)
-
-
-    attestations = models.TextField(
-        blank=True,
-        help_text="Certifications Banque mondiale, IFC, ISO..."
-    )
-
-    cv_document = models.FileField(
-        upload_to="roster/cv_evaluation/",
-        null=True,
-        blank=True
-    )
 
     # ==========================
     # VALIDATION BUREAU
@@ -178,6 +176,12 @@ class ConsultantProfile(models.Model):
         self.valide_par = validateur
         self.date_validation = timezone.now()
         self.save()
+        Notification.objects.create(
+            user=self.user,
+            type="ROSTER_VALIDE",
+            message="Votre profil expert a été validé.",
+            url=reverse("member_profile")
+        )
 
 
         user = self.user
@@ -202,7 +206,12 @@ class ConsultantProfile(models.Model):
         self.date_validation = timezone.now()
         self.motif_refus = motif
         self.save()
-
+        Notification.objects.create(
+            user=self.user,
+            type="ROSTER_REFUSE",
+            message="Votre demande d'inscription au roster a été refusée.",
+            url=reverse("roster_profile")
+        )
         RosterDecisionHistory.objects.create(
             profil=self,
             ancien_statut=ancien,

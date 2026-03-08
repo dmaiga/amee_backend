@@ -1,0 +1,76 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="max-w-6xl mx-auto space-y-6">
+<nav class="text-sm breadcrumbs">
+  <ol>
+    <li><a href="#">Backoffice</a></li>
+    <li>Mandats</li>
+  </ol>
+</nav>
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Gestion des Mandats</h1>
+
+        <a href="{% url 'mandat_create' %}" 
+           class="btn btn-primary">
+            + Nouveau mandat
+        </a>
+    </div>
+
+    <div class="card bg-base-100 shadow-md">
+        <div class="card-body">
+
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Période</th>
+                            <th>Statut</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mandat in mandats %}
+                        <tr>
+                            <td class="font-semibold">
+                                {{ mandat.nom }}
+                            </td>
+                            <td>
+                                {{ mandat.date_debut }} → {{ mandat.date_fin }}
+                            </td>
+                            <td>
+                                {% if mandat.actif %}
+                                    <span class="badge badge-success">Actif</span>
+                                {% else %}
+                                    <span class="badge badge-ghost">Clôturé</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'mandat_detail' mandat.id %}"
+                                   class="btn btn-sm btn-outline">
+                                    Voir
+                                </a>
+                                <a href="{% url 'mandat_toggle' mandat.id %}"
+   class="btn btn-sm btn-warning">
+    Activer / Désactiver
+</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-gray-400">
+                                Aucun mandat créé
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

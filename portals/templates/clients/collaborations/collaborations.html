@@ -51,7 +51,7 @@
 
     <div class="card bg-base-100 shadow-sm border border-base-200 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="table table-lg">
+           <table class="table table-sm">
                 <thead class="bg-base-200/50">
                     <tr class="text-xs uppercase opacity-60">
                         <th>Expert</th>
@@ -151,6 +151,7 @@
             </table>
         </div>
     </div>
+    
 <div class="card bg-base-100 shadow-sm border border-base-200 mt-6">
 
 <div class="card-body">
@@ -187,24 +188,8 @@ Collaborations (missions publiques)
    class="btn btn-xs btn-ghost">
    Mission
 </a>
-{% if app.mission.statut == "TERMINEE" %}
-{% if app.feedback %}
-<a href="{% url 'client_feedback_detail' app.feedback.id %}"
-   class="btn btn-xs btn-success btn-ghost gap-1">
-   <i data-lucide="star" class="w-4 h-4 text-orange-400"></i>
-   Feedback
-</a>
 
-{% else %}
-
-<a href="{% url 'client_feedback' 'application' app.pk %}"
-   class="btn btn-xs btn-primary gap-1 animate-pulse">
-   <i data-lucide="message-square-plus" class="w-4 h-4"></i>
-   Noter
-</a>
-
-{% endif %}
-{% endif %}
+ 
 </div>
 </td>
 

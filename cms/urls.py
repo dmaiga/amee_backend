@@ -11,6 +11,6 @@ urlpatterns = [
     path("opportunities/", OpportunityListView.as_view()),
     path("opportunities/<int:pk>/", OpportunityDetailView.as_view()),
 
-    
+    path("mandat-actif/", MandatActifAPIView.as_view()),
 
 ]

@@ -146,26 +146,32 @@
 <!-- ===================================================== -->
 {% if roster_profile %}
 <div class="card bg-base-100 shadow">
-<div class="card-body">
+<div class="card-body space-y-3">
 
-<h2 class="card-title">Situation opérationnelle</h2>
+<h2 class="card-title">
+Statut Roster
+</h2>
 
 <div class="flex flex-wrap gap-3">
 
 {% if roster_profile.est_actif_roster %}
-<span class="badge badge-success">Eligible missions</span>
+<span class="badge badge-success">
+Roster activé
+</span>
 {% else %}
-<span class="badge badge-warning">Non éligible</span>
-{% endif %}
-
-{% if roster_profile.est_disponible %}
-<span class="badge badge-info">Disponible</span>
-{% else %}
-<span class="badge badge-ghost">Indisponible</span>
+<span class="badge badge-warning">
+Roster non activé
+</span>
 {% endif %}
 
 {% if roster_profile.consentement_publication %}
-<span class="badge badge-outline">Visible clients</span>
+<span class="badge badge-info">
+Consentement publication : Oui
+</span>
+{% else %}
+<span class="badge badge-ghost">
+Consentement publication : Non
+</span>
 {% endif %}
 
 </div>

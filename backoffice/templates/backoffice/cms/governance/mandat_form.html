@@ -1,0 +1,64 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+<nav class="text-sm breadcrumbs mb-4">
+  <ol>
+    <li><a href="{% url 'mandat_list' %}">Mandats</a></li>
+    <li>Création</li>
+  </ol>
+</nav>
+    <div class="card bg-base-100 shadow-md">
+        <div class="card-body">
+
+            <h2 class="card-title">
+                Création d’un mandat
+            </h2>
+
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+
+                <div class="form-control">
+                    <label class="label">Nom</label>
+                    {{ form.nom }}
+                </div>
+                <div class="form-control">
+                    <label class="label">Mot du président</label>
+                    {{ form.mot_president }}
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">Date début</label>
+                        {{ form.date_debut }}
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">Date fin</label>
+                        {{ form.date_fin }}
+                    </div>
+                </div>
+
+                <div class="form-control">
+                    <label class="cursor-pointer label">
+                        <span class="label-text">Mandat actif</span>
+                        {{ form.actif }}
+                    </label>
+                </div>
+
+                <div class="pt-4">
+                    <button class="btn btn-primary w-full">
+                        Enregistrer
+                    </button>
+                    <a href="{% url 'mandat_list' %}" class="btn btn-ghost w-full mt-2">
+    ← Retour à la liste
+</a>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

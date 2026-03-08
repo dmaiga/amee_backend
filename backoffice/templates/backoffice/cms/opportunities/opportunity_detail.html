@@ -27,15 +27,7 @@
                     </span>
                 {% endif %}
 
-                {% if opportunity.reserve_aux_membres %}
-                    <span class="badge badge-warning">
-                        🔒 Membres
-                    </span>
-                {% else %}
-                    <span class="badge badge-success">
-                        Public
-                    </span>
-                {% endif %}
+ 
 
             </div>
         </div>
@@ -86,6 +78,12 @@
                             Date limite :
                         </span><br>
                         {{ opportunity.date_limite|default:"Non définie" }}
+                    </div>
+                    <div class="text-sm">
+                        <span class="text-base-content/60">
+                            Lien extern:
+                        </span><br>
+                        {{ opportunity.lien_externe|default:"Non définie" }}
                     </div>
 
                     <div class="text-sm">

@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AMEE Backoffice | {% block title %}{% endblock %}</title>
 
-    <!-- Styles essentiels uniquement -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" />
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -18,206 +17,224 @@
 <div class="drawer lg:drawer-open">
     <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
 
-    <!-- CONTENU PRINCIPAL -->
+    <!-- ================= CONTENU ================= -->
     <div class="drawer-content flex flex-col">
 
-        <!-- Barre de navigation -->
+        <!-- NAVBAR -->
         <div class="navbar bg-base-100 border-b border-base-300 px-4 sticky top-0 z-30">
-            <!-- Bouton menu mobile -->
+
             <div class="flex-none lg:hidden">
-                <label for="drawer-toggle" class="btn btn-ghost btn-square text-2xl">☰</label>
+                <label for="drawer-toggle" class="btn btn-ghost btn-square text-xl">☰</label>
             </div>
 
-            <!-- Titre contextuel -->
             <div class="flex-1 px-2">
                 <span class="text-xs uppercase tracking-widest opacity-50 font-bold">
-                    {% block page_context %}Plateforme de Gouvernance{% endblock %}
+                    {% block page_context %}Plateforme de Gestion AMEE{% endblock %}
                 </span>
             </div>
 
-            <!-- Actions utilisateur -->
-            <div class="flex-none gap-2">
-                <!-- Notifications -->
-                <div class="dropdown dropdown-end">
-                    <button class="btn btn-ghost btn-circle">
-                        <div class="indicator">
-                            <i data-lucide="bell" class="w-5 h-5"></i>
-                            {% if has_notifications %}
-                            <span class="badge badge-xs badge-primary indicator-item"></span>
-                            {% endif %}
+            <div class="flex items-center gap-3">
+
+                <!-- PROFIL -->
+                <div class="flex items-center gap-3 bg-base-200 px-3 py-1 rounded-full border border-base-300">
+                    <div class="text-right hidden sm:block">
+                        <div class="text-[10px] uppercase opacity-60">
+                            {{ request.user.get_role_display }}
                         </div>
-                    </button>
+                        <div class="text-xs font-semibold">
+                            {{ request.user.email|truncatechars:20 }}
+                        </div>
+                    </div>
+                    <div class="avatar placeholder">
+                        <div class="bg-neutral text-neutral-content rounded-full w-8">
+                            <span class="text-xs">
+                                {{ request.user.email|slice:":2"|upper }}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Profil -->
-                <div class="dropdown dropdown-end">
-                    <button class="flex items-center gap-3 bg-base-200 px-3 py-1 rounded-full border border-base-300 hover:bg-base-300 transition-colors">
-                        <div class="text-right hidden sm:block">
-                            <div class="text-[10px] font-bold uppercase opacity-60 leading-tight">{{ request.user.get_role_display }}</div>
-                            <div class="text-xs font-semibold">{{ request.user.email|truncatechars:20 }}</div>
-                        </div>
-                        <div class="avatar placeholder">
-                            <div class="bg-neutral text-neutral-content rounded-full w-8">
-                                <span class="text-xs">{{ request.user.email|slice:":2"|upper }}</span>
-                            </div>
-                        </div>
-                    </button>
-                </div>
             </div>
         </div>
 
-        <!-- Messages flash -->
-        {% if messages %}
-        <div class="px-6 pt-4 space-y-2">
-            {% for message in messages %}
-            <div class="alert shadow-lg {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% else %}alert-info{% endif %} animate-slide-down">
-                <i data-lucide="{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}alert-circle{% else %}info{% endif %}" class="w-5 h-5"></i>
-                <span>{{ message }}</span>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
 
-        <!-- Contenu dynamique -->
+
+        <!-- MAIN CONTENT -->
         <main class="p-6">
             {% block content %}{% endblock %}
         </main>
     </div>
 
-    <!-- MENU LATÉRAL -->
-    <div class="drawer-side z-40">
+    <!-- ================= SIDEBAR ================= -->
+    <div class="drawer-side">
         <label for="drawer-toggle" class="drawer-overlay"></label>
-        
+
         <aside class="w-72 min-h-full bg-base-100 border-r border-base-300 flex flex-col">
-            
-            <!-- Logo -->
-            <div class="p-6 flex items-center gap-3 border-b border-base-300">
-                <div class="w-10 h-10 bg-success rounded-lg flex items-center justify-center font-black text-success-content text-xl">A</div>
-                <div>
-                    <div class="font-bold text-xl tracking-tighter">AMEE</div>
-                    <div class="text-success text-xs font-normal tracking-normal">Manager v1.0</div>
+
+            <!-- LOGO -->
+            <div class="p-6 border-b border-base-300">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-success rounded-lg flex items-center justify-center text-white font-bold text-xl">A</div>
+                    <div>
+                        <div class="font-bold text-lg">AMEE</div>
+                        <div class="text-xs opacity-60">Backoffice v1.0</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Navigation -->
-            <ul class="menu p-4 flex-1 text-base-content space-y-1 overflow-y-auto">
-                
-                <!-- Dashboard (toujours visible) -->
-                <li><a href="{% url 'bo_dashboard' %}" class="{% if request.resolver_match.url_name == 'bo_dashboard' %}active font-semibold{% endif %}">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
-                </a></li>
+            <!-- MENU -->
+            <ul class="menu p-4 flex-1 space-y-1 overflow-y-auto">
 
-                <!-- Section Finance -->
-                {% if request.user.role in 'COMPTA,SUPERADMIN' %}
-                <li class="menu-title text-xs mt-4">
-                    <span>FINANCE</span>
+                <!-- DASHBOARD -->
+                <li>
+                    <a href="{% url 'bo_dashboard' %}">
+                        <i data-lucide="layout-dashboard"></i>
+                        Tableau de bord
+                    </a>
                 </li>
-                <li><a href="{% url 'bo_enrolement_dashboard' %}" class="{% if request.resolver_match.url_name == 'bo_enrolement_dashboard' %}active{% endif %}">
-                    <i data-lucide="credit-card" class="w-4 h-4"></i> Paiements
-                </a></li>
-                <li><a href="{% url 'bo_transactions' %}" class="{% if request.resolver_match.url_name == 'bo_transactions' %}active{% endif %}">
-                    <i data-lucide="refresh-cw" class="w-4 h-4"></i> Transactions
-                </a></li>
-                {% endif %}
 
-                <!-- Section Réseau -->
-                <li class="menu-title text-xs mt-4">
-                    <span>RÉSEAU</span>
-                </li>
-                <li><a href="{% url 'bo_organisations_list' %}" class="{% if request.resolver_match.url_name == 'bo_organisations_list' %}active{% endif %}">
-                    <i data-lucide="building" class="w-4 h-4"></i> Bureaux Membres
-                </a></li>
+                <!-- FINANCE -->
+                <li class="menu-title mt-4"><span>FINANCE</span></li>
 
                 <li>
-    <a href="{% url 'clients_list' %}"
-       class="{% if 'clients' in request.path %}active{% endif %}">
-        <i data-lucide="briefcase" class="w-4 h-4"></i>
-        Clients Entreprises
-    </a>
-</li>
-                <li><a href="{% url 'bo_membres' %}" class="{% if request.resolver_match.url_name == 'bo_membres' %}active{% endif %}">
-                    <i data-lucide="users" class="w-4 h-4"></i>  Membres
-                </a></li>
-
-                <li><a href="{% url 'bo_roster' %}" class="{% if 'roster' in request.path %}active{% endif %}">
-                    <i data-lucide="clipboard-check" class="w-4 h-4"></i> Expert Roster
-                    {% if roster_pending_count %}<span class="badge badge-warning badge-sm ml-auto">{{ roster_pending_count }}</span>{% endif %}
-                </a></li>
-                <li><a href="{% url 'bo_missions' %}" class="{% if 'mission' in request.path %}active{% endif %}">
-                    <i data-lucide="handshake" class="w-4 h-4"></i> Suivi Missions
-                </a></li>
-
-                <!-- Section Qualité -->
-                <li class="menu-title text-xs mt-4">
-                    <span>QUALITÉ & ÉTHIQUE</span>
+                    <a href="{% url 'bo_enrolement_dashboard' %}">
+                        <i data-lucide="wallet"></i>
+                        Paiements membres
+                    </a>
                 </li>
-                <li><a href="{% url 'bo_incidents' %}" class="{% if 'incident' in request.path %}active text-error{% endif %}">
-                    <i data-lucide="alert-triangle" class="w-4 h-4"></i> Journal des Incidents
-                </a></li>
 
-                <!-- Section Communication -->
-                <li class="menu-title text-xs mt-4">
-                    <span>COMMUNICATION</span>
+                <li>
+                    <a href="{% url 'bo_transactions' %}">
+                        <i data-lucide="line-chart"></i>
+                        Transactions & Dépenses
+                    </a>
                 </li>
-                <li><a href="{% url 'bo_cms_dashboard' %}">
-                    <i data-lucide="newspaper" class="w-4 h-4"></i> CMS
-                </a></li>
 
-              
+                <!-- ORGANISATION -->
+                <li class="menu-title mt-4"><span>ORGANISATION & MEMBRES</span></li>
+
+                <li>
+                    <a href="{% url 'bo_organisations_list' %}">
+                        <i data-lucide="building-2"></i>
+                        Bureaux membres
+                    </a>
+                </li>
+
+                <li>
+<a href="{% url 'clients_list' %}">
+    <i data-lucide="briefcase"></i>
+    Entreprises partenaires
+
+    {% if bo_new_clients > 0 %}
+        <span class="badge badge-error badge-sm ml-auto">
+            {{ bo_new_clients }}
+        </span>
+    {% endif %}
+</a>
+                </li>
+
+                <li>
+<a href="{% url 'bo_membres' %}">
+    <i data-lucide="users"></i>
+    Membres AMEE
+
+    {% if bo_new_members > 0 %}
+        <span class="badge badge-warning badge-sm ml-auto">
+            {{ bo_new_members }}
+        </span>
+    {% endif %}
+</a>
+                </li>
+
+                <!-- ROSTER -->
+                <li class="menu-title mt-4"><span>ROSTER & MISSIONS</span></li>
+
+                <li>
+<a href="{% url 'bo_roster' %}">
+    <i data-lucide="clipboard-check"></i>
+    Dossiers experts
+
+    {% if bo_new_roster > 0 %}
+        <span class="badge badge-info badge-sm ml-auto">
+            {{ bo_new_roster }}
+        </span>
+    {% endif %}
+</a>
+                </li>
+
+                <li>
+                    <a href="{% url 'bo_missions' %}">
+                        <i data-lucide="handshake"></i>
+                        Suivi des missions
+                    </a>
+                </li>
+
+                <li>
+<a href="{% url 'bo_incidents' %}">
+    <i data-lucide="shield-alert"></i>
+    Journal des incidents
+
+    {% if bo_open_incidents > 0 %}
+        <span class="badge badge-error badge-sm ml-auto">
+            {{ bo_open_incidents }}
+        </span>
+    {% endif %}
+</a>
+                </li>
+
+                <!-- COMMUNICATION -->
+                <li class="menu-title mt-4"><span>COMMUNICATION</span></li>
+
+                <li>
+                    <a href="{% url 'bo_cms_dashboard' %}">
+                        <i data-lucide="newspaper"></i>
+                        CMS & Publications
+                    </a>
+                </li>
+
+                <!-- GOUVERNANCE -->
+                <li class="menu-title mt-4"><span>GOUVERNANCE</span></li>
+
+                <li>
+                    <a href="{% url 'mandat_list' %}">
+                        <i data-lucide="landmark"></i>
+                        Mandat en cours
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{% url 'boardrole_list' %}">
+                        <i data-lucide="badge-check"></i>
+                        Fonctions du bureau
+                    </a>
+                </li>
+
             </ul>
 
-            <!-- Déconnexion -->
-            <div class="p-4 border-t border-base-300">
-                <a href="{% url 'logout' %}" class="btn btn-outline btn-error w-full gap-2">
-                    <i data-lucide="log-out" class="w-4 h-4"></i>
+            <!-- FOOTER ACTIONS -->
+            <div class="p-4 border-t border-base-300 space-y-2">
+
+                <a href="{% url 'portal_dashboard' %}"
+                   class="btn btn-outline btn-primary w-full gap-2">
+                    <i data-lucide="arrow-left-circle"></i>
+                    Retour à l’Espace Personnel
+                </a>
+
+                <a href="{% url 'logout' %}"
+                   class="btn btn-outline btn-error w-full gap-2">
+                    <i data-lucide="log-out"></i>
                     Déconnexion
                 </a>
+
             </div>
+
         </aside>
     </div>
 </div>
 
-<!-- Initialisation des icônes -->
 <script>
     lucide.createIcons();
 </script>
-
-<!-- Style supplémentaire pour animations -->
-<style>
-    @keyframes slideDown {
-        from {
-            transform: translateY(-100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-    .animate-slide-down {
-        animation: slideDown 0.3s ease-out;
-    }
-    
-    /* Amélioration de l'affichage des icônes dans le menu */
-    .menu li a {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-    
-    .menu li a i {
-        width: 1.25rem;
-        height: 1.25rem;
-        opacity: 0.7;
-    }
-    
-    .menu li a.active i {
-        opacity: 1;
-        color: hsl(var(--su));
-    }
-</style>
-
-{% block extra_js %}{% endblock %}
 
 </body>
 </html>

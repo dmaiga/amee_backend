@@ -5,6 +5,12 @@
 <h1 class="text-2xl font-semibold mb-6">
  Transaction #{{ transaction.id }}
 </h1>
+{% if transaction.statut == "VALIDEE" %}
+<a href="{% url 'transaction_ajuster' transaction.id %}"
+   class="btn btn-warning">
+   Ajuster
+</a>
+{% endif %}
 
 <div class="card bg-base-100 shadow">
 <div class="card-body">

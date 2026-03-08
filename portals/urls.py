@@ -5,7 +5,7 @@ urlpatterns = [
     # ==========================================
     # 1. AUTHENTIFICATION COMMUNE
     # ==========================================
-    path("login/", plateforme_login, name="login"),
+  
     path("logout/", plateforme_logout, name="logout"),
     path(  "notifications/<int:notif_id>/", notification_redirect, name="notification_redirect"),
     # ==========================================

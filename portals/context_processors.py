@@ -190,3 +190,41 @@ def notifications(request):
         }
 
     return {}
+
+
+from portals.models import ClientProfile
+from memberships.models import Membership
+from roster.models import ConsultantProfile
+from quality_control.models import IncidentReview
+
+def backoffice_counts(request):
+
+    if not request.user.is_authenticated:
+        return {}
+
+    # Tu peux filtrer plus tard par rôle
+    if not request.path.startswith("/backoffice/"):
+        return {}
+
+    return {
+
+        # Entreprises en attente validation
+        "bo_new_clients": ClientProfile.objects.filter(
+            statut_onboarding="EN_ATTENTE"
+        ).count(),
+
+        # Nouveaux membres à vérifier (exemple : non actifs)
+        "bo_new_members": Membership.objects.filter(
+            est_actif=False
+        ).count(),
+
+        # Dossiers experts soumis
+        "bo_new_roster": ConsultantProfile.objects.filter(
+            statut="SOUMIS"
+        ).count(),
+
+        # Incidents ouverts
+        "bo_open_incidents": IncidentReview.objects.filter(
+            statut="OUVERT"
+        ).count(),
+    }

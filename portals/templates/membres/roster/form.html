@@ -1,289 +1,242 @@
 {% extends "base_espace.html" %}
 {% block content %}
 
-<div class="max-w-4xl mx-auto space-y-8">
+<div class="max-w-3xl mx-auto mb-20">
 
-<!-- ================= HEADER ================= -->
+    <ul class="steps w-full mb-8 text-sm font-medium">
+        <li id="step-1-label" class="step step-primary">Profil</li>
+        <li id="step-2-label" class="step">Expertise</li>
+        <li id="step-3-label" class="step">Documents</li>
+        <li id="step-4-label" class="step">Visibilité</li>
+    </ul>
 
-<div class="flex justify-between items-center">
+    <form method="post" enctype="multipart/form-data" id="multistep-form">
+        {% csrf_token %}
 
-
-<div>
-    <h1 class="text-3xl font-bold">
-        {% if profil.statut == "BROUILLON" %}
-            Postuler au roster AMEE
-        {% elif profil.statut == "REFUSE" %}
-            Corriger ma candidature
-        {% elif profil.statut == "VALIDE" %}
-            Mettre à jour mon profil consultant
-        {% else %}
-            Mon dossier roster
+        {% if form.errors %}
+        <div class="alert alert-error mb-6 rounded-lg text-sm italic">
+            Certains champs comportent des erreurs. Veuillez les vérifier dans les étapes correspondantes.
+        </div>
         {% endif %}
-    </h1>
 
-    <p class="text-sm opacity-60">
-        Complétez votre dossier pour évaluation par le bureau.
-    </p>
-</div>
+        <div class="step-content space-y-6" id="step-1">
+            <div class="border-b pb-2 mb-4">
+                <h2 class="text-xl font-semibold text-base-content">Identité professionnelle</h2>
+                <p class="text-xs opacity-50">Informations de base sur votre parcours.</p>
+            </div>
+            
+            <div class="grid gap-5">
+                <label class="form-control w-full">
+                    <span class="label-text font-semibold mb-1">Titre professionnel</span>
+                    {{ form.titre_professionnel }}
+                </label>
 
-{% if profil.statut == "REFUSE" %}
-    <div class="badge badge-error badge-lg">
-        Dossier refusé
+                <div class="grid md:grid-cols-3 gap-4">
+                    <label class="form-control">
+                        <span class="label-text mb-1 italic text-xs">Expérience (Ans)</span>
+                        {{ form.annees_experience_ees }}
+                    </label>
+                    <label class="form-control">
+                        <span class="label-text mb-1 italic text-xs">Séniorité</span>
+                        {{ form.niveau_seniorite }}
+                    </label>
+                    <label class="form-control">
+                        <span class="label-text mb-1 italic text-xs">Statut</span>
+                        {{ form.statut_professionnel }}
+                    </label>
+                </div>
+
+                <label class="form-control w-full">
+                    <span class="label-text font-semibold mb-1">Résumé exécutif</span>
+                    {{ form.resume_public }}
+                </label>
+            </div>
+        </div>
+
+        <div class="step-content hidden space-y-6" id="step-2">
+            <div class="border-b pb-2 mb-4">
+                <h2 class="text-xl font-semibold text-base-content">Domaines de compétences</h2>
+                <p class="text-xs opacity-50">Précisez vos domaines d'intervention.</p>
+            </div>
+
+            <div class="grid gap-5">
+                <label class="form-control w-full">
+                    <span class="label-text font-semibold mb-1">Domaines d’expertise principaux</span>
+                    {{ form.domaines_expertise }}
+                </label>
+                <label class="form-control w-full">
+                    <span class="label-text font-semibold mb-1 italic text-xs">Secteurs d'expérience</span>
+                    {{ form.secteurs_experience }}
+                </label>
+                <label class="form-control w-full">
+                    <span class="label-text font-semibold mb-1 italic text-xs">Couverture géographique</span>
+                    {{ form.experience_geographique }}
+                </label>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <label class="form-control">
+                        <span class="label-text mb-1 italic text-xs">Langues</span>
+                        {{ form.langues }}
+                    </label>
+                    <label class="form-control">
+                        <span class="label-text mb-1 italic text-xs">Certifications</span>
+                        {{ form.certifications }}
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="step-content hidden space-y-6" id="step-3">
+            <div class="border-b pb-2 mb-4">
+                <h2 class="text-xl font-semibold text-base-content">Pièces justificatives</h2>
+                <p class="text-xs opacity-50">Documents nécessaires à l'audit de votre dossier.</p>
+            </div>
+
+            <div class="space-y-6">
+                <div class="form-control p-4 border rounded-xl bg-base-50 {% if form.cv_document.errors %}border-error{% endif %}">
+    <span class="label-text font-bold mb-3 block">
+        CV Complet (Évaluation interne) <span class="text-error">*</span>
+    </span>
+
+    {% if profil.cv_document %}
+    <div id="file-eval-box" class="flex items-center justify-between p-3 bg-white border rounded-lg mb-3 shadow-sm">
+        <div class="flex items-center gap-2 truncate">
+            <i class="fa-solid fa-file-pdf text-accent"></i>
+            <span class="text-sm font-medium truncate max-w-xs">{{ profil.cv_document.name|slice:"-30:" }}</span>
+        </div>
+        <div class="flex gap-2">
+            <input type="checkbox" name="cv_document-clear" id="cv_document-clear_id" class="hidden">
+            <button type="button" 
+                    onclick="document.getElementById('cv_document-clear_id').checked=true; document.getElementById('file-eval-box').style.display='none';" 
+                    class="btn btn-xs btn-outline btn-error">
+                Supprimer
+            </button>
+        </div>
     </div>
-{% else %}
-    <div class="badge badge-info badge-lg">
-        {{ profil.get_statut_display }}
-    </div>
-{% endif %}
+    {% endif %}
 
+    {{ form.cv_document }}
 
+    {% if form.cv_document.errors %}
+        <div class="label pb-0">
+            <span class="label-text-alt text-error font-semibold italic">
+                <i class="fa-solid fa-circle-exclamation mr-1"></i>
+                {{ form.cv_document.errors|first }}
+            </span>
+        </div>
+    {% else %}
+        <div class="label pb-0">
+            <span class="label-text-alt opacity-50 italic text-xs text-info">
+                Formats: PDF, DOCX, JPG (Max 10 Mo)
+            </span>
+        </div>
+    {% endif %}
 </div>
 
-<!-- ================= MOTIF REFUS ================= -->
+                <label class="form-control w-full">
+                    <span class="label-text font-bold mb-2">Attestations </span>
+                    {{ form.attestations }}
+                </label>
+            </div>
+        </div>
 
-{% if profil.motif_refus %}
+        <div class="step-content hidden space-y-6" id="step-4">
+            <div class="border-b pb-2 mb-4">
+                <h2 class="text-xl font-semibold text-base-content">Publication & Réseaux</h2>
+                <p class="text-xs opacity-50">Gérez ce qui sera visible par le public.</p>
+            </div>
 
-<div class="alert alert-error shadow-sm">
-    <div>
-        <strong>Motif du refus :</strong><br>
-        {{ profil.motif_refus }}
-    </div>
-</div>
-{% endif %}
+            <div class="grid gap-6">
+                <div class="form-control p-4 border rounded-xl">
+                    <span class="label-text font-bold mb-3 block">CV Public </span>
+                    {% if profil.cv_public %}
+                    <div id="file-pub-box" class="flex items-center justify-between p-3 bg-base-100 border rounded-lg mb-3">
+                        <span class="text-sm font-medium truncate">{{ profil.cv_public.name|slice:"-30:" }}</span>
+                        <input type="checkbox" name="cv_public-clear" id="cv_public-clear_id" class="hidden">
+                        <button type="button" onclick="document.getElementById('cv_public-clear_id').checked=true; document.getElementById('file-pub-box').style.display='none';" class="btn btn-xs btn-outline btn-error">Supprimer</button>
+                    </div>
+                    {% endif %}
+                    
+    {% if form.cv_public.errors %}
+        <div class="label pb-0">
+            <span class="label-text-alt text-error font-semibold italic">
+                <i class="fa-solid fa-circle-exclamation mr-1"></i>
+                {{ form.cv_public.errors|first }}
+            </span>
+        </div>
+    {% else %}
+        <div class="label pb-0">
+            <span class="label-text-alt opacity-50 italic text-xs text-info">
+                Formats: PDF, DOCX, JPG (Max 10 Mo)
+            </span>
+        </div>
+    {% endif %}
+                    {{ form.cv_public }}
+                </div>
 
-{% if form.non_field_errors %}
+                <label class="form-control">
+                    <span class="label-text font-bold mb-2">Lien LinkedIn</span>
+                    {{ form.lien_linkedin }}
+                </label>
 
-<div class="alert alert-error">
-    {{ form.non_field_errors }}
-</div>
-{% endif %}
+                <div class="flex items-center justify-between p-4 bg-slate-50 border rounded-xl mt-4">
+                    <div class="pr-4">
+                        <span class="font-bold text-sm">Visibilité Roster Public</span>
+                        <p class="text-xs opacity-60">Autoriser l'AMEE à afficher votre profil résumé aux partenaires.</p>
+                    </div>
+                    {{ form.consentement_publication }}
+                </div>
+            </div>
+        </div>
 
-<form method="post"
-      enctype="multipart/form-data"
-      class="card bg-base-100 border border-base-300 shadow-xl">
+        <div class="flex justify-between items-center mt-12 pt-6 border-t">
+            <button type="button" id="prev-btn" class="btn btn-ghost btn-sm invisible">
+                <i class="fa-solid fa-arrow-left mr-2"></i> Précédent
+            </button>
+            
+            <button type="button" id="next-btn" class="btn btn-neutral px-8">
+                Suivant <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
 
-{% csrf_token %}
-
-<div class="card-body space-y-10">
-
-<!-- ================================================= -->
-
-<!-- PROFIL CONSULTANT -->
-
-<!-- ================================================= -->
-
-<section class="space-y-4">
-
-<h2 class="text-lg font-semibold border-b pb-2">
-Profil consultant
-</h2>
-
-<label class="form-control">
-<span class="label-text">Titre professionnel</span>
-{{ form.titre_professionnel }}
-</label>
-
-<label class="form-control">
-<span class="label-text">Résumé professionnel</span>
-{{ form.resume_public }}
-</label>
-<label class="form-control">
-<span class="label-text">Annees experience EES</span>
-{{ form.annees_experience_ees }}
-</label>
-<div class="grid md:grid-cols-2 gap-4">
-
-<label class="form-control">
-<span class="label-text">Niveau de séniorité</span>
-{{ form.niveau_seniorite }}
-</label>
-
-<label class="form-control">
-<span class="label-text">Statut professionnel</span>
-{{ form.statut_professionnel }}
-</label>
-
-</div>
-
-<label class="form-control">
-<span class="label-text">Domaines d’expertise</span>
-{{ form.domaines_expertise }}
-</label>
-
-<label class="form-control">
-<span class="label-text">Secteurs d’expérience</span>
-{{ form.secteurs_experience }}
-</label>
-
-<label class="form-control">
-<span class="label-text">Expérience géographique</span>
-{{ form.experience_geographique }}
-</label>
-
-<div class="grid md:grid-cols-2 gap-4">
-
-<label class="form-control">
-<span class="label-text">Langues</span>
-{{ form.langues }}
-</label>
-
-<label class="form-control">
-<span class="label-text">Certifications</span>
-{{ form.certifications }}
-</label>
-
+            <button type="submit" id="submit-btn" class="btn btn-primary px-8 hidden">
+                Enregistrer le dossier
+            </button>
+        </div>
+    </form>
 </div>
 
-</section>
+<script>
+    let currentStep = 1;
+    const totalSteps = 4;
 
-<!-- ================================================= -->
+    function updateStepper() {
+        // Cacher/Montrer les contenus
+        document.querySelectorAll('.step-content').forEach(el => el.classList.add('hidden'));
+        document.getElementById(`step-${currentStep}`).classList.remove('hidden');
 
-<!-- DOCUMENTS POUR EVALUATION -->
+        // Mettre à jour les labels du stepper
+        document.querySelectorAll('.step').forEach((el, index) => {
+            if (index + 1 <= currentStep) el.classList.add('step-primary');
+            else el.classList.remove('step-primary');
+        });
 
-<!-- ================================================= -->
+        // Gérer les boutons
+        document.getElementById('prev-btn').classList.toggle('invisible', currentStep === 1);
+        
+        if (currentStep === totalSteps) {
+            document.getElementById('next-btn').classList.add('hidden');
+            document.getElementById('submit-btn').classList.remove('hidden');
+        } else {
+            document.getElementById('next-btn').classList.remove('hidden');
+            document.getElementById('submit-btn').classList.add('hidden');
+        }
+    }
 
-<section class="space-y-4">
+    document.getElementById('next-btn').addEventListener('click', () => {
+        if (currentStep < totalSteps) { currentStep++; updateStepper(); window.scrollTo(0,0); }
+    });
 
-<h2 class="text-lg font-semibold border-b pb-2">
-Documents pour évaluation
-</h2>
-
-<!-- CV EVALUATION -->
-
-<div class="form-control space-y-2">
-
-<span class="label-text font-medium">
-CV pour évaluation
-</span>
-
-{% if profil.cv_document %}
-
-<div class="flex items-center justify-between bg-base-200 p-3 rounded-lg text-sm">
-
-<div class="flex items-center gap-2">
-📄
-<span>{{ profil.cv_document.name|cut:"roster/cv_evaluation/" }}</span>
-</div>
-
-<a href="{{ profil.cv_document.url }}"
-target="_blank"
-class="btn btn-xs btn-outline">
-Voir </a>
-
-</div>
-
-<p class="text-xs opacity-60">
-Téléversez un nouveau fichier pour remplacer le document actuel.
-</p>
-
-{% endif %}
-
-{{ form.cv_document }}
-
-<p class="text-xs opacity-50">
-Format recommandé : PDF
-</p>
-
-</div>
-
-<!-- ATTESTATIONS -->
-
-<label class="form-control">
-<span class="label-text">Attestations / certifications professionnelles</span>
-{{ form.attestations }}
-</label>
-
-</section>
-
-<!-- ================================================= -->
-
-<!-- LIENS PROFESSIONNELS -->
-
-<!-- ================================================= -->
-
-<section class="space-y-4">
-
-<h2 class="text-lg font-semibold border-b pb-2">
-Liens professionnels
-</h2>
-
-<div class="grid md:grid-cols-2 gap-4">
-
-<div class="form-control space-y-2">
-
-<span class="label-text font-medium">
-CV public
-</span>
-
-{% if profil.cv_public %}
-
-<div class="flex items-center justify-between bg-base-200 p-3 rounded-lg text-sm">
-
-<div class="flex items-center gap-2">
-📄
-<span>{{ profil.cv_public.name|cut:"roster/public_cv/" }}</span>
-</div>
-
-<a href="{{ profil.cv_public.url }}"
-target="_blank"
-class="btn btn-xs btn-outline">
-Voir </a>
-
-</div>
-
-<p class="text-xs opacity-60">
-Vous pouvez remplacer ce document si nécessaire.
-</p>
-
-{% endif %}
-
-{{ form.cv_public }}
-
-</div>
-
-<label class="form-control">
-<span class="label-text">Lien CV</span>
-{{ form.lien_cv }}
-</label>
-
-<label class="form-control">
-<span class="label-text">Profil LinkedIn</span>
-{{ form.lien_linkedin }}
-</label>
-
-</div>
-
-</section>
-
-<!-- ================================================= -->
-
-<!-- CONSENTEMENT -->
-
-<!-- ================================================= -->
-
-<div class="flex items-center justify-between bg-base-200 p-4 rounded-lg">
-
-<span class="font-medium">
-Autoriser la publication dans le roster après validation
-</span>
-
-{{ form.consentement_publication }}
-
-</div>
-
-<!-- ================================================= -->
-
-<!-- ACTION -->
-
-<!-- ================================================= -->
-
-<button class="btn btn-primary btn-lg w-full">
-Enregistrer mon dossier
-</button>
-
-</div>
-</form>
-
-</div>
-
+    document.getElementById('prev-btn').addEventListener('click', () => {
+        if (currentStep > 1) { currentStep--; updateStepper(); window.scrollTo(0,0); }
+    });
+</script>
 {% endblock %}

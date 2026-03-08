@@ -1,25 +1,22 @@
-<!DOCTYPE html>
-<html lang="fr">
+{% extends "auth/base_auth.html" %}
+{% block content %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>AMEE Backoffice</title>
-
-    <!-- Tailwind CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- DaisyUI CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
-          rel="stylesheet" />
-</head>
-
-<body class="bg-base-200 min-h-screen flex items-center justify-center">
-
-<div class="card w-96 bg-base-100 shadow-xl">
-
+<div class="card bg-base-100 shadow-xl">
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert 
+            {% if message.tags == 'success' %}alert-success
+            {% elif message.tags == 'info' %}alert-info
+            {% elif message.tags == 'warning' %}alert-warning
+            {% else %}alert-error{% endif %}
+            mb-4">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
     <div class="card-body">
-        <h2 class="card-title justify-center">
-             AMEE 
+        <h2 class="card-title justify-center text-2xl mb-4">
+            Connexion
         </h2>
 
         <form method="post">
@@ -42,14 +39,21 @@
             </button>
         </form>
 
+        <div class="text-center mt-4 text-sm">
+            Pas encore de compte ?
+            <a href="{% url 'inscription' %}"
+               class="text-primary font-semibold hover:underline">
+                S’inscrire
+            </a>
+        </div>
+
         {% if error %}
-            <div class="alert alert-error mt-4">
-                {{ error }}
-            </div>
+        <div class="alert alert-error mt-4">
+            {{ error }}
+        </div>
         {% endif %}
     </div>
 
 </div>
 
-</body>
-</html>
+{% endblock %}

@@ -1,7 +1,12 @@
 from django import forms
 from django.forms import ModelForm
 from roster.models import ConsultantProfile
+from django.core.exceptions import ValidationError
+from django.conf import settings
 
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 Mo
+
+ALLOWED_EXTENSIONS = ["pdf", "doc", "docx", "jpg", "jpeg", "png"]
 
 class ConsultantApplicationForm(ModelForm):
 
@@ -26,12 +31,14 @@ class ConsultantApplicationForm(ModelForm):
             "certifications",
 
             "cv_public",
-            "lien_cv",
+             
             "lien_linkedin",
             "consentement_publication",
         ]
 
         widgets = {
+            "cv_document": forms.FileInput(), 
+            "cv_public": forms.FileInput(),
             "resume_public": forms.Textarea(attrs={"rows": 4}),
             "secteurs_experience": forms.Textarea(attrs={"rows": 2}),
             "experience_geographique": forms.Textarea(attrs={"rows": 2}),
@@ -44,7 +51,30 @@ class ConsultantApplicationForm(ModelForm):
     # ==================================================
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["cv_document"].required = True
+        
+        self.fields["langues"].widget.attrs["placeholder"] = \
+            "Ex : Français (maternelle), Anglais (intermédiaire)"
+        
+        self.fields["resume_public"].widget.attrs["placeholder"] = \
+                    "Décrivez brièvement votre parcours et vos points forts en quelques lignes..."
+        
+        self.fields["domaines_expertise"].widget.attrs["placeholder"] = \
+            "Ex : Évaluation de projets, Politiques publiques, Environnement"
 
+        self.fields["secteurs_experience"].widget.attrs["placeholder"] = \
+            "Ex : Industrie agroalimentaire, Secteur public, Bâtiments tertiaires"  
+      
+        self.fields["experience_geographique"].widget.attrs["placeholder"] = \
+            "Ex : Mali, Sénégal, Côte d'Ivoire"
+        
+        self.fields["certifications"].widget.attrs["placeholder"] = \
+            "Séparer chaque certification par une virgule."
+
+        self.fields["attestations"].widget.attrs["placeholder"] = \
+            "Séparer chaque élément par une virgule."
+        
+ 
         for name, field in self.fields.items():
             widget = field.widget
 
@@ -56,7 +86,7 @@ class ConsultantApplicationForm(ModelForm):
                 widget.attrs["class"] = "select select-bordered w-full"
                 continue
 
-            if isinstance(widget, forms.ClearableFileInput):
+            if isinstance(widget, forms.FileInput):
                 widget.attrs["class"] = "file-input file-input-bordered w-full"
                 continue
 
@@ -70,7 +100,38 @@ class ConsultantApplicationForm(ModelForm):
     # VALIDATION METIER
     # ==================================================
  
+    def clean_cv_document(self):
+        file = self.cleaned_data.get("cv_document")
 
+        if not file:
+            return file
+
+        if file.size > MAX_FILE_SIZE:
+            raise ValidationError("Le fichier dépasse 10 Mo.")
+
+        ext = file.name.split(".")[-1].lower()
+
+        if ext not in ALLOWED_EXTENSIONS:
+            raise ValidationError("Format autorisé : PDF, Word ou image.")
+
+        return file
+
+    def clean_cv_public(self):
+        file = self.cleaned_data.get("cv_public")
+
+        if not file:
+            return file
+
+        if file.size > MAX_FILE_SIZE:
+            raise ValidationError("Le fichier dépasse 10 Mo.")
+
+        ext = file.name.split(".")[-1].lower()
+
+        if ext not in ALLOWED_EXTENSIONS:
+            raise ValidationError("Format autorisé : PDF, Word ou image.")
+
+        return file
+    
     # ==================================================
     # SAVE SIMPLE
     # ==================================================

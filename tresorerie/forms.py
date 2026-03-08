@@ -123,8 +123,6 @@ class EnrolementPaiementForm(forms.Form):
             "class": "file-input file-input-bordered w-full"
         })
 
-
-
 class PaiementSimpleForm(forms.Form):
 
     email = forms.EmailField(label="Email du membre")
@@ -174,3 +172,31 @@ class ActivationDigitaleForm(forms.Form):
             "rows": 3
         })
     )
+
+
+from django import forms
+from .models import Transaction
+from django import forms
+from .models import Transaction
+
+
+class TransactionAjustementForm(forms.ModelForm):
+
+    class Meta:
+        model = Transaction
+        fields = [
+            "type_transaction",
+            "montant",
+            "description",
+        ]
+        widgets = {
+            "type_transaction": forms.Select(attrs={
+                "class": "select select-bordered w-full"
+            }),
+            "montant": forms.NumberInput(attrs={
+                "class": "input input-bordered w-full"
+            }),
+            "description": forms.Textarea(attrs={
+                "class": "textarea textarea-bordered w-full"
+            }),
+        }

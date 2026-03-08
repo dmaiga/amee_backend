@@ -73,7 +73,15 @@ class Transaction(models.Model):
     )
 
     cree_le = models.DateTimeField(auto_now_add=True)
-
+    transaction_reference = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="ajustements"
+    )
+    
+    est_ajustement = models.BooleanField(default=False)
     def __str__(self):
         return f"{self.categorie} - {self.montant}"
     # =====================================================

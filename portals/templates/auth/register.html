@@ -1,0 +1,267 @@
+{% extends "auth/base_auth.html" %}
+{% load static %}
+{% block content %}
+
+<div class="card bg-base-100 shadow-2xl">
+
+    <div class="card-body p-8">
+
+        <!-- ================= TITLE ================= -->
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-bold">
+                Rejoindre la plateforme AMEE
+            </h2>
+            <p class="text-sm opacity-60 mt-2">
+                Choisissez votre profil pour commencer.
+            </p>
+        </div>
+
+        <!-- ================= TYPE SWITCH ================= -->
+        <div class="flex justify-center gap-4 mb-10">
+
+            <a href="?type=client"
+               class="btn btn-outline {% if user_type == 'client' %}btn-primary{% endif %}">
+                Entreprise
+            </a>
+
+            <a href="?type=member"
+               class="btn btn-outline {% if user_type == 'member' %}btn-success{% endif %}">
+                Membre
+            </a>
+
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- ================= CLIENT FORM ======================== -->
+        <!-- ===================================================== -->
+
+        {% if user_type == "client" %}
+
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            <input type="hidden" name="user_type" value="client">
+
+            <div class="grid md:grid-cols-2 gap-4">
+
+                {% for field in client_form %}
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">
+                            {{ field.label }}
+                        </span>
+                    </label>
+
+                    {{ field }}
+
+                    {% if field.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">
+                                {{ field.errors|striptags }}
+                            </span>
+                        </label>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+            </div>
+
+ 
+
+            <button class="btn btn-primary w-full mt-6">
+                Créer mon espace entreprise
+            </button>
+
+        </form>
+
+        {% endif %}
+
+        <!-- ===================================================== -->
+        <!-- ================= MEMBER FORM ======================== -->
+        <!-- ===================================================== -->
+
+        {% if user_type == "member" %}
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="user_type" value="member">
+                    {% if field.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">
+                                {{ field.errors|striptags }}
+                            </span>
+                        </label>
+                    {% endif %}
+            <!-- STEP INDICATOR -->
+            <ul class="steps mb-8 w-full">
+                <li class="step step-primary" id="indicator-1">Informations</li>
+                <li class="step" id="indicator-2">Éligibilité</li>
+                <li class="step" id="indicator-3">Documents</li>
+            </ul>
+
+            <!-- STEP 1 -->
+            <div id="step-1" class="step-section">
+                <h3 class="text-lg font-semibold mb-4">
+                    Informations personnelles
+                </h3>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                    {{ member_form.email }}
+                    {{ member_form.first_name }}
+                    {{ member_form.last_name }}
+                    {{ member_form.phone }}
+                </div>
+
+                <div class="flex justify-end mt-6">
+                    <button type="button"
+                            onclick="nextStep(2)"
+                            class="btn btn-primary">
+                        Suivant →
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 2 -->
+            <div id="step-2" class="step-section hidden">
+                <h3 class="text-lg font-semibold mb-4">
+                    Éligibilité académique
+                </h3>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                    {{ member_form.eligibilite_option }}
+                    {{ member_form.diplome_niveau }}
+                    {{ member_form.diplome_intitule }}
+                    {{ member_form.annee_diplome }}
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button type="button"
+                            onclick="prevStep(1)"
+                            class="btn btn-outline">
+                        ← Retour
+                    </button>
+
+                    <button type="button"
+                            onclick="nextStep(3)"
+                            class="btn btn-primary">
+                        Suivant →
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 3 -->
+            <div id="step-3" class="step-section hidden">
+               <h3 class="text-lg font-semibold mb-2">
+    Documents justificatifs
+</h3>
+
+<p class="text-sm opacity-60 mb-6">
+    Veuillez téléverser les documents requis pour compléter votre candidature.
+    Formats acceptés : PDF uniquement.
+</p>
+
+<div class="space-y-6">
+
+    <!-- CV -->
+    <div class="form-control">
+        <label class="label">
+            <span class="label-text font-medium">
+                Curriculum Vitae (CV)
+            </span>
+        </label>
+
+        <p class="text-xs opacity-60 mb-2">
+            Votre CV détaillant vos expériences professionnelles.
+        </p>
+
+        {{ member_form.cv_document }}
+
+        {% if member_form.cv_document.errors %}
+            <label class="label">
+                <span class="label-text-alt text-error">
+                    {{ member_form.cv_document.errors|striptags }}
+                </span>
+            </label>
+        {% endif %}
+    </div>
+
+    <!-- Diplôme -->
+    <div class="form-control">
+        <label class="label">
+            <span class="label-text font-medium">
+                Diplôme  
+            </span>
+        </label>
+
+        <p class="text-xs opacity-60 mb-2">
+            Copie de votre diplôme ou document justificatif équivalent.
+        </p>
+
+        {{ member_form.diplome_document }}
+
+        {% if member_form.diplome_document.errors %}
+            <label class="label">
+                <span class="label-text-alt text-error">
+                    {{ member_form.diplome_document.errors|striptags }}
+                </span>
+            </label>
+        {% endif %}
+    </div>
+
+</div>
+
+                <div class="flex justify-between mt-6">
+                    <button type="button"
+                            onclick="prevStep(2)"
+                            class="btn btn-outline">
+                        ← Retour
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-success">
+                        Soumettre la candidature
+                    </button>
+                </div>
+            </div>
+
+        </form>
+
+        {% endif %}
+
+        <!-- ================= LOGIN LINK ================= -->
+        <div class="text-center mt-10 text-sm">
+            Déjà un compte ?
+            <a href="{% url 'login' %}"
+               class="text-primary font-semibold hover:underline">
+                Se connecter
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<!-- ================= STEP SCRIPT ================= -->
+<script>
+function nextStep(step) {
+    document.querySelectorAll('.step-section').forEach(el => el.classList.add('hidden'));
+    document.getElementById('step-' + step).classList.remove('hidden');
+
+    updateIndicator(step);
+}
+
+function prevStep(step) {
+    nextStep(step);
+}
+
+function updateIndicator(step) {
+    for (let i = 1; i <= 3; i++) {
+        const indicator = document.getElementById('indicator-' + i);
+        indicator.classList.remove('step-primary');
+
+        if (i <= step) {
+            indicator.classList.add('step-primary');
+        }
+    }
+}
+</script>
+
+{% endblock %}

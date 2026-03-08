@@ -6,7 +6,7 @@
 <div class="max-w-5xl mx-auto space-y-6 pb-20">
 
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <a href="{% url 'consultant_missions' %}" class="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-primary flex items-center gap-2">
+        <a href="{% url 'consultant_mission_list' %}" class="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-primary flex items-center gap-2">
             <i class="fa-solid fa-arrow-left"></i> Retour aux missions
         </a>
         <div class="flex items-center gap-2">
@@ -96,7 +96,7 @@
                 <p class="font-bold mb-1">Statut : {{ application.get_statut_display }}</p>
                 <p class="opacity-80">
                 {% if application.statut == "EN_ATTENTE" %}
-                    Dossier en cours d'examen par l'équipe AMEE.
+                   En attente de décision du Client.
                 {% elif application.statut == "RETENU" %}
                     Profil validé ! Le client a reçu vos coordonnées.
                 {% endif %}
@@ -106,52 +106,116 @@
             <p class="text-[10px] text-slate-400 italic">Envoyé le {{ application.cree_le|date:"d/m/Y" }}</p>
         </div>
 
-    {% elif mission.statut == "ACTIVE" %}
+{% elif mission.statut == "ACTIVE" %}
+
+    {% if est_consultant_valide %}
+
+        <!-- ======================================= -->
+        <!-- FORMULAIRE POSTULATION (Consultant OK) -->
+        <!-- ======================================= -->
+
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm sticky top-6">
-            <h3 class="text-slate-900 font-bold mb-2">Prêt à postuler ?</h3>
-            <p class="text-xs text-slate-500 mb-6 leading-relaxed">Soumettez votre proposition pour cette mission.</p>
+            <h3 class="text-slate-900 font-bold mb-2">
+                Prêt à postuler ?
+            </h3>
+            <p class="text-xs text-slate-500 mb-6 leading-relaxed">
+                Soumettez votre proposition pour cette mission.
+            </p>
             
-            <button id="btn-apply" class="btn btn-primary btn-block normal-case shadow-md">
-                <i class="fa-solid fa-pen-to-square mr-2"></i> Rédiger ma proposition
+            <button id="btn-apply"
+                    class="btn btn-primary btn-block normal-case shadow-md">
+                <i class="fa-solid fa-pen-to-square mr-2"></i>
+                Rédiger ma proposition
             </button>
 
-            <div id="apply-form" class="hidden mt-6 pt-6 border-t border-slate-100 animate-in fade-in slide-in-from-top-4 duration-300">
+            <div id="apply-form"
+                 class="hidden mt-6 pt-6 border-t border-slate-100 animate-in fade-in slide-in-from-top-4 duration-300">
                 <form method="post" enctype="multipart/form-data" class="space-y-5">
                     {% csrf_token %}
-                    
+{% if form.errors %}
+<div class="alert alert-error">
+    {{ form.errors }}
+</div>
+{% endif %}
                     <div class="form-control">
                         <label class="label pt-0">
-                            <span class="label-text text-slate-600 text-xs font-bold uppercase">Note de motivation</span>
+                            <span class="label-text text-slate-600 text-xs font-bold uppercase">
+                                Note de motivation
+                            </span>
                         </label>
                         {{ form.message }}
                     </div>
 
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text text-slate-600 text-xs font-bold uppercase">Offre Technique</span>
+                            <span class="label-text text-slate-600 text-xs font-bold uppercase">
+                                Offre Technique
+                            </span>
                         </label>
-                        <div class="relative">
-                            {{ form.proposition_technique }}
-                        </div>
+                        {{ form.proposition_technique }}
                     </div>
 
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text text-slate-600 text-xs font-bold uppercase">Offre Financière</span>
+                            <span class="label-text text-slate-600 text-xs font-bold uppercase">
+                                Offre Financière
+                            </span>
                         </label>
                         {{ form.proposition_financiere }}
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-block shadow-lg mt-4">
+                    <button type="submit"
+                            class="btn btn-primary btn-block shadow-lg mt-4">
                         Envoyer le dossier
                     </button>
+
                     <p class="text-[10px] text-center text-slate-400">
-                        <i class="fa-solid fa-lock mr-1"></i> Transmission sécurisée via AMEE
+                        <i class="fa-solid fa-lock mr-1"></i>
+                        Transmission sécurisée via AMEE
                     </p>
                 </form>
             </div>
         </div>
+
+    {% else %}
+
+        <!-- ======================================= -->
+        <!-- INCITATION À DEVENIR CONSULTANT -->
+        <!-- ======================================= -->
+
+        <div class="bg-gradient-to-br from-primary/5 to-secondary/5 
+                    border border-primary/20 
+                    rounded-2xl p-6 shadow-sm sticky top-6 space-y-4">
+
+            <h3 class="text-slate-900 font-bold">
+                Postuler à cette mission
+            </h3>
+
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Pour soumettre une proposition et recevoir des invitations
+                directes des employeurs, vous devez activer votre profil expert.
+            </p>
+
+            <ul class="text-xs text-slate-600 space-y-1">
+                <li>• Recevez des invitations personnalisées</li>
+                <li>• Augmentez votre visibilité</li>
+                <li>• Accédez aux missions premium</li>
+            </ul>
+
+            <a href="{% url 'roster_profile' %}"
+               class="btn btn-primary btn-sm btn-block normal-case">
+                Activer mon profil expert
+            </a>
+
+            <p class="text-[10px] text-center text-slate-400">
+                Validation rapide par l’équipe AMEE
+            </p>
+
+        </div>
+
     {% endif %}
+
+{% endif %}
 </div>
 
 <style>

@@ -1,7 +1,32 @@
 # missions/admin.py
 
 from django.contrib import admin
-from .models import Mission, MissionDocument
+from .models import Mission, MissionDocument,MissionApplication
+
+@admin.register(MissionApplication)
+class MissionApplicationAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "mission",
+        "consultant",
+        "statut",
+        "cree_le",
+    )
+
+    list_filter = (
+        "statut",
+        "mission__domaine",
+        "cree_le",
+    )
+
+    search_fields = (
+        "mission__titre",
+        "consultant__email",
+        "consultant__first_name",
+        "consultant__last_name",
+    )
+
+    autocomplete_fields = ("mission", "consultant")
 
 class MissionDocumentInline(admin.TabularInline):
     """Permet d'ajouter/modifier des documents directement dans la fiche Mission."""
