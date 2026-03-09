@@ -7,6 +7,7 @@ from django.db.models import Sum
 from django.db import transaction as db_transaction
 from django.core.mail import send_mail
 from django.conf import settings
+import secrets
 
 User = get_user_model()
 
@@ -27,8 +28,8 @@ Email : {user.email}
 Mot de passe temporaire : {password_temporaire}
 
 Veuillez modifier votre mot de passe après connexion.
+L'equipe AMEE
 
-Administration
 """
 
     send_mail(
@@ -92,7 +93,8 @@ def appliquer_transaction(transaction):
             is_new = True
 
         if is_new:
-            temp_password = "changeMe"
+            password = secrets.token_urlsafe(10)
+            temp_password = password
             user.set_password(temp_password)
 
         user.role = "MEMBER"

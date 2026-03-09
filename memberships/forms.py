@@ -53,10 +53,10 @@ class MemberEditForm(forms.ModelForm):
         phone = self.cleaned_data.get("phone")
         secondary_phone = self.cleaned_data.get("secondary_phone")
 
-        if phone and len(phone) < 8:
+        if phone and len(phone) < 7:
             raise forms.ValidationError("Numéro invalide")
 
-        if secondary_phone and len(secondary_phone) < 8:
+        if secondary_phone and len(secondary_phone) < 7:
             raise forms.ValidationError("Numéro invalide")
 
         return phone

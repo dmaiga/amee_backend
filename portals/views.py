@@ -118,7 +118,7 @@ def register_view(request):
                     providers_publics = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"]
                     auto_valide = domain not in providers_publics
 
-                    password = "changeMe"
+                    password = secrets.token_urlsafe(10)
 
                     user = User.objects.create_user(
                         email=email,
@@ -130,6 +130,7 @@ def register_view(request):
                     client = ClientProfile.objects.create(
                         user=user,
                         est_verifie=auto_valide,
+                        statut_onboarding="VALIDE" if auto_valide else "EN_ATTENTE",
                         **data
                     )
 

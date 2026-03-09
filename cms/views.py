@@ -80,6 +80,8 @@ from rest_framework import status
 from cms.models import Mandat
 from .serializers import MandatActifSerializer
 from django.views.decorators.cache import cache_page
+from organizations.serializers import AboutSerializer
+
 
 class MandatActifAPIView(APIView):
 
@@ -92,5 +94,15 @@ class MandatActifAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        serializer = MandatActifSerializer(mandat)
+        serializer = MandatActifSerializer(mandat,context={"request": request})
+        return Response(serializer.data)
+    
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+
+class AboutAPIView(APIView):
+
+    def get(self, request):
+        serializer = AboutSerializer(instance={})
         return Response(serializer.data)

@@ -202,10 +202,6 @@ def backoffice_counts(request):
     if not request.user.is_authenticated:
         return {}
 
-    # Tu peux filtrer plus tard par rôle
-    if not request.path.startswith("/backoffice/"):
-        return {}
-
     return {
 
         # Entreprises en attente validation
@@ -213,9 +209,9 @@ def backoffice_counts(request):
             statut_onboarding="EN_ATTENTE"
         ).count(),
 
-        # Nouveaux membres à vérifier (exemple : non actifs)
+        # Nouveaux membres à vérifier
         "bo_new_members": Membership.objects.filter(
-            est_actif=False
+           statut='EN_ATTENTE'
         ).count(),
 
         # Dossiers experts soumis

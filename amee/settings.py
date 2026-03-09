@@ -112,8 +112,11 @@ TEMPLATES = [
                 'portals.context_processors.client_notifications',
                 "portals.context_processors.portal_state",
                 'portals.context_processors.cms_notifications',
-                 "portals.context_processors.consultant_notifications",
-                 'portals.context_processors.notifications',
+                "portals.context_processors.consultant_notifications",
+                'portals.context_processors.notifications',
+                'portals.context_processors.backoffice_counts',
+
+                 
             ],
         },
     },

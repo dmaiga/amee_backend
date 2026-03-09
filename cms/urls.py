@@ -12,5 +12,5 @@ urlpatterns = [
     path("opportunities/<int:pk>/", OpportunityDetailView.as_view()),
 
     path("mandat-actif/", MandatActifAPIView.as_view()),
-
+    path("about/", AboutAPIView.as_view())
 ]

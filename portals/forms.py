@@ -176,3 +176,26 @@ class MembershipRegistrationForm(forms.ModelForm):
                 "class": "file-input file-input-bordered w-full"
             }),
         }
+
+
+from django.contrib.auth.forms import SetPasswordForm
+from django import forms
+
+
+class CustomSetPasswordForm(SetPasswordForm):
+
+    new_password1 = forms.CharField(
+        label="Nouveau mot de passe",
+        widget=forms.PasswordInput(attrs={
+            "class": "input input-bordered w-full"
+        }),
+        help_text="Minimum 8 caractères."
+    )
+
+    new_password2 = forms.CharField(
+        label="Confirmer le mot de passe",
+        widget=forms.PasswordInput(attrs={
+            "class": "input input-bordered w-full"
+        }),
+        help_text="Entrez le même mot de passe pour confirmation."
+    )

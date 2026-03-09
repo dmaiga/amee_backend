@@ -15,6 +15,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
+
+
 from django.urls import include, path
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -31,7 +34,7 @@ from drf_spectacular.views import (
 )
 from django.views.generic import RedirectView
 from portals.views import register_view,plateforme_login
-
+from portals.forms import CustomSetPasswordForm
 urlpatterns = [
     path('admin/', admin.site.urls),
         
@@ -43,12 +46,44 @@ urlpatterns = [
     
     path('login/', plateforme_login, name='login' ),    
     path('inscription/', register_view, name='inscription' ),
+    # Password reset
+    path(
+        "password-reset/",
+        auth_views.PasswordResetView.as_view(
+            template_name="auth/password_reset_form.html"
+        ),
+        name="password_reset"
+    ),
 
+    path(
+        "password-reset/done/",
+        auth_views.PasswordResetDoneView.as_view(
+            template_name="auth/password_reset_done.html"
+        ),
+        name="password_reset_done"
+    ),
+
+    path(
+        "reset/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(
+            form_class=CustomSetPasswordForm,
+            template_name="auth/password_reset_confirm.html"
+        ),
+        name="password_reset_confirm"
+    ),
+
+    path(
+        "reset/done/",
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name="auth/password_reset_complete.html"
+        ),
+        name="password_reset_complete"
+    ),
 
 
     path('api/auth/login/', LoginView.as_view()),
     path('api/auth/refresh/', TokenRefreshView.as_view()),
- 
+
 
     path('api/accounts/', include('accounts.urls')),
     path('api/memberships/', include('memberships.urls')),
@@ -68,3 +103,5 @@ if settings.DEBUG:
         settings.MEDIA_URL,
         document_root=settings.MEDIA_ROOT
     )
+
+

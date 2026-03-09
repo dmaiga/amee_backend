@@ -27,18 +27,21 @@ from cms.models import Mandat, BoardMembership
 from rest_framework import serializers
 from cms.models import Mandat, BoardMembership
 
-
 class BoardMemberSerializer(serializers.Serializer):
     poste = serializers.CharField(source="role.titre")
     nom = serializers.CharField(source="membership.user.last_name")
     prenom = serializers.CharField(source="membership.user.first_name")
-
     photo = serializers.SerializerMethodField()
 
     def get_photo(self, obj):
+        request = self.context.get("request")
         user = obj.membership.user
+
         if user.photo:
+            if request:
+                return request.build_absolute_uri(user.photo.url)
             return user.photo.url
+
         return None
 
 

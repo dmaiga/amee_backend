@@ -2,263 +2,143 @@
 {% load static %}
 {% block content %}
 
-<div class="card bg-base-100 shadow-2xl">
-
-    <div class="card-body p-8">
-
-        <!-- ================= TITLE ================= -->
-        <div class="text-center mb-8">
-            <h2 class="text-2xl font-bold">
-                Rejoindre la plateforme AMEE
-            </h2>
-            <p class="text-sm opacity-60 mt-2">
-                Choisissez votre profil pour commencer.
-            </p>
-        </div>
-
-        <!-- ================= TYPE SWITCH ================= -->
-        <div class="flex justify-center gap-4 mb-10">
-
-            <a href="?type=client"
-               class="btn btn-outline {% if user_type == 'client' %}btn-primary{% endif %}">
-                Entreprise
-            </a>
-
-            <a href="?type=member"
-               class="btn btn-outline {% if user_type == 'member' %}btn-success{% endif %}">
-                Membre
-            </a>
-
-        </div>
-
-        <!-- ===================================================== -->
-        <!-- ================= CLIENT FORM ======================== -->
-        <!-- ===================================================== -->
-
-        {% if user_type == "client" %}
-
-        <form method="POST" class="space-y-6">
-            {% csrf_token %}
-            <input type="hidden" name="user_type" value="client">
-
-            <div class="grid md:grid-cols-2 gap-4">
-
-                {% for field in client_form %}
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-medium">
-                            {{ field.label }}
-                        </span>
-                    </label>
-
-                    {{ field }}
-
-                    {% if field.errors %}
-                        <label class="label">
-                            <span class="label-text-alt text-error">
-                                {{ field.errors|striptags }}
-                            </span>
-                        </label>
-                    {% endif %}
-                </div>
-                {% endfor %}
-
-            </div>
-
- 
-
-            <button class="btn btn-primary w-full mt-6">
-                Créer mon espace entreprise
-            </button>
-
-        </form>
-
-        {% endif %}
-
-        <!-- ===================================================== -->
-        <!-- ================= MEMBER FORM ======================== -->
-        <!-- ===================================================== -->
-
-        {% if user_type == "member" %}
-
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            <input type="hidden" name="user_type" value="member">
-                    {% if field.errors %}
-                        <label class="label">
-                            <span class="label-text-alt text-error">
-                                {{ field.errors|striptags }}
-                            </span>
-                        </label>
-                    {% endif %}
-            <!-- STEP INDICATOR -->
-            <ul class="steps mb-8 w-full">
-                <li class="step step-primary" id="indicator-1">Informations</li>
-                <li class="step" id="indicator-2">Éligibilité</li>
-                <li class="step" id="indicator-3">Documents</li>
-            </ul>
-
-            <!-- STEP 1 -->
-            <div id="step-1" class="step-section">
-                <h3 class="text-lg font-semibold mb-4">
-                    Informations personnelles
-                </h3>
-
-                <div class="grid md:grid-cols-2 gap-4">
-                    {{ member_form.email }}
-                    {{ member_form.first_name }}
-                    {{ member_form.last_name }}
-                    {{ member_form.phone }}
-                </div>
-
-                <div class="flex justify-end mt-6">
-                    <button type="button"
-                            onclick="nextStep(2)"
-                            class="btn btn-primary">
-                        Suivant →
-                    </button>
-                </div>
-            </div>
-
-            <!-- STEP 2 -->
-            <div id="step-2" class="step-section hidden">
-                <h3 class="text-lg font-semibold mb-4">
-                    Éligibilité académique
-                </h3>
-
-                <div class="grid md:grid-cols-2 gap-4">
-                    {{ member_form.eligibilite_option }}
-                    {{ member_form.diplome_niveau }}
-                    {{ member_form.diplome_intitule }}
-                    {{ member_form.annee_diplome }}
-                </div>
-
-                <div class="flex justify-between mt-6">
-                    <button type="button"
-                            onclick="prevStep(1)"
-                            class="btn btn-outline">
-                        ← Retour
-                    </button>
-
-                    <button type="button"
-                            onclick="nextStep(3)"
-                            class="btn btn-primary">
-                        Suivant →
-                    </button>
-                </div>
-            </div>
-
-            <!-- STEP 3 -->
-            <div id="step-3" class="step-section hidden">
-               <h3 class="text-lg font-semibold mb-2">
-    Documents justificatifs
-</h3>
-
-<p class="text-sm opacity-60 mb-6">
-    Veuillez téléverser les documents requis pour compléter votre candidature.
-    Formats acceptés : PDF uniquement.
-</p>
-
-<div class="space-y-6">
-
-    <!-- CV -->
-    <div class="form-control">
-        <label class="label">
-            <span class="label-text font-medium">
-                Curriculum Vitae (CV)
-            </span>
-        </label>
-
-        <p class="text-xs opacity-60 mb-2">
-            Votre CV détaillant vos expériences professionnelles.
+<div class="w-full">
+    <div class="mb-8 text-center lg:text-left">
+        <h2 class="text-3xl font-extrabold text-slate-900">Rejoindre le réseau</h2>
+        <p class="text-slate-500 mt-2">
+            Devenez membre pour accéder au roster d'experts et aux opportunités de l'AMEE.
         </p>
-
-        {{ member_form.cv_document }}
-
-        {% if member_form.cv_document.errors %}
-            <label class="label">
-                <span class="label-text-alt text-error">
-                    {{ member_form.cv_document.errors|striptags }}
-                </span>
-            </label>
-        {% endif %}
     </div>
 
-    <!-- Diplôme -->
-    <div class="form-control">
-        <label class="label">
-            <span class="label-text font-medium">
-                Diplôme  
-            </span>
-        </label>
-
-        <p class="text-xs opacity-60 mb-2">
-            Copie de votre diplôme ou document justificatif équivalent.
-        </p>
-
-        {{ member_form.diplome_document }}
-
-        {% if member_form.diplome_document.errors %}
-            <label class="label">
-                <span class="label-text-alt text-error">
-                    {{ member_form.diplome_document.errors|striptags }}
-                </span>
-            </label>
-        {% endif %}
+    <div class="flex p-1 bg-slate-100 rounded-xl mb-10">
+        <a href="?type=member" 
+           class="flex-1 py-3 text-center rounded-lg transition-all font-semibold {% if user_type == 'member' %}bg-white shadow-sm text-green-700{% else %}text-slate-500 hover:text-slate-700{% endif %}">
+            Candidat / Expert
+        </a>
+        <a href="?type=client" 
+           class="flex-1 py-3 text-center rounded-lg transition-all font-semibold {% if user_type == 'client' %}bg-white shadow-sm text-blue-700{% else %}text-slate-500 hover:text-slate-700{% endif %}">
+            Employeur / ONG 
+        </a>
     </div>
 
-</div>
-
-                <div class="flex justify-between mt-6">
-                    <button type="button"
-                            onclick="prevStep(2)"
-                            class="btn btn-outline">
-                        ← Retour
-                    </button>
-
-                    <button type="submit"
-                            class="btn btn-success">
-                        Soumettre la candidature
-                    </button>
-                </div>
+    {% if user_type == "client" %}
+    <form method="POST" class="space-y-5">
+        {% csrf_token %}
+        <input type="hidden" name="user_type" value="client">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for field in client_form %}
+            <div class="form-control w-full">
+                <label class="label"><span class="label-text font-bold text-slate-700">{{ field.label }}</span></label>
+                {{ field }}
+                {% if field.errors %}
+                    <label class="label"><span class="label-text-alt text-error font-medium">{{ field.errors|striptags }}</span></label>
+                {% endif %}
             </div>
-
-        </form>
-
-        {% endif %}
-
-        <!-- ================= LOGIN LINK ================= -->
-        <div class="text-center mt-10 text-sm">
-            Déjà un compte ?
-            <a href="{% url 'login' %}"
-               class="text-primary font-semibold hover:underline">
-                Se connecter
-            </a>
+            {% endfor %}
         </div>
 
+        <button class="btn btn-block bg-blue-700 hover:bg-blue-800 text-white border-none h-12 mt-4 shadow-lg">
+            Créer mon espace employeur
+        </button>
+    </form>
+    {% endif %}
+
+    {% if user_type == "member" %}
+    <form method="POST" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+        <input type="hidden" name="user_type" value="member">
+
+        <div class="flex items-center justify-between mb-8 px-2">
+            <div class="flex items-center gap-2">
+                <div id="indicator-1" class="w-8 h-8 rounded-full flex items-center justify-center font-bold transition-colors bg-green-700 text-white">1</div>
+                <div class="h-1 w-8 bg-slate-100 rounded"></div>
+                <div id="indicator-2" class="w-8 h-8 rounded-full flex items-center justify-center font-bold transition-colors bg-slate-100 text-slate-400">2</div>
+                <div class="h-1 w-8 bg-slate-100 rounded"></div>
+                <div id="indicator-3" class="w-8 h-8 rounded-full flex items-center justify-center font-bold transition-colors bg-slate-100 text-slate-400">3</div>
+            </div>
+            <span id="step-title" class="text-sm font-bold text-slate-400 uppercase tracking-wider">Informations</span>
+        </div>
+
+        <div id="step-1" class="step-section space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-control">{{ member_form.email }}</div>
+                <div class="form-control">{{ member_form.phone }}</div>
+                <div class="form-control">{{ member_form.first_name }}</div>
+                <div class="form-control">{{ member_form.last_name }}</div>
+            </div>
+            <div class="flex justify-end pt-4">
+                <button type="button" onclick="goToStep(2)" class="btn bg-green-700 hover:bg-green-800 text-white border-none px-8 h-12">
+                    Continuer
+                </button>
+            </div>
+        </div>
+
+        <div id="step-2" class="step-section hidden space-y-4">
+            <div class="alert alert-info bg-blue-50 border-none text-blue-800 text-sm italic mb-4">
+                L'AMEE requiert un diplôme en environnement avec 2 ans d'expérience, ou 5 ans pour les autres domaines.
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-control md:col-span-2">{{ member_form.eligibilite_option }}</div>
+                <div class="form-control">{{ member_form.diplome_niveau }}</div>
+                <div class="form-control">{{ member_form.diplome_intitule }}</div>
+            </div>
+            <div class="flex justify-between pt-4">
+                <button type="button" onclick="goToStep(1)" class="btn btn-ghost text-slate-500">Retour</button>
+                <button type="button" onclick="goToStep(3)" class="btn bg-green-700 hover:bg-green-800 text-white border-none px-8 h-12">
+                    Suivant
+                </button>
+            </div>
+        </div>
+
+        <div id="step-3" class="step-section hidden space-y-5">
+            <div class="form-control">
+                <label class="label"><span class="label-text font-bold text-slate-700">CV (PDF uniquement) </span></label>
+                {{ member_form.cv_document }}
+            </div>
+            <div class="form-control">
+                <label class="label"><span class="label-text font-bold text-slate-700">Copie du Diplôme </span></label>
+                {{ member_form.diplome_document }}
+            </div>
+            <div class="pt-4">
+                <button type="submit" class="btn btn-block bg-green-700 hover:bg-green-800 text-white border-none h-12 shadow-lg">
+                    Soumettre ma candidature 
+                </button>
+            </div>
+            <button type="button" onclick="goToStep(2)" class="btn btn-link btn-block text-slate-400 no-underline text-xs">Retourner à l'étape précédente</button>
+        </div>
+    </form>
+    {% endif %}
+
+    <div class="mt-10 pt-6 border-t border-slate-100 text-center">
+        <p class="text-slate-600">Déjà inscrit ? <a href="{% url 'login' %}" class="font-bold text-green-700 hover:underline">Se connecter</a></p>
     </div>
 </div>
 
-<!-- ================= STEP SCRIPT ================= -->
 <script>
-function nextStep(step) {
+function goToStep(step) {
+    const titles = ["", "Informations", "Éligibilité", "Documents"];
+    
+    // Masquer toutes les sections
     document.querySelectorAll('.step-section').forEach(el => el.classList.add('hidden'));
+    // Afficher la section cible
     document.getElementById('step-' + step).classList.remove('hidden');
+    // Mise à jour du titre
+    document.getElementById('step-title').innerText = titles[step];
 
-    updateIndicator(step);
-}
-
-function prevStep(step) {
-    nextStep(step);
-}
-
-function updateIndicator(step) {
+    // Mise à jour visuelle des indicateurs
     for (let i = 1; i <= 3; i++) {
-        const indicator = document.getElementById('indicator-' + i);
-        indicator.classList.remove('step-primary');
-
-        if (i <= step) {
-            indicator.classList.add('step-primary');
+        const ind = document.getElementById('indicator-' + i);
+        if (i < step) {
+            ind.classList.replace('bg-green-700', 'bg-green-100');
+            ind.classList.replace('text-white', 'text-green-700');
+            ind.innerHTML = '✓';
+        } else if (i === step) {
+            ind.className = "w-8 h-8 rounded-full flex items-center justify-center font-bold bg-green-700 text-white";
+            ind.innerHTML = i;
+        } else {
+            ind.className = "w-8 h-8 rounded-full flex items-center justify-center font-bold bg-slate-100 text-slate-400";
+            ind.innerHTML = i;
         }
     }
 }
