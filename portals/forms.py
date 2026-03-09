@@ -1,7 +1,23 @@
 from django import forms
 from missions.models import Mission
 from portals.models import ClientProfile
+from django.core.exceptions import ValidationError
+import os
 
+
+ALLOWED_EXTENSIONS = ["pdf", "doc", "docx"]
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 5MB
+
+def validate_file_extension(file):
+    ext = os.path.splitext(file.name)[1].lower().replace(".", "")
+    if ext not in ALLOWED_EXTENSIONS:
+        raise ValidationError(
+            "Format non autorisé. Seuls PDF ou Word (.doc, .docx) sont acceptés."
+        )
+
+def validate_file_size(file):
+    if file.size > MAX_FILE_SIZE:
+        raise ValidationError("Fichier trop volumineux (max 5MB).")
 
 class MissionCreateForm(forms.ModelForm):
     class Meta:
@@ -170,13 +186,30 @@ class MembershipRegistrationForm(forms.ModelForm):
             }),
             "cv_document": forms.FileInput(attrs={
                 "class": "file-input file-input-bordered w-full",
+                "accept": ".pdf,.doc,.docx",
+                "required": True,
                 
             }),
             "diplome_document": forms.FileInput(attrs={
-                "class": "file-input file-input-bordered w-full"
+                "class": "file-input file-input-bordered w-full",
+                "accept": ".pdf,.doc,.docx",
+                "required": True,
             }),
         }
+    def clean_cv_document(self):
+        file = self.cleaned_data.get("cv_document")
+        if file:
+            validate_file_extension(file)
+            validate_file_size(file)
+        return file
 
+
+    def clean_diplome_document(self):
+        file = self.cleaned_data.get("diplome_document")
+        if file:
+            validate_file_extension(file)
+            validate_file_size(file)
+        return file
 
 from django.contrib.auth.forms import SetPasswordForm
 from django import forms

@@ -8,7 +8,7 @@ urlpatterns = [
     path("dashboard/", dashboard, name="bo_dashboard"),
 
     # --- TRÉSORERIE (Source de vérité financière) ---
-    path("tresorerie/", include("backoffice.api.tresorerie.urls")),
+    #path("tresorerie/", include("backoffice.api.tresorerie.urls")),
     path("tresorerie/dashboard/",web_views.enrolement_dashboard,name="bo_enrolement_dashboard"),
     
     path("backoffice/tresorerie/paiement-bureau/",web_views.paiement_bureau,name="bo_paiement_bureau"  ),

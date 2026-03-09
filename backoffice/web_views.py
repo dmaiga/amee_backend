@@ -278,7 +278,7 @@ def enroulement_paiement(request):
     if not form.is_valid():
         return render(
             request,
-            "backoffice/tresorerie/tresorerie_form.html",
+            "backoffice/tresorerie/enroulemnt_form.html",
             {"form": form}
         )
 
@@ -323,12 +323,79 @@ def enroulement_paiement(request):
     # =============================
     # PAIEMENT
     # =============================
-    PaiementService.payer_membre(
-        user=request.user,
-        membre=membre,
-        operation=data["operation"],
-        data=data,
-    )
+    from django.db import transaction as db_transaction
+    
+    with db_transaction.atomic():
+    
+        operation = data["operation"]
+    
+        if operation == "ADHESION":
+        
+            if not data["montant_adhesion"]:
+                form.add_error("montant_adhesion", "Montant requis.")
+                return render(request, "backoffice/tresorerie/enroulemnt_form.html", {"form": form})
+    
+            TresorerieService.enregistrer_paiement(
+                user=request.user,
+                data={
+                    "type_transaction": "ENTREE",
+                    "categorie": "ADHESION",
+                    "montant": data["montant_adhesion"],
+                    "membre": membre,
+                    "email_payeur": membre.email,
+                    "description": data.get("description", "Adhésion membre"),
+                }
+            )
+    
+        elif operation == "COTISATION":
+        
+            if not data["montant_cotisation"]:
+                form.add_error("montant_cotisation", "Montant requis.")
+                return render(request, "backoffice/tresorerie/enroulemnt_form.html", {"form": form})
+    
+            TresorerieService.enregistrer_paiement(
+                user=request.user,
+                data={
+                    "type_transaction": "ENTREE",
+                    "categorie": "COTISATION",
+                    "montant": data["montant_cotisation"],
+                    "membre": membre,
+                    "email_payeur": membre.email,
+                    "description": data.get("description", "Cotisation annuelle"),
+                }
+            )
+    
+        elif operation == "FULL":
+        
+            if not data["montant_adhesion"] or not data["montant_cotisation"]:
+                form.add_error(None, "Montants requis pour adhésion complète.")
+                return render(request, "backoffice/tresorerie/enroulemnt_form.html", {"form": form})
+    
+            # 1️⃣ Adhésion
+            TresorerieService.enregistrer_paiement(
+                user=request.user,
+                data={
+                    "type_transaction": "ENTREE",
+                    "categorie": "ADHESION",
+                    "montant": data["montant_adhesion"],
+                    "membre": membre,
+                    "email_payeur": membre.email,
+                    "description": "Adhésion membre",
+                }
+            )
+    
+            # 2️⃣ Cotisation
+            TresorerieService.enregistrer_paiement(
+                user=request.user,
+                data={
+                    "type_transaction": "ENTREE",
+                    "categorie": "COTISATION",
+                    "montant": data["montant_cotisation"],
+                    "membre": membre,
+                    "email_payeur": membre.email,
+                    "description": "Cotisation annuelle",
+                }
+            )
 
     messages.success(request, "Enrôlement enregistré.")
     return redirect("bo_enrolement_dashboard")
@@ -349,12 +416,16 @@ def tresorerie_paiement_simple(request):
                 return redirect("bo_paiement_simple")
 
             # 🔥 Forcer COTISATION
-            PaiementService.payer_membre(
+            TresorerieService.enregistrer_paiement(
                 user=request.user,
-                membre=user,
-                operation="COTISATION",
-                data={"montant": data["montant"],
-                      "description": data["description"]},
+                data={
+                    "type_transaction": "ENTREE",
+                    "categorie": "COTISATION",
+                    "montant": data["montant"],
+                    "membre": user,
+                    "email_payeur": user.email,
+                    "description": data["description"],
+                }
             )
 
             messages.success(request, "Cotisation enregistrée.")
@@ -366,6 +437,7 @@ def tresorerie_paiement_simple(request):
     return render(request,
                   "backoffice/tresorerie/paiement_simple.html",
                   {"form": form})
+
 
 @login_required
 def tresorerie_activation(request, user_id):
@@ -420,6 +492,8 @@ def tresorerie_activation(request, user_id):
         "backoffice/tresorerie/activation.html",
         {"form": form, "membre": user}
     )
+
+
 
 @login_required
 def tresorerie_depense(request):
