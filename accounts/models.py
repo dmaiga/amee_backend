@@ -61,7 +61,7 @@ class User(AbstractUser):
         ('BUREAU', 'Membre du Bureau / Conseil'),
         ('COMPTA', 'Comptabilité'),
 
-        ('SECRETARIAT', 'Secrétariat Administratif'),
+       
         ('MEMBER', 'Membre Adhérent'),
         ('CONSULTANT', 'Expert Roster'),
         ('CLIENT', 'Institution / Recruteur'),

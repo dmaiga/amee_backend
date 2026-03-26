@@ -21,6 +21,7 @@ class OpportunitySerializer(serializers.ModelSerializer):
         model = Opportunity
         fields = "__all__"
 
+
 from rest_framework import serializers
 from cms.models import Mandat, BoardMembership
 
@@ -43,7 +44,6 @@ class BoardMemberSerializer(serializers.Serializer):
             return user.photo.url
 
         return None
-
 
 class MandatActifSerializer(serializers.ModelSerializer):
     president = serializers.SerializerMethodField()

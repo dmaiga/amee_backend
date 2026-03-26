@@ -50,24 +50,62 @@
     </div>
 </div>
 
-<div class="bg-base-100 p-4 rounded-xl shadow-sm mb-6 flex flex-wrap items-center justify-between gap-4">
-    <form method="get" class="flex items-center gap-3">
-        <div class="form-control">
-            <select name="type" class="select select-bordered select-sm focus:select-primary">
-                <option value="">Tous les types</option>
-                <option value="ENTREE" {% if selected_type == "ENTREE" %}selected{% endif %}>🟢 Entrées</option>
-                <option value="SORTIE" {% if selected_type == "SORTIE" %}selected{% endif %}>🔴 Sorties</option>
-            </select>
+<div class="bg-base-100 p-4 rounded-xl shadow-sm mb-6">
+
+    <form method="get" class="flex flex-col md:flex-row md:items-end gap-4 justify-between">
+
+        <!-- FILTRES -->
+        <div class="flex flex-wrap items-end gap-3">
+
+            <!-- TYPE -->
+            <div class="form-control">
+                <label class="label pb-1">
+                    <span class="label-text text-xs font-semibold">Type</span>
+                </label>
+                <select name="type" class="select select-bordered select-sm w-40">
+                    <option value="">Tous</option>
+                    <option value="ENTREE" {% if selected_type == "ENTREE" %}selected{% endif %}>🟢 Entrées</option>
+                    <option value="SORTIE" {% if selected_type == "SORTIE" %}selected{% endif %}>🔴 Sorties</option>
+                </select>
+            </div>
+
+            <!-- DATE DEBUT -->
+            <div class="form-control">
+                <label class="label pb-1">
+                    <span class="label-text text-xs font-semibold">Du</span>
+                </label>
+                <input type="date" name="date_debut" value="{{ date_debut }}"
+                       class="input input-bordered input-sm">
+            </div>
+
+            <!-- DATE FIN -->
+            <div class="form-control">
+                <label class="label pb-1">
+                    <span class="label-text text-xs font-semibold">Au</span>
+                </label>
+                <input type="date" name="date_fin" value="{{ date_fin }}"
+                       class="input input-bordered input-sm">
+            </div>
+
         </div>
-        <button class="btn btn-sm btn-primary px-6">Filtrer</button>
-        {% if selected_type %}
-            <a href="{% url 'bo_transactions' %}" class="btn btn-sm btn-ghost btn-circle" title="Réinitialiser">✕</a>
-        {% endif %}
+
+        <!-- ACTIONS -->
+        <div class="flex items-center gap-2">
+
+            <button type="submit" class="btn btn-sm btn-primary px-5">
+                Filtrer
+            </button>
+
+            <a href="{% url 'bo_transactions' %}"
+               class="btn btn-sm btn-ghost"
+               title="Réinitialiser">
+                Réinitialiser
+            </a>
+
+        </div>
+
     </form>
-    
-    <div class="text-xs font-semibold opacity-50 uppercase">
-        {{ transactions|length }} transaction(s) trouvée(s)
-    </div>
+
 </div>
 
 <div class="card bg-base-100 shadow-xl">
@@ -95,21 +133,21 @@
                         </div>
                     </td>
                     <td class="text-sm">
-{% if t.type_transaction == "ENTREE" %}
+                        {% if t.type_transaction == "ENTREE" %}
 
-    {% if t.membre %}
-        {{ t.membre.email }}
-    {% else %}
-        {{ t.email_payeur }}
-    {% endif %}
+                            {% if t.membre %}
+                                {{ t.membre.email }}
+                            {% else %}
+                                {{ t.email_payeur }}
+                            {% endif %}
 
-{% else %}
+                        {% else %}
 
-    <span class="opacity-80">
-        {{ t.description|default:"Dépense interne AMEE" }}
-    </span>
-
-{% endif %}
+                            <span class="opacity-80">
+                                {{ t.description|default:"Dépense interne AMEE" }}
+                            </span>
+                        
+                        {% endif %}
                     </td>
                     <td class="font-mono font-bold {% if t.type_transaction == 'ENTREE' %}text-success{% else %}text-error{% endif %}">
                         {% if t.type_transaction == 'ENTREE' %}+{% else %}-{% endif %}{{ t.montant }}
@@ -148,6 +186,25 @@
             </tbody>
         </table>
     </div>
+    <div class="flex justify-center mt-6">
+    <div class="join">
+
+        {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if date_debut %}&date_debut={{ date_debut }}{% endif %}{% if date_fin %}&date_fin={{ date_fin }}{% endif %}"
+       class="join-item btn btn-sm">«</a>
+{% endif %}
+
+<button class="join-item btn btn-sm btn-active">
+    Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+</button>
+
+{% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if selected_type %}&type={{ selected_type }}{% endif %}{% if date_debut %}&date_debut={{ date_debut }}{% endif %}{% if date_fin %}&date_fin={{ date_fin }}{% endif %}"
+       class="join-item btn btn-sm">»</a>
+{% endif %}
+
+    </div>
+</div>
 </div>
 
 {% endblock %}

@@ -7,6 +7,7 @@ from datetime import timedelta
 from memberships.models import Membership
 from django.utils import timezone
 from datetime import timedelta
+
 class Transaction(models.Model):
 
     TYPE_CHOICES = (

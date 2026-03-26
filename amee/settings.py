@@ -130,8 +130,8 @@ AUTH_USER_MODEL = 'accounts.User'
 # --- AUTHENTIFICATION REDIRECTIONS ---
 
 # URL vers laquelle on est renvoyé si on n'est pas connecté
-LOGIN_URL = '/portals/login/'
-LOGOUT_REDIRECT_URL = '/portals/login/'
+LOGIN_URL = '/login/'
+LOGOUT_REDIRECT_URL = '/login/'
 
 
 # Database

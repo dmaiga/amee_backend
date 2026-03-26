@@ -5,11 +5,11 @@ urlpatterns = [
     path("articles/", ArticleListView.as_view()),
     path("articles/<slug:slug>/", ArticleDetailView.as_view()),
 
-    path("resources/", ResourceListView.as_view()),
-    path("resources/<int:pk>/", ResourceDetailView.as_view()),
-
-    path("opportunities/", OpportunityListView.as_view()),
-    path("opportunities/<int:pk>/", OpportunityDetailView.as_view()),
+#    path("resources/", ResourceListView.as_view()),
+#    path("resources/<int:pk>/", ResourceDetailView.as_view()),
+#
+#    path("opportunities/", OpportunityListView.as_view()),
+#    path("opportunities/<int:pk>/", OpportunityDetailView.as_view()),
 
     path("mandat-actif/", MandatActifAPIView.as_view()),
     path("about/", AboutAPIView.as_view())

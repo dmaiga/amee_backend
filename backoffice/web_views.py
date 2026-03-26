@@ -110,7 +110,7 @@ def dashboard(request):
     # --- 👥 Membres & Roster ---
     membres_actifs = User.objects.filter(adhesions_validation__date_expiration__gte=now.date()).count()
     consultants = ConsultantProfile.objects.filter(statut="VALIDE").count()
-    roster_attente = ConsultantProfile.objects.filter(statut="EN_ATTENTE").count()
+    roster_attente = ConsultantProfile.objects.filter(statut="SOUMIS").count()
     
     # Nouveau : Taux de conversion (Membres -> Consultants)
     taux_conversion = 0
@@ -523,37 +523,64 @@ def tresorerie_depense(request):
     )
 
 
+from django.core.paginator import Paginator
+from django.utils.dateparse import parse_date
+from datetime import datetime
+
 @login_required
 def transactions_list(request):
 
     type_transaction = request.GET.get("type")
+    date_debut = request.GET.get("date_debut")
+    date_fin = request.GET.get("date_fin")
 
     transactions = Transaction.objects.select_related(
         "membre",
         "cree_par"
     ).order_by("-cree_le")
-    from django.db.models import Sum, Q
 
-    entrees = Transaction.objects.filter(
-        type_transaction="ENTREE",
-        statut="VALIDEE"
-    ).aggregate(total=Sum("montant"))["total"] or 0
+    from django.db.models import Sum
 
-    sorties = Transaction.objects.filter(
-        type_transaction="SORTIE",
-        statut="VALIDEE"
-    ).aggregate(total=Sum("montant"))["total"] or 0
+    # -------------------------
+    # FILTRES
+    # -------------------------
+    if type_transaction:
+        transactions = transactions.filter(type_transaction=type_transaction)
+
+    if date_debut:
+        transactions = transactions.filter(date_transaction__gte=parse_date(date_debut))
+
+    if date_fin:
+        transactions = transactions.filter(date_transaction__lte=parse_date(date_fin))
+
+    # -------------------------
+    # STATS (filtrées aussi 👈)
+    # -------------------------
+    base_qs = transactions.filter(statut="VALIDEE")
+
+    entrees = base_qs.filter(type_transaction="ENTREE").aggregate(
+        total=Sum("montant")
+    )["total"] or 0
+
+    sorties = base_qs.filter(type_transaction="SORTIE").aggregate(
+        total=Sum("montant")
+    )["total"] or 0
 
     solde = entrees - sorties
 
-    if type_transaction:
-        transactions = transactions.filter(
-            type_transaction=type_transaction
-        )
+    # -------------------------
+    # PAGINATION
+    # -------------------------
+    paginator = Paginator(transactions, 10)  # 10 par page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
 
     context = {
-        "transactions": transactions,
+        "transactions": page_obj,
+        "page_obj": page_obj,
         "selected_type": type_transaction,
+        "date_debut": date_debut,
+        "date_fin": date_fin,
         "solde": solde,
         "entrees": entrees,
         "sorties": sorties,
@@ -564,6 +591,7 @@ def transactions_list(request):
         "backoffice/tresorerie/transactions_list.html",
         context
     )
+
 
 @login_required
 def transaction_detail(request, transaction_id):
