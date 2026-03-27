@@ -35,6 +35,8 @@ from drf_spectacular.views import (
 from django.views.generic import RedirectView
 from portals.views import register_view,plateforme_login
 from portals.forms import CustomSetPasswordForm
+from django.conf.urls.i18n import i18n_patterns
+
 urlpatterns = [
     path('admin/', admin.site.urls),
         
@@ -91,13 +93,18 @@ urlpatterns = [
     #path('api/missions/', include('missions.urls')),
     #path('api/interactions/', include('interactions.urls')),
     #path("api/quality/", include("quality_control.urls")),
-    path("api/cms/", include("cms.urls")),
+
 
     path("api/portals/", include("portals.urls")),
     path("portals/", include("portals.urls")),
     path("backoffice/", include("backoffice.urls")),
 
 ]
+urlpatterns += i18n_patterns(
+    path("api/cms/", include("cms.urls")),
+    prefix_default_language=True # Recommandé : force /fr/ ou /en/
+)
+
 if settings.DEBUG:
     urlpatterns += static(
         settings.MEDIA_URL,

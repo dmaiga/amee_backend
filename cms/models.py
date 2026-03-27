@@ -9,24 +9,26 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from accounts.models import User
 from memberships.models import Membership
-
+from django.utils.translation import gettext_lazy as _
+ 
+    
 
 class Article(models.Model):
     TYPE_CHOICES = (
-        ("ACTUALITE", "Actualité"),
-        ("EVENEMENT", "Événement"),
-        ("COMMUNIQUE", "Communiqué officiel"),
-
-        ("OPPORTUNITE", "Opportunité"),
-        ("FORMATION", "Formation / Atelier"),
-        ("PARTENARIAT", "Partenariat"),
-        ("APPEL", "Appel à participation"),
-        ("AUTRE", "Autre"),
+        ("ACTUALITE", _("Actualité")),
+        ("EVENEMENT", _("Événement")),
+        ("COMMUNIQUE", _("Communiqué officiel")),
+        ("OPPORTUNITE", _("Opportunité")),
+        ("FORMATION", _("Formation / Atelier")),
+        ("PARTENARIAT", _("Partenariat")),
+        ("APPEL", _("Appel à participation")),
+        ("AUTRE", _("Autre")),
     )
+    
 
 
     titre = models.CharField(max_length=255)
-    slug = models.SlugField(unique=True, blank=True)
+    slug = models.SlugField(unique=True, blank=True, max_length=255)
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     contenu = models.TextField()
     image = models.ImageField(upload_to="cms/articles/", null=True, blank=True)
@@ -42,6 +44,7 @@ class Article(models.Model):
     lien_externe = models.CharField(
         blank=True,
         null=True,
+        max_length=500,
         help_text="Lien externe (inscription, document officiel, partenaire...)"
     )
     
@@ -60,34 +63,47 @@ class Article(models.Model):
 
 
     def save(self, *args, **kwargs):
-    
-        # ---------- SLUG ----------
-        if not self.slug:
-            base_slug = slugify(self.titre)
-            slug = base_slug
-            counter = 1
-            while Article.objects.filter(slug=slug).exclude(pk=self.pk).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
-            self.slug = slug
-    
-        now = timezone.now()
-    
+        MAX_SLUG_LENGTH = 255
+
+        # Fonction interne pour générer un slug unique par langue
+        def generate_unique_slug(title_field, slug_field_name):
+            title_value = getattr(self, title_field)
+            if title_value and not getattr(self, slug_field_name):
+                base_slug = slugify(title_value)[:MAX_SLUG_LENGTH]
+                slug = base_slug
+                counter = 1
+
+                # On vérifie l'unicité sur le champ spécifique (ex: slug_fr)
+                filter_kwargs = {f"{slug_field_name}": slug}
+                while Article.objects.filter(**filter_kwargs).exclude(pk=self.pk).exists():
+                    suffix = f"-{counter}"
+                    slug = f"{base_slug[:MAX_SLUG_LENGTH - len(suffix)]}{suffix}"
+                    filter_kwargs[slug_field_name] = slug
+                    counter += 1
+
+                setattr(self, slug_field_name, slug)
+
+        # ---------- GÉNÉRATION DES SLUGS ----------
+        # On génère les slugs pour chaque langue définie dans modeltranslation
+        generate_unique_slug('titre_fr', 'slug_fr')
+        generate_unique_slug('titre_en', 'slug_en')
+
         # ---------- LOGIQUE PUBLICATION ----------
-        # 1️⃣ publication forcée depuis admin
+        now = timezone.now()
+
         if self.publie:
             if not self.date_publication:
                 self.date_publication = now
-    
-        # 2️⃣ publication programmée
         elif self.date_publication:
             if self.date_publication <= now:
                 self.publie = True
             else:
                 self.publie = False
-    
+
         super().save(*args, **kwargs)
-    
+
+
+
     def __str__(self):
         return self.titre
 
@@ -155,9 +171,6 @@ class Opportunity(models.Model):
         return (self.date_limite - timezone.now().date()).days
 
 
-
-from django.core.exceptions import ValidationError
-
 class Mandat(models.Model):
     nom = models.CharField(max_length=100)
     date_debut = models.DateField()
@@ -178,7 +191,6 @@ class Mandat(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
-
         
 class BoardRole(models.Model):
     titre = models.CharField(max_length=150, unique=True)

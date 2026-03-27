@@ -15,47 +15,46 @@
     </div>
 
 <form method="post" enctype="multipart/form-data">
-{% csrf_token %}
+        {% csrf_token %}
 
-<div class="grid lg:grid-cols-3 gap-6">
+        <div class="grid lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 space-y-6">
+                
+                <div role="tablist" class="tabs tabs-lifted">
+                    
+                    <input type="radio" name="lang_tabs" role="tab" class="tab" aria-label="Français" checked />
+                    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6 space-y-4">
+                        <div>
+                            <label class="label"><span class="label-text font-bold">Titre (FR)</span></label>
+                            {{ form.titre_fr }}
+                        </div>
+                        <div>
+                            <label class="label"><span class="label-text font-bold">Contenu (FR)</span></label>
+                            {{ form.contenu_fr }}
+                        </div>
+                    </div>
 
-    <!-- COLONNE PRINCIPALE -->
-    <div class="lg:col-span-2 space-y-6">
+                    <input type="radio" name="lang_tabs" role="tab" class="tab" aria-label="English" />
+                    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6 space-y-4">
+                        <div>
+                            <label class="label"><span class="label-text font-bold">Title (EN)</span></label>
+                            {{ form.titre_en }}
+                        </div>
+                        <div>
+                            <label class="label"><span class="label-text font-bold">Content (EN)</span></label>
+                            {{ form.contenu_en }}
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Titre -->
-        <div class="card bg-base-100 shadow">
-            <div class="card-body">
-                <label class="label">
-                    <span class="label-text font-medium">Titre</span>
-                </label>
-                {{ form.titre }}
+                <div class="card bg-base-100 shadow">
+                    <div class="card-body">
+                        <label class="label"><span class="label-text font-medium">Image de couverture</span></label>
+                        {{ form.image }}
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- Contenu -->
-        <div class="card bg-base-100 shadow">
-            <div class="card-body">
-                <label class="label">
-                    <span class="label-text font-medium">Contenu</span>
-                </label>
-                {{ form.contenu }}
-            </div>
-        </div>
-
-        <!-- Image -->
-        <div class="card bg-base-100 shadow">
-            <div class="card-body">
-                <label class="label">
-                    <span class="label-text font-medium">Image</span>
-                </label>
-                {{ form.image }}
-            </div>
-        </div>
-
-    </div>
-
-
-    <!-- SIDEBAR -->
     <div class="space-y-6">
 
         <!-- Publication -->
@@ -104,21 +103,13 @@
         </div>
 
     </div>
+        </div>
 
-</div>
-
-<!-- ACTIONS -->
-<div class="mt-8 flex gap-3">
-    <button class="btn btn-primary">
-         Enregistrer
-    </button>
-
-    <a href="{% url 'bo_articles_list' %}" class="btn btn-ghost">
-        Annuler
-    </a>
-</div>
-
-</form>
+        <div class="mt-8 flex gap-3">
+            <button type="submit" class="btn btn-primary px-8">Enregistrer l'article</button>
+            <a href="{% url 'bo_articles_list' %}" class="btn btn-ghost">Annuler</a>
+        </div>
+    </form>
 </div>
 
 {% endblock %}

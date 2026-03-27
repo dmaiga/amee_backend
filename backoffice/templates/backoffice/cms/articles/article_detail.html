@@ -3,154 +3,143 @@
 
 <div class="max-w-7xl mx-auto py-6">
 
-    <!-- HEADER -->
-    <div class="flex justify-between items-start mb-6">
-
+    <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
         <div>
-            <h1 class="text-3xl font-bold">
-                {{ article.titre }}
-            </h1>
+            <div class="flex items-center gap-3 mb-2">
+                <h1 class="text-3xl font-bold">{{ article.titre_fr }}</h1>
+                <span class="text-3xl text-base-content/20">|</span>
+                <h1 class="text-3xl font-medium text-base-content/50 italic">{{ article.titre_en|default:"(No English Title)" }}</h1>
+            </div>
 
-            <div class="flex items-center gap-3 mt-2 text-sm text-base-content/60">
-
-                <span class="badge badge-outline">
-                    {{ article.get_type_display }}
-                </span>
+            <div class="flex flex-wrap items-center gap-3 text-sm text-base-content/60">
+                <span class="badge badge-outline">{{ article.get_type_display }}</span>
 
                 {% if article.publie %}
-                    <span class="badge badge-success">Publié</span>
+                    <span class="badge badge-success gap-1">● Publié</span>
                 {% else %}
-                    <span class="badge badge-warning">Brouillon</span>
+                    <span class="badge badge-warning gap-1">○ Brouillon</span>
                 {% endif %}
 
                 <span>
-                    📅
-                    {% if article.date_publication %}
-                        {{ article.date_publication|date:"d/m/Y H:i" }}
-                    {% else %}
-                        Non programmé
-                    {% endif %}
+                     {% if article.date_publication %}{{ article.date_publication|date:"d/m/Y H:i" }}{% else %}Non programmé{% endif %}
                 </span>
-
             </div>
         </div>
 
         <div class="flex gap-2">
-            <a href="{% url 'bo_article_edit' article.id %}"
-               class="btn btn-primary">
-                ✏️ Modifier
-            </a>
-
-            <a href="{% url 'bo_articles_list' %}"
-               class="btn btn-ghost">
-                ← Retour
-            </a>
+            <a href="{% url 'bo_article_edit' article.id %}" class="btn btn-primary">Modifier</a>
+            <a href="{% url 'bo_articles_list' %}" class="btn btn-ghost">Retour</a>
         </div>
-
     </div>
 
+    <div class="grid lg:grid-cols-3 gap-8">
 
-    <!-- LAYOUT -->
-    <div class="grid lg:grid-cols-3 gap-6">
-
-        <!-- CONTENU PRINCIPAL -->
-        <div class="lg:col-span-2">
+        <div class="lg:col-span-2 space-y-8">
 
             {% if article.image %}
-            <div class="mb-6">
-                <img src="{{ article.image.url }}"
-                     class="rounded-xl w-full object-cover shadow"
-                     style="max-height:420px;">
+            <div class="relative">
+                <img src="{{ article.image.url }}" class="rounded-2xl w-full object-cover shadow-lg" style="max-height:450px;">
+                <div class="absolute top-4 left-4">
+                    <span class="badge badge-neutral shadow-lg">Image de couverture</span>
+                </div>
             </div>
             {% endif %}
 
-            <div class="card bg-base-100 shadow">
-                <div class="card-body prose max-w-none">
-                    {{ article.contenu|linebreaks }}
+            <div role="tablist" class="tabs tabs-lifted tabs-lg">
+                
+                <input type="radio" name="lang_preview" role="tab" class="tab !text-primary font-bold" aria-label="🇫🇷 Français" checked />
+                <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-8 shadow-sm">
+                    <h2 class="text-2xl font-bold mb-4 text-primary">{{ article.titre_fr }}</h2>
+                    <div class="prose max-w-none">
+                        {{ article.contenu_fr|linebreaks }}
+                    </div>
+                </div>
+
+                <input type="radio" name="lang_preview" role="tab" class="tab !text-secondary font-bold" aria-label="🇬🇧 English" />
+                <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-8 shadow-sm">
+                    <h2 class="text-2xl font-bold mb-4 text-secondary">{{ article.titre_en|default:"(Empty content)" }}</h2>
+                    <div class="prose max-w-none">
+                        {% if article.contenu_en %}
+                            {{ article.contenu_en|linebreaks }}
+                        {% else %}
+                            <p class="italic text-base-content/40">Aucun contenu renseigné pour la version anglaise.</p>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-
         </div>
 
-
-        <!-- SIDEBAR INFOS -->
         <div class="space-y-6">
 
-            <!-- Auteur -->
-            <div class="card bg-base-100 shadow">
+            <div class="card bg-base-100 shadow-sm border border-base-200">
                 <div class="card-body">
-                    <h3 class="font-semibold mb-3">
-                        Publication
+                    <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                         Publication
                     </h3>
 
-                    <p class="text-sm">
-                        <span class="text-base-content/60">
-                            Publié par :
-                        </span><br>
-
-                        {% if article.publie_par %}
-                            <span class="font-medium">
-                                👤 {{ article.publie_par }}
-                            </span>
-                        {% else %}
-                            —
-                        {% endif %}
-                    </p>
-                </div>
-            </div>
-
-            <!-- Informations -->
-            <div class="card bg-base-100 shadow">
-                <div class="card-body">
-                    <h3 class="font-semibold mb-3">
-                        Informations techniques
-                    </h3>
-
-                    <div class="space-y-3 text-sm">
-
+                    <div class="space-y-4">
                         <div>
-                            <span class="text-base-content/60">Slug</span>
-                            <div class="font-mono text-xs">
-                                {{ article.slug }}
+                            <span class="text-xs uppercase font-bold text-base-content/40">Publié par</span>
+                            <div class="flex items-center gap-2 mt-1">
+                                <div class="avatar placeholder">
+                                    <div class="bg-neutral text-neutral-content rounded-full w-8">
+                                        <span>{{ article.publie_par.username|first|upper }}</span>
+                                    </div>
+                                </div>
+                                <span class="font-medium">{{ article.publie_par|default:"Système" }}</span>
                             </div>
                         </div>
 
-                        <div>
-                            <span class="text-base-content/60">
-                                Publication forcée
-                            </span><br>
+                        <div class="divider my-0"></div>
 
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs uppercase font-bold text-base-content/40">Forçage</span>
                             {% if article.publie_manuellement %}
-                                <span class="badge badge-success">Oui</span>
+                                <span class="badge badge-success badge-sm">Activé</span>
                             {% else %}
-                                <span class="badge badge-ghost">Non</span>
+                                <span class="badge badge-ghost badge-sm text-base-content/30">Inactif</span>
                             {% endif %}
                         </div>
-
-                        <div>
-                            <span class="text-base-content/60">
-                                Lien externe
-                            </span><br>
-
-                            {% if article.lien_externe %}
-                                <a href="{{ article.lien_externe }}"
-                                   target="_blank"
-                                   class="link link-primary break-all">
-                                   Ouvrir le lien
-                                </a>
-                            {% else %}
-                                —
-                            {% endif %}
-                        </div>
-
                     </div>
                 </div>
             </div>
 
+            <div class="card bg-base-100 shadow-sm border border-base-200">
+                <div class="card-body">
+                    <h3 class="font-bold text-lg mb-4">🔗 URLs (Slugs)</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <span class="text-[10px] uppercase font-bold text-primary">Slug FR</span>
+                            <div class="bg-base-200 p-2 rounded mt-1 font-mono text-xs break-all">
+                                {{ article.slug_fr }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="text-[10px] uppercase font-bold text-secondary">Slug EN</span>
+                            <div class="bg-base-200 p-2 rounded mt-1 font-mono text-xs break-all">
+                                {{ article.slug_en|default:"—" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if article.lien_externe %}
+            <div class="card bg-primary text-primary-content shadow-lg">
+                <div class="card-body">
+                    <h3 class="font-bold">Lien de l'action</h3>
+                    <p class="text-xs opacity-80 mb-4 text-justify">Cet article redirige ou propose un bouton vers une ressource externe.</p>
+                    <a href="{{ article.lien_externe }}" target="_blank" class="btn btn-sm btn-secondary">
+                        Visiter le lien ↗
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
         </div>
-
     </div>
-
 </div>
 
 {% endblock %}

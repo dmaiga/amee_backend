@@ -11,9 +11,9 @@ class ArticleForm(forms.ModelForm):
     class Meta:
         model = Article
         fields = [
-            "titre",
+            "titre_fr", "titre_en",
             "type",
-            "contenu",
+            "contenu_fr", "contenu_en",
             "image",
             "publie",
             "date_publication",
@@ -22,17 +22,16 @@ class ArticleForm(forms.ModelForm):
         ]
 
         widgets = {
-            "titre": forms.TextInput(attrs={
-                "class": "input input-bordered w-full"
-            }),
 
+            "titre_fr": forms.TextInput(attrs={"class": "input input-bordered w-full", "placeholder": "Titre en français"}),
+            "titre_en": forms.TextInput(attrs={"class": "input input-bordered w-full", "placeholder": "Title in English"}),
+            
+            # Contenus
+            "contenu_fr": forms.Textarea(attrs={"rows": 8, "class": "textarea textarea-bordered w-full"}),
+            "contenu_en": forms.Textarea(attrs={"rows": 8, "class": "textarea textarea-bordered w-full"}),
+           
             "type": forms.Select(attrs={
                 "class": "select select-bordered w-full"
-            }),
-
-            "contenu": forms.Textarea(attrs={
-                "rows": 12,
-                "class": "textarea textarea-bordered w-full"
             }),
 
             "image": forms.ClearableFileInput(attrs={

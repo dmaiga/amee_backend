@@ -4,11 +4,17 @@ from rest_framework import serializers
 
 
 
+from rest_framework import serializers
+from .models import Article
+
 class ArticleSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Article
-        fields = "__all__"
-
+        fields = [
+            'id', 'titre', 'slug', 'type', 'contenu', 
+            'image', 'lectures', 'date_publication', 'lien_externe'
+        ]
 
 class ResourceSerializer(serializers.ModelSerializer):
     class Meta:

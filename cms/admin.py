@@ -2,13 +2,17 @@ from django.contrib import admin
 from django.utils.html import format_html
 from .models import Article, Resource, Opportunity
 
+from django.utils.html import format_html
 
 # =====================================================
 # ARTICLE ADMIN (Actualités / Événements)
 # =====================================================
+from modeltranslation.admin import TranslationAdmin 
+from django.utils.html import format_html
 
 @admin.register(Article)
-class ArticleAdmin(admin.ModelAdmin):
+class ArticleAdmin(TranslationAdmin):
+    
     fields = (
         "titre",
         "slug",
@@ -27,32 +31,20 @@ class ArticleAdmin(admin.ModelAdmin):
         "date_publication",
     )
 
-    list_filter = (
-        "type",
-        "publie",
-        "date_publication",
-    )
-
-    search_fields = ("titre", "contenu")
-
-    prepopulated_fields = {"slug": ("titre",)}
-
-
-
-    ordering = ("-date_publication",)
+ 
 
     def statut_publication(self, obj):
         if obj.publie:
+            # On passe "Publié" en argument pour satisfaire format_html
             return format_html(
-                '<b style="color:{};">{}</b>',
-                "green",
+                '<b style="color:green;">{}</b>', 
                 "Publié"
             )
         return format_html(
-            '<b style="color:{};">{}</b>',
-            "orange",
+            '<b style="color:orange;">{}</b>', 
             "Brouillon"
         )
+
 
 # =====================================================
 # RESOURCE ADMIN (Bibliothèque membres)
