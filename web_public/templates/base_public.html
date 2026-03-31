@@ -1,0 +1,205 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr" data-theme="light" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}AMEE{% endblock %} | Association Malienne des Évaluations Environnementales</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#15803d',   // Vert AMEE
+                        secondary: '#64748b', // Gris ardoise clair
+                        deep: '#1e293b',      // Bleu nuit (Footer/Header)
+                        surface: '#f8fafc',   // Fond de page
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Empêcher le scroll horizontal parasite sur mobile */
+        body { overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        
+        .nav-glass {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* Animation scroll infini logos */
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(-250px * 5)); }
+        }
+        .animate-scroll {
+            animation: scroll 30s linear infinite;
+            display: flex;
+            width: calc(250px * 10);
+        }
+
+        /* Masquer la barre de navigation haute sur mobile si on veut un look épuré */
+        @media (max-width: 768px) {
+            .desktop-nav { display: none; }
+        }
+
+        /* Style des boutons et éléments actifs */
+        .btm-nav > a.active {
+            color: #15803d;
+            border-top-width: 4px;
+            border-color: #15803d;
+            background-color: rgba(21, 128, 61, 0.05);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="min-h-screen flex flex-col bg-surface text-deep antialiased">
+
+    <div class="drawer drawer-end">
+        <input id="main-drawer" type="checkbox" class="drawer-toggle" />
+        
+        <div class="drawer-content flex flex-col">
+            
+            <nav class="sticky top-0 z-[40] nav-glass border-b border-slate-100">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="navbar h-16 md:h-24 px-0">
+                        
+                        <div class="navbar-start">
+                            <a href="/" class="flex items-center gap-2 md:gap-4 group">
+                                <div class="p-1 bg-white rounded-xl shadow-sm group-hover:shadow-md transition-all">
+                                    <img src="{% static 'images/logo/logo_amee.jpeg' %}" alt="Logo AMEE" class="h-8 md:h-12 w-auto rounded">
+                                </div>
+                                <div class="flex flex-col leading-none">
+                                    <span class="font-black text-lg md:text-2xl tracking-tighter text-deep group-hover:text-primary transition-colors uppercase italic">AMEE</span>
+                                    <span class="hidden md:block text-[8px] uppercase tracking-[0.3em] font-black text-secondary">Mali Expertise</span>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="navbar-center hidden lg:flex">
+                            <ul class="flex items-center gap-10 font-black text-[11px] uppercase tracking-[0.15em] text-secondary">
+                                <li><a href="{% url 'acceuil' %}" class="hover:text-primary transition-colors ">Accueil</a></li>
+                                <li class="relative group">
+                                    <button class="flex items-center gap-1 hover:text-primary">ASSOCIATION <i class="fa-solid fa-chevron-down text-[9px]"></i></button>
+                                    <div class="absolute top-full left-0 pt-6 hidden group-hover:block w-56">
+                                        <div class="bg-white border border-slate-100 shadow-2xl rounded-[2rem] p-3 overflow-hidden">
+                                            <a href="{% url 'about_association' %}" class="block p-4 rounded-2xl hover:bg-surface hover:text-primary transition-all">À propos</a>
+                                            <a href="{% url 'board_list' %}" class="block p-4 rounded-2xl hover:bg-surface hover:text-primary transition-all">Le Bureau</a>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li><a href="{% url 'publications' %}" class="hover:text-primary transition-colors">Publications</a></li>
+                                <li><a href="{% url 'public_gallery_list' %}" class="hover:text-primary transition-colors">Galerie</a></li>
+                                 <li><a href="{% url 'contact' %}" class="hover:text-primary transition-colors">Contact</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="navbar-end gap-3">
+                            <a href="{% url 'login' %}" class="hidden md:flex text-secondary hover:text-deep text-[11px] font-black uppercase tracking-widest px-4">Login</a>
+                            <a href="{% url 'adhesion_info' %}" class="btn btn-sm md:btn-md bg-primary border-none text-white hover:bg-deep rounded-2xl px-6 font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-primary/20">
+                                Adhésion
+                            </a>
+                            <label for="main-drawer" class="btn btn-ghost btn-circle lg:hidden">
+                                <i class="fa-solid fa-bars-staggered text-xl"></i>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <main class="flex-grow pb-24 md:pb-0">
+                {% block content %}{% endblock %}
+            </main>
+
+            <footer class="bg-deep py-20 relative overflow-hidden">
+                <div class="max-w-7xl mx-auto px-6 relative z-10">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-16 border-b border-slate-800 pb-16">
+                        <div class="md:col-span-5 space-y-8">
+                            <div class="flex items-center gap-3">
+                                <img src="{% static 'images/logo/logo_amee.jpeg' %}" class="h-10 rounded shadow-lg">
+                                <span class="text-white font-black text-2xl tracking-tighter uppercase italic">AMEE <span class="text-primary">Mali</span></span>
+                            </div>
+                            <p class="text-slate-400 text-sm leading-relaxed max-w-sm italic">
+                                Association de référence pour l'encadrement des évaluations environnementales au Mali. Engagement, Expertise, Excellence.
+                            </p>
+                        </div>
+                        <div class="md:col-span-3">
+                            <h4 class="text-primary font-black text-[10px] uppercase tracking-[0.3em] mb-8">Navigation</h4>
+                            <ul class="space-y-4 text-slate-300 text-sm font-bold uppercase tracking-tight italic">
+                                <li><a href="{% url 'publications' %}" class="hover:text-white transition-colors">Actualités</a></li>
+                                <li><a href="{% url 'contact' %}" class="hover:text-white transition-colors">Contactez-nous</a></li>
+                                <li><a href="{% url 'login' %}" class="hover:text-white transition-colors">Portail Expert</a></li>
+                            </ul>
+                        </div>
+                        <div class="md:col-span-4 bg-white/5 p-8 rounded-[2.5rem] border border-white/10 backdrop-blur-sm">
+                            <h4 class="text-white font-black text-[10px] uppercase tracking-[0.2em] mb-6">Contact</h4>
+                            <p class="text-slate-400 text-xs leading-loose">
+                                Hamdallaye ACI 2000, Rue 390 <br>
+                                Porte 388, Bamako, Mali <br>
+                                <span class="text-white font-bold block mt-4 italic">contact@amee-ml.com</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row justify-between items-center mt-12 text-[9px] font-black uppercase tracking-[0.4em] text-slate-600">
+                        <span>© 2026 AMEE - Mali</span>
+                        <div class="flex gap-6 mt-4 md:mt-0">
+                            <a href="#" class="hover:text-primary transition-colors italic">Linkedin</a>
+                            <a href="#" class="hover:text-primary transition-colors italic">Mentions Légales</a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+
+        </div> 
+
+        <div class="drawer-side z-[50]">
+            <label for="main-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+            <div class="menu p-8 w-80 min-h-full bg-white text-deep">
+                <div class="flex items-center gap-4 mb-12 border-b pb-6">
+                    <img src="{% static 'images/logo/logo_amee.jpeg' %}" class="h-10 rounded shadow">
+                    <span class="font-black text-xl tracking-tighter uppercase italic">Menu AMEE</span>
+                </div>
+                
+                <ul class="space-y-2 font-black uppercase text-[11px] tracking-widest">
+                    <li><a href="{% url 'acceuil' %}" class="p-4 rounded-2xl hover:bg-surface italic"><i class="fa-solid fa-house text-primary"></i> Accueil</a></li>
+                    <li>
+                        <details>
+                            <summary class="p-4 rounded-2xl hover:bg-surface italic"><i class="fa-solid fa-users text-primary"></i> Association</summary>
+                            <ul class="ml-6 mt-2 space-y-2">
+                                <li><a href="{% url 'about_association' %}" class="p-4 rounded-2xl italic">À propos</a></li>
+                                <li><a href="{% url 'board_list' %}" class="p-4 rounded-2xl italic">Le Bureau</a></li>
+                            </ul>
+                        </details>
+                    </li>
+                    <li><a href="{% url 'publications' %}" class="p-4 rounded-2xl hover:bg-surface italic"><i class="fa-solid fa-newspaper text-primary"></i> Publications</a></li>
+                    <li><a href="{% url 'public_gallery_list' %}" class="p-4 rounded-2xl hover:bg-surface italic"><i class="fa-solid fa-images text-primary"></i> Galerie</a></li>
+                    <li><a href="{% url 'contact' %}" class="p-4 rounded-2xl hover:bg-surface italic"><i class="fa-solid fa-envelope text-primary"></i> Contact</a></li>
+                </ul>
+
+                <div class="mt-auto pt-10">
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-block rounded-2xl font-black uppercase text-[10px] tracking-widest italic">
+                        Accès Expert <i class="fa-solid fa-lock ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

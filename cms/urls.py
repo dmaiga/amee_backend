@@ -5,12 +5,14 @@ urlpatterns = [
     path("articles/", ArticleListView.as_view()),
     path("articles/<slug:slug>/", ArticleDetailView.as_view()),
 
-#    path("resources/", ResourceListView.as_view()),
-#    path("resources/<int:pk>/", ResourceDetailView.as_view()),
-#
-#    path("opportunities/", OpportunityListView.as_view()),
-#    path("opportunities/<int:pk>/", OpportunityDetailView.as_view()),
+    path("resources/", PublicResourceListView.as_view()),
+    path("resources/<int:pk>/", PublicResourceDetailView.as_view()),
 
-    path("mandat-actif/", MandatActifAPIView.as_view()),
-    path("about/", AboutAPIView.as_view())
+    path("opportunities/", PublicOpportunityListView.as_view()),
+    path("opportunities/<int:pk>/", PublicOpportunityDetailView.as_view()),
+
+    path("api/galeries/", GalleryListAPIView.as_view()),
+    path("api/galeries/<slug:slug>/", GalleryDetailAPIView.as_view()),
+   
+
 ]

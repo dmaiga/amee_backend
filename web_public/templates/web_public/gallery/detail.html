@@ -1,0 +1,59 @@
+{% extends "base_public.html" %}
+{% load static %}
+
+{% block title %}{{ gallery.title }}{% endblock %}
+
+{% block content %}
+<div class="bg-white border-b border-slate-100 py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-xs font-bold uppercase tracking-widest">
+        <a href="{% url 'public_gallery_list' %}" class="text-slate-400 hover:text-primary">Galeries</a>
+        <span class="mx-2 text-slate-300">/</span>
+        <span class="text-primary">{{ gallery.title }}</span>
+    </div>
+</div>
+
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mb-16">
+            <h1 class="text-3xl md:text-4xl font-black text-slate-900 mb-6 leading-tight">{{ gallery.title }}</h1>
+            <div class="w-20 h-1.5 bg-primary mb-6"></div>
+            <p class="text-lg text-slate-600 leading-relaxed">
+                {{ gallery.description }}
+            </p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {% for photo in gallery.photos.all %}
+            <div class="group relative aspect-square overflow-hidden rounded-2xl bg-slate-100 border border-slate-200 cursor-pointer" onclick="photo_modal_{{ photo.id }}.showModal()">
+                <img src="{{ photo.image.url }}" alt="{{ photo.title }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-6">
+                    <span class="text-white font-bold text-sm">{{ photo.title|default:gallery.title }}</span>
+                </div>
+            </div>
+
+            <dialog id="photo_modal_{{ photo.id }}" class="modal backdrop-blur-sm">
+                <div class="modal-box max-w-5xl p-0 bg-transparent shadow-none border-none">
+                    <form method="dialog">
+                        <button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4 text-white z-50 bg-black/20 hover:bg-black/50">✕</button>
+                    </form>
+                    <img src="{{ photo.image.url }}" class="w-full h-auto rounded-3xl">
+                    {% if photo.title %}
+                    <div class="bg-white p-6 rounded-b-3xl -mt-4 text-center">
+                        <h3 class="font-bold text-lg text-slate-900">{{ photo.title }}</h3>
+                    </div>
+                    {% endif %}
+                </div>
+                <form method="dialog" class="modal-backdrop">
+                    <button>close</button>
+                </form>
+            </dialog>
+            {% empty %}
+            <div class="col-span-full text-center py-10 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                <p class="text-slate-400 italic">Cet album ne contient pas encore de photos.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

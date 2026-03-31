@@ -1,0 +1,61 @@
+{% extends "base_public.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-16">
+    <div class="bg-white rounded-[3rem] shadow-xl border border-slate-100 overflow-hidden">
+        <div class="bg-slate-50 p-10 border-b border-slate-100 text-center">
+            <div class="avatar mb-6">
+                <div class="w-32 h-32 rounded-3xl ring ring-primary ring-offset-base-100 ring-offset-4">
+                    {% if organization.logo %}
+                        <img src="{{ organization.logo.url }}" />
+                    {% else %}
+                        <div class="bg-primary text-white flex items-center justify-center text-4xl font-black h-full uppercase">
+                            {{ organization.sigle|default:organization.nom|slice:":2" }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <h1 class="text-3xl font-black text-slate-900 uppercase">{{ organization.nom }}</h1>
+            {% if organization.sigle %}<p class="text-primary font-bold mt-1">({{ organization.sigle }})</p>{% endif %}
+        </div>
+
+        <div class="p-10 grid md:grid-cols-2 gap-12 text-slate-600">
+            <div class="space-y-6">
+                <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-address-book text-primary"></i> Informations de contact
+                </h3>
+                <ul class="space-y-4">
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-location-dot mt-1 text-slate-400"></i>
+                        <span>{{ organization.siege|default:"Siège non spécifié" }}</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fa-solid fa-phone text-slate-400"></i>
+                        <span>{{ organization.telephone }}</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fa-solid fa-globe text-slate-400"></i>
+                        <a href="{{ organization.site_web }}" target="_blank" class="text-primary hover:underline">{{ organization.site_web|default:"Pas de site web" }}</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bg-slate-50 p-8 rounded-3xl border border-slate-100">
+                <h3 class="text-lg font-bold text-slate-800 mb-4">Représentant Officiel</h3>
+                <div class="space-y-2 text-sm">
+                    <p class="font-bold text-slate-900 text-lg">{{ organization.representant_nom }}</p>
+                    <p class="badge badge-secondary">{{ organization.representant_fonction }}</p>
+                    <p class="mt-4 flex items-center gap-2">
+                        <i class="fa-solid fa-envelope text-slate-400"></i> {{ organization.representant_email }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-10 pt-0">
+            <a href="{% url 'about_association' %}#partenaires" class="btn btn-ghost">
+                <i class="fa-solid fa-arrow-left"></i> Retour aux partenaires
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -27,6 +27,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from accounts.views import RegisterView,LoginView
+from web_public.views import acceuil
+
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
@@ -34,75 +36,56 @@ from drf_spectacular.views import (
 )
 from django.views.generic import RedirectView
 from portals.views import register_view,plateforme_login
+from cms.views import (BureauAPIView,MandatActifAPIView,
+                       PhotoListAPIView,GalleryListAPIView,
+                       ContactAPIView)
+                      
+
+
 from portals.forms import CustomSetPasswordForm
+
 from django.conf.urls.i18n import i18n_patterns
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-        
+    path('', RedirectView.as_view(url='/login/', permanent=False)),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema')),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema')),
-    
-    path('', RedirectView.as_view(url='/login/', permanent=False)),
-    
     path('login/', plateforme_login, name='login' ),    
     path('inscription/', register_view, name='inscription' ),
     # Password reset
-    path(
-        "password-reset/",
-        auth_views.PasswordResetView.as_view(
-            template_name="auth/password_reset_form.html"
-        ),
-        name="password_reset"
-    ),
-
-    path(
-        "password-reset/done/",
-        auth_views.PasswordResetDoneView.as_view(
-            template_name="auth/password_reset_done.html"
-        ),
-        name="password_reset_done"
-    ),
-
-    path(
-        "reset/<uidb64>/<token>/",
-        auth_views.PasswordResetConfirmView.as_view(
-            form_class=CustomSetPasswordForm,
-            template_name="auth/password_reset_confirm.html"
-        ),
-        name="password_reset_confirm"
-    ),
-
-    path(
-        "reset/done/",
-        auth_views.PasswordResetCompleteView.as_view(
-            template_name="auth/password_reset_complete.html"
-        ),
-        name="password_reset_complete"
-    ),
-
-#
-    #path('api/auth/login/', LoginView.as_view()),
-    #path('api/auth/refresh/', TokenRefreshView.as_view()),
-#
-#
-    #path('api/accounts/', include('accounts.urls')),
-    #path('api/memberships/', include('memberships.urls')),
-    #path('api/roster/', include('roster.urls')),
-    #path('api/missions/', include('missions.urls')),
-    #path('api/interactions/', include('interactions.urls')),
-    #path("api/quality/", include("quality_control.urls")),
+    path("password-reset/", auth_views.PasswordResetView.as_view( template_name="auth/password_reset_form.html"), name="password_reset"),
+    path("password-reset/done/", auth_views.PasswordResetDoneView.as_view(template_name="auth/password_reset_done.html"), name="password_reset_done"),
+    path("reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view( form_class=CustomSetPasswordForm, template_name="auth/password_reset_confirm.html"), name="password_reset_confirm"),
+    path("reset/done/",auth_views.PasswordResetCompleteView.as_view(template_name="auth/password_reset_complete.html"),name="password_reset_complete"),
 
 
-    path("api/portals/", include("portals.urls")),
+
     path("portals/", include("portals.urls")),
+    path("web/", include("web_public.urls")),
     path("backoffice/", include("backoffice.urls")),
+    
+    path("api/bureau-membre/", BureauAPIView.as_view()),    
+    path('api/contact-form/', ContactAPIView.as_view()),
+    
+#    path('', acceuil, name='acceuil'),
+#    path("api/portals/", include("portals.urls")),
+
+#    path('api/auth/login/', LoginView.as_view()),
+#    path('api/auth/refresh/', TokenRefreshView.as_view()),
+#    path('api/accounts/', include('accounts.urls')),
+#    path('api/memberships/', include('memberships.urls')),
+#    path('api/roster/', include('roster.urls')),
+#    path('api/missions/', include('missions.urls')),
+#    path("api/galeries/", GalleryListAPIView.as_view()),
+#    path("api/photos/", PhotoListAPIView.as_view()),
+#   path("api/mandat-actif/", MandatActifAPIView.as_view()),
 
 ]
 urlpatterns += i18n_patterns(
     path("api/cms/", include("cms.urls")),
-    prefix_default_language=True # Recommandé : force /fr/ ou /en/
+    prefix_default_language=True 
 )
 
 if settings.DEBUG:

@@ -3,127 +3,135 @@
 
 <div class="max-w-6xl mx-auto py-6">
 
-    <!-- HEADER -->
-    <div class="flex justify-between items-start mb-6">
-
+    <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
         <div>
-            <h1 class="text-3xl font-bold">
-                {{ opportunity.titre }}
-            </h1>
-
-            <div class="flex items-center gap-3 mt-2 text-sm text-base-content/60">
-
-                <span class="badge badge-outline">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="badge badge-primary font-bold">
                     {{ opportunity.get_type_display }}
                 </span>
-
                 {% if opportunity.est_expire %}
-                    <span class="badge badge-error">
-                        Expirée
-                    </span>
+                    <span class="badge badge-error text-white">Expirée</span>
                 {% else %}
-                    <span class="badge badge-success">
-                        Active
-                    </span>
+                    <span class="badge badge-success text-white">Active</span>
                 {% endif %}
-
- 
-
+                {% if not opportunity.publie %}
+                    <span class="badge badge-ghost">Brouillon</span>
+                {% endif %}
             </div>
+            
+            <h1 class="text-3xl font-bold">
+                {{ opportunity.titre_fr }}
+            </h1>
+            <p class="text-base-content/50 italic text-sm mt-1">
+                Translation Check: {{ opportunity.titre_en|default:"(No English Title)" }}
+            </p>
         </div>
 
-        <div class="flex gap-2">
-            <a href="{% url 'bo_opportunity_edit' opportunity.id %}"
-               class="btn btn-primary">
+        <div class="flex gap-2 w-full md:w-auto">
+            <a href="{% url 'bo_opportunity_edit' opportunity.id %}" class="btn btn-primary flex-1 md:flex-none">
                 ✏️ Modifier
             </a>
-
-            <a href="{% url 'bo_opportunities_list' %}"
-               class="btn btn-ghost">
+            <a href="{% url 'bo_opportunities_list' %}" class="btn btn-ghost">
                 ← Retour
             </a>
         </div>
-
     </div>
 
+    <div class="grid lg:grid-cols-3 gap-8">
 
-    <!-- LAYOUT -->
-    <div class="grid lg:grid-cols-3 gap-6">
-
-        <!-- DESCRIPTION -->
         <div class="lg:col-span-2">
+            
+            <div role="tablist" class="tabs tabs-lifted">
+                
+                <input type="radio" name="view_tabs" role="tab" class="tab" aria-label="Version Française" checked />
+                <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6 shadow-sm">
+                    <h2 class="text-xl font-bold mb-4 border-b pb-2 text-primary">{{ opportunity.titre_fr }}</h2>
+                    <div class="prose max-w-none">
+                        {{ opportunity.description_fr|linebreaks }}
+                    </div>
+                </div>
 
-            <div class="card bg-base-100 shadow">
-                <div class="card-body prose max-w-none">
-                    {{ opportunity.description|linebreaks }}
+                <input type="radio" name="view_tabs" role="tab" class="tab" aria-label="English Version" />
+                <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6 shadow-sm">
+                    <h2 class="text-xl font-bold mb-4 border-b pb-2 text-primary">{{ opportunity.titre_en|default:"No English Title" }}</h2>
+                    <div class="prose max-w-none">
+                        {% if opportunity.description_en %}
+                            {{ opportunity.description_en|linebreaks }}
+                        {% else %}
+                            <p class="text-base-content/40 italic">Aucune description anglaise fournie.</p>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
         </div>
 
-
-        <!-- SIDEBAR -->
         <div class="space-y-6">
 
-            <!-- Infos -->
-            <div class="card bg-base-100 shadow">
-                <div class="card-body space-y-3">
-
-                    <h3 class="font-semibold">
-                        Informations
+            <div class="card bg-base-100 shadow border border-base-200">
+                <div class="card-body p-5 space-y-4">
+                    <h3 class="font-bold flex items-center gap-2">
+                        ⚙️ Détails techniques
                     </h3>
 
-                    <div class="text-sm">
-                        <span class="text-base-content/60">
-                            Date limite :
-                        </span><br>
-                        {{ opportunity.date_limite|default:"Non définie" }}
-                    </div>
-                    <div class="text-sm">
-                        <span class="text-base-content/60">
-                            Lien extern:
-                        </span><br>
-                        {{ opportunity.lien_externe|default:"Non définie" }}
-                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <span class="text-xs uppercase text-base-content/50 font-semibold">Date limite</span>
+                            <p class="font-medium">{{ opportunity.date_limite|date:"d F Y"|default:"Pas de date limite" }}</p>
+                        </div>
 
-                    <div class="text-sm">
-                        <span class="text-base-content/60">
-                            Publié par :
-                        </span><br>
+                        <div>
+                            <span class="text-xs uppercase text-base-content/50 font-semibold">Lien externe</span>
+                            {% if opportunity.lien_externe %}
+                                <a href="{{ opportunity.lien_externe }}" target="_blank" class="block text-primary hover:underline truncate">
+                                    {{ opportunity.lien_externe }}
+                                </a>
+                            {% else %}
+                                <p class="text-base-content/30 italic">Aucun lien</p>
+                            {% endif %}
+                        </div>
 
-                        {% if opportunity.publie_par %}
-                            👤 {{ opportunity.publie_par }}
-                        {% else %}
-                            —
-                        {% endif %}
+                        <div class="divider my-1"></div>
+
+                        <div>
+                            <span class="text-xs uppercase text-base-content/50 font-semibold">Publié par</span>
+                            <p class="flex items-center gap-2 mt-1">
+                                <div class="avatar placeholder">
+                                    <div class="bg-neutral text-neutral-content rounded-full w-6">
+                                        <span class="text-[10px]">{{ opportunity.publie_par.username|slice:":1"|upper }}</span>
+                                    </div>
+                                </div>
+                                {{ opportunity.publie_par|default:"Système" }}
+                            </p>
+                        </div>
+                        
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-base-content/50">Réservé membres :</span>
+                            {% if opportunity.reserve_aux_membres %}
+                                <span class="badge badge-sm badge-warning">Oui</span>
+                            {% else %}
+                                <span class="badge badge-sm badge-ghost">Non (Public)</span>
+                            {% endif %}
+                        </div>
                     </div>
-
                 </div>
             </div>
 
-            <!-- Téléchargement -->
             {% if opportunity.fichier_joint %}
-            <div class="card bg-base-100 shadow">
-                <div class="card-body text-center">
-
-                    <p class="text-base-content/60 text-sm mb-3">
-                        Document associé
-                    </p>
-
-                    <a href="{{ opportunity.fichier_joint.url }}"
-                       target="_blank"
-                       class="btn btn-success w-full">
-                       ⬇ Télécharger document
+            <div class="card bg-primary text-primary-content shadow-lg">
+                <div class="card-body p-5 items-center text-center">
+                    <span class="text-2xl mb-2">📄</span>
+                    <h3 class="font-bold">Document Joint</h3>
+                    <p class="text-xs opacity-80 mb-4">Un document PDF ou image est lié à cette opportunité.</p>
+                    <a href="{{ opportunity.fichier_joint.url }}" target="_blank" class="btn btn-sm btn-secondary w-full">
+                        Télécharger le fichier
                     </a>
-
                 </div>
             </div>
             {% endif %}
 
         </div>
-
     </div>
-
 </div>
 
 {% endblock %}

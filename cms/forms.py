@@ -9,9 +9,12 @@ from django.core.exceptions import ValidationError
 class MandatForm(forms.ModelForm):
     class Meta:
         model = Mandat
-        fields = ["nom", "date_debut", "date_fin", "actif", "mot_president"]
+        fields = ["nom_fr","nom_en", "date_debut", "date_fin", "actif", "mot_president_fr", "mot_president_en"]
         widgets = {
-            "nom": forms.TextInput(attrs={
+            "nom_fr": forms.TextInput(attrs={
+                "class": "input input-bordered w-full"
+            }),
+            "nom_en": forms.TextInput(attrs={
                 "class": "input input-bordered w-full"
             }),
             "date_debut": forms.DateInput(attrs={
@@ -22,7 +25,11 @@ class MandatForm(forms.ModelForm):
                 "type": "date",
                 "class": "input input-bordered w-full"
             }),
-            "mot_president": forms.Textarea(attrs={
+            "mot_president_fr": forms.Textarea(attrs={
+                "class": "textarea textarea-bordered w-full",
+                "rows": 5
+            }),
+            "mot_president_en": forms.Textarea(attrs={
                 "class": "textarea textarea-bordered w-full",
                 "rows": 5
             }),
@@ -120,4 +127,110 @@ class BoardMembershipForm(forms.ModelForm):
                     "Ce poste est déjà occupé pour ce mandat."
                 )
 
+        return cleaned_data
+    
+
+
+from django import forms
+from .models import Gallery, Photo
+
+class GalleryForm(forms.ModelForm):
+    class Meta:
+        model = Gallery
+        fields = [
+                    'title_fr', 'title_en', 
+                    'description_fr', 'description_en', 
+                    'cover_image', 'is_featured'
+                ]
+        
+        widgets = {
+            "title_fr": forms.TextInput(attrs={
+                "class": "input input-bordered w-full"
+            }),
+            "title_en": forms.TextInput(attrs={
+                "class": "input input-bordered w-full"
+            }),
+           
+
+            "description_fr": forms.Textarea(attrs={
+                "class": "textarea textarea-bordered w-full",
+                "rows": 3
+            }),
+            "description_en": forms.Textarea(attrs={
+                "class": "textarea textarea-bordered w-full",
+                "rows": 3
+            }),
+            "cover_image": forms.ClearableFileInput(attrs={
+                "class": "file-input file-input-bordered w-full"
+            }),
+            "is_featured": forms.CheckboxInput(attrs={
+                "class": "toggle toggle-success",
+                
+            }),
+
+        }
+
+  
+
+import os
+
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+class MultipleFileField(forms.FileField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*'
+        }))
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            result = [single_file_clean(d, initial) for d in data]
+        else:
+            result = single_file_clean(data, initial)
+        return result
+
+class PhotoForm(forms.ModelForm):
+    images = MultipleFileField(
+        required=True,
+        label="Images",
+        help_text="Sélectionnez une ou plusieurs images. Maintenez Ctrl/Cmd pour en sélectionner plusieurs."
+    )
+
+    class Meta:
+        model = Photo
+        fields = [ 'gallery', 'is_standalone']
+        widgets = {
+          
+            'gallery': forms.Select(attrs={'class': 'form-control'}),
+            'is_standalone': forms.CheckboxInput(attrs={'class': 'form-check-input'})
+        }
+        help_texts = {
+            'title': 'Si vide, le nom du fichier sera utilisé comme titre',
+            'is_standalone': 'Cocher si ces photos ne doivent pas être associées à une galerie'
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filtrer les galeries disponibles
+        self.fields['gallery'].queryset = Gallery.objects.all()
+        self.fields['gallery'].required = False
+        
+        # Réorganiser l'ordre des champs
+        self.order_fields(['images', 'gallery', 'is_standalone'])
+
+    def clean(self):
+        cleaned_data = super().clean()
+        gallery = cleaned_data.get('gallery')
+        is_standalone = cleaned_data.get('is_standalone')
+        
+        # Validation: une photo ne peut pas être à la fois dans une galerie et standalone
+        if gallery and is_standalone:
+            raise forms.ValidationError(
+                "Une photo ne peut pas être à la fois dans une galerie et indépendante."
+            )
+        
         return cleaned_data

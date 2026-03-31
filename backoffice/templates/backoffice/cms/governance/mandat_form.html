@@ -1,64 +1,90 @@
 {% extends "backoffice/base.html" %}
 {% block content %}
 
-<div class="max-w-2xl mx-auto">
-<nav class="text-sm breadcrumbs mb-4">
-  <ol>
-    <li><a href="{% url 'mandat_list' %}">Mandats</a></li>
-    <li>Création</li>
-  </ol>
-</nav>
-    <div class="card bg-base-100 shadow-md">
-        <div class="card-body">
+<div class="max-w-3xl mx-auto py-6">
+    <nav class="text-sm breadcrumbs mb-6">
+        <ul>
+            <li><a href="{% url 'mandat_list' %}">Mandats</a></li>
+            <li>{% if form.instance.pk %}Modification{% else %}Création{% endif %}</li>
+        </ul>
+    </nav>
 
-            <h2 class="card-title">
-                Création d’un mandat
+    <div class="card bg-base-100 shadow-xl border border-base-200">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-6">
+                {% if form.instance.pk %}Modifier le mandat{% else %}Créer un nouveau mandat{% endif %}
             </h2>
 
-            <form method="post" class="space-y-4">
+            <form method="post" class="space-y-6">
                 {% csrf_token %}
 
-                <div class="form-control">
-                    <label class="label">Nom</label>
-                    {{ form.nom }}
-                </div>
-                <div class="form-control">
-                    <label class="label">Mot du président</label>
-                    {{ form.mot_president }}
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">Date début</label>
-                        {{ form.date_debut }}
+                <div role="tablist" class="tabs tabs-lifted">
+                    
+                    <input type="radio" name="mandat_tabs" role="tab" class="tab" aria-label="Français" checked />
+                    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6 space-y-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">Nom du mandat (FR)</span></label>
+                            {{ form.nom_fr }}
+                            {% if form.nom_fr.errors %}<p class="text-error text-xs mt-1">{{ form.nom_fr.errors }}</p>{% endif %}
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">Mot du président (FR)</span></label>
+                            {{ form.mot_president_fr }}
+                            {% if form.mot_president_fr.errors %}<p class="text-error text-xs mt-1">{{ form.mot_president_fr.errors }}</p>{% endif %}
+                        </div>
                     </div>
 
-                    <div class="form-control">
-                        <label class="label">Date fin</label>
-                        {{ form.date_fin }}
+                    <input type="radio" name="mandat_tabs" role="tab" class="tab" aria-label="English" />
+                    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6 space-y-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">Mandate Name (EN)</span></label>
+                            {{ form.nom_en }}
+                            {% if form.nom_en.errors %}<p class="text-error text-xs mt-1">{{ form.nom_en.errors }}</p>{% endif %}
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">President's Message (EN)</span></label>
+                            {{ form.mot_president_en }}
+                            {% if form.mot_president_en.errors %}<p class="text-error text-xs mt-1">{{ form.mot_president_en.errors }}</p>{% endif %}
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-control">
-                    <label class="cursor-pointer label">
-                        <span class="label-text">Mandat actif</span>
-                        {{ form.actif }}
-                    </label>
+                <div class="bg-base-200/50 rounded-xl p-4 space-y-4">
+                    <h3 class="font-semibold text-sm uppercase text-base-content/60">Paramètres du mandat</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Date de début</span></label>
+                            {{ form.date_debut }}
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Date de fin</span></label>
+                            {{ form.date_fin }}
+                        </div>
+                    </div>
+
+                    <div class="form-control border-t border-base-300 pt-4 mt-2">
+                        <label class="label cursor-pointer justify-start gap-4">
+                            {{ form.actif }}
+                            <div class="flex flex-col">
+                                <span class="label-text font-bold">Mandat actuellement actif</span>
+                                <span class="label-text-alt text-base-content/60">Un seul mandat peut être actif à la fois sur le site.</span>
+                            </div>
+                        </label>
+                    </div>
                 </div>
 
-                <div class="pt-4">
-                    <button class="btn btn-primary w-full">
-                        Enregistrer
+                <div class="flex flex-col gap-2 pt-4">
+                    <button type="submit" class="btn btn-primary">
+                        Enregistrer le mandat
                     </button>
-                    <a href="{% url 'mandat_list' %}" class="btn btn-ghost w-full mt-2">
-    ← Retour à la liste
-</a>
+                    <a href="{% url 'mandat_list' %}" class="btn btn-ghost">
+                        Annuler et retourner à la liste
+                    </a>
                 </div>
             </form>
-
         </div>
     </div>
-
 </div>
 
 {% endblock %}

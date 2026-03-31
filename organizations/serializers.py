@@ -3,7 +3,7 @@ from organizations.models import Organization
 from memberships.models import Membership
 from roster.models import ConsultantProfile
 
-class AboutSerializer(serializers.Serializer):
+class BureauSerializer(serializers.Serializer):
     organisations = serializers.SerializerMethodField()
     stats = serializers.SerializerMethodField()
 

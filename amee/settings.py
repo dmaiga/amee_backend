@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     'backoffice',
 
     'portals',
+    'web_public',
 
 ]
 

@@ -50,6 +50,7 @@ class ClientProfileForm(forms.ModelForm):
             "telephone_pro",
             "nom_contact",
             "fonction_contact",
+            "logo",
         ]
 
         widgets = {
@@ -71,6 +72,11 @@ class ClientProfileForm(forms.ModelForm):
             "fonction_contact": forms.TextInput(
                 attrs={"class": "input input-bordered w-full"}
             ),
+            "logo": forms.FileInput(attrs={
+                "class": "file-input file-input-bordered w-full",
+                "accept": "image/*",
+                "id": "logoInput"
+            }),
         }             
 
 
@@ -92,6 +98,7 @@ class ClientRegistrationForm(forms.ModelForm):
             "telephone_pro",
             "nom_contact",
             "fonction_contact",
+            
         ]
 
         widgets = {

@@ -2,75 +2,103 @@
 {% block content %}
 
 <div class="max-w-6xl mx-auto space-y-6">
-<nav class="text-sm breadcrumbs">
-  <ol>
-    <li><a href="#">Backoffice</a></li>
-    <li>Mandats</li>
-  </ol>
-</nav>
-    <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-bold">Gestion des Mandats</h1>
+    
+    {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success text-white{% else %}alert-error text-white{% endif %} shadow-lg rounded-xl p-4">
+                    <div class="flex items-center gap-2">
+                        {% if message.tags == 'success' %}
+                            <i class="fa-solid fa-circle-check"></i>
+                        {% else %}
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        {% endif %}
+                        <span class="text-xs font-bold uppercase tracking-wider">{{ message }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
-        <a href="{% url 'mandat_create' %}" 
-           class="btn btn-primary">
-            + Nouveau mandat
+    <nav class="text-sm breadcrumbs">
+      <ul>
+        <li><a href="#">Backoffice</a></li>
+        <li class="font-bold text-primary">Mandats</li>
+      </ul>
+    </nav>
+
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold italic">Gestion des Mandats</h1>
+        <a href="{% url 'mandat_create' %}" class="btn btn-primary gap-2">
+            <span class="text-lg">+</span> Nouveau mandat
         </a>
     </div>
 
-    <div class="card bg-base-100 shadow-md">
-        <div class="card-body">
-
-            <div class="overflow-x-auto">
-                <table class="table">
+    <div class="card bg-base-100 shadow-xl border border-base-200">
+        <div class="card-body p-0"> <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
                     <thead>
-                        <tr>
-                            <th>Nom</th>
+                        <tr class="bg-base-200">
+                            <th class="rounded-tl-xl">Nom</th>
                             <th>Période</th>
                             <th>Statut</th>
-                            <th></th>
+                            <th class="rounded-tr-xl text-right px-6">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for mandat in mandats %}
-                        <tr>
-                            <td class="font-semibold">
+                        <tr class="hover">
+                            <td class="font-bold text-primary">
                                 {{ mandat.nom }}
                             </td>
-                            <td>
-                                {{ mandat.date_debut }} → {{ mandat.date_fin }}
+                            <td class="text-sm">
+                                <span class="opacity-60 text-xs uppercase font-semibold">Du</span> {{ mandat.date_debut|date:"d/m/Y" }} 
+                                <span class="opacity-60 text-xs uppercase font-semibold mx-1">Au</span> {{ mandat.date_fin|date:"d/m/Y" }}
                             </td>
                             <td>
                                 {% if mandat.actif %}
-                                    <span class="badge badge-success">Actif</span>
+                                    <span class="badge badge-success gap-2 py-3 px-4 text-white font-bold">
+                                        <div class="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+                                        ACTIF
+                                    </span>
                                 {% else %}
-                                    <span class="badge badge-ghost">Clôturé</span>
+                                    <span class="badge badge-ghost opacity-50 font-medium">CLÔTURÉ</span>
                                 {% endif %}
                             </td>
-                            <td>
-                                <a href="{% url 'mandat_detail' mandat.id %}"
-                                   class="btn btn-sm btn-outline">
-                                    Voir
+                            <td class="flex gap-2 justify-end px-6">
+                                <a href="{% url 'mandat_detail' mandat.id %}" 
+                                   class="btn btn-sm  btn-ghost" title="Détails">
+                                    VOIR
                                 </a>
-                                <a href="{% url 'mandat_toggle' mandat.id %}"
-   class="btn btn-sm btn-warning">
-    Activer / Désactiver
-</a>
+                            {% if mandat.actif %}
+                                <a href="{% url 'mandat_edit' mandat.id %}" 
+                                   class="btn btn-sm  btn-primary btn-outline" title="Modifier">
+                                    EDIT
+                                </a>
+                            {% endif %}
+
+                                <a href="{% url 'mandat_toggle' mandat.id %}" 
+                                   class="btn btn-sm {% if mandat.actif %}btn-error btn-outline{% else %}btn-secondary text-white{% endif %}"
+                                   onclick="return confirm('Êtes-vous sûr de vouloir changer le statut de ce mandat ?')">
+                                    {% if mandat.actif %}Désactiver{% else %}Activer{% endif %}
+                                </a>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center text-gray-400">
-                                Aucun mandat créé
+                            <td colspan="4" class="text-center py-12">
+                                <div class="flex flex-col items-center gap-2 opacity-30">
+                                    <span class="text-5xl">📁</span>
+                                    <p class="font-bold uppercase tracking-widest text-xs">Aucun mandat créé</p>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-
         </div>
     </div>
-
 </div>
 
 {% endblock %}

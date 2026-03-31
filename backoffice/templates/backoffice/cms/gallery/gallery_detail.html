@@ -1,0 +1,105 @@
+{% extends "backoffice/base.html" %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8 border-b border-base-200 pb-6">
+    <div>
+        <div class="text-sm breadcrumbs mb-2 opacity-60">
+            <ul>
+                <li><a href="{% url 'gallery_list' %}" class="hover:text-primary transition-colors">📦 Liste des Galeries</a></li>
+                <li class="font-semibold text-base-content">{{ gallery.title }}</li>
+            </ul>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="{% url 'gallery_list' %}" class="btn btn-circle btn-ghost btn-sm shadow-sm border border-base-300" title="Retour à la liste">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+            </a>
+            <h1 class="text-3xl font-black tracking-tight">{{ gallery.title }}</h1>
+            <span class="badge badge-lg badge-ghost font-mono">{{ photos|length }} Photos</span>
+        </div>
+    </div>
+
+    <div class="flex gap-2 w-full md:w-auto">
+        <a href="{% url 'gallery_update' gallery.pk %}" class="btn btn-outline btn-sm flex-1 md:flex-none gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+            </svg>
+            Modifier les infos
+        </a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    
+    <div class="lg:col-span-1">
+        <div class="card bg-base-100 shadow-sm border border-base-300 sticky top-4">
+            <div class="card-body p-5">
+                <h3 class="font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-primary"></span>
+                    Ajouter des médias
+                </h3>
+                <form method="post" enctype="multipart/form-data" class="space-y-4">
+                    {% csrf_token %}
+                    <div class="form-control">
+                        <input type="file" name="images" multiple class="file-input file-input-bordered file-input-primary w-full" accept="image/*" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-full shadow-md">
+                        Importer maintenant
+                    </button>
+                </form>
+                <div class="mt-4 p-3 bg-base-200 rounded-lg text-xs opacity-70">
+                    <p>💡 <strong>Sélection multiple :</strong> Maintenez <code>Ctrl</code> ou <code>Cmd</code> pour choisir plusieurs photos.</p>
+                </div>
+                  {% if gallery.is_featured %}
+                <div class="absolute top-2 right-2 badge badge-warning badge-sm">À la une</div>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="lg:col-span-3">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {% for photo in photos %}
+            <div class="group relative aspect-square bg-base-300 rounded-xl overflow-hidden border border-base-200 shadow-sm hover:shadow-md transition-all">
+                <img src="{{ photo.image.url }}" class="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                
+                <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity gap-2">
+                    <form action="{% url 'photo_delete' photo.pk %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-error btn-circle btn-md border-2 border-white/20" onclick="return confirm('Retirer cette photo de la galerie ?')">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                            </svg>
+                        </button>
+                    </form>
+                    <span class="text-white text-[10px] uppercase font-bold tracking-widest">Supprimer</span>
+                </div>
+                
+                {% if photo.is_standalone %}
+                    <div class="absolute top-2 left-2 badge badge-warning badge-xs shadow-sm">Solo</div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="col-span-full py-24 text-center bg-base-100 rounded-2xl border-2 border-dashed border-base-300">
+                <div class="max-w-xs mx-auto">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-12 h-12 mx-auto mb-4 opacity-20">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                    </svg>
+                    <p class="text-sm opacity-50 italic font-serif">Votre galerie attend ses premières images...</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="mt-12 flex justify-center border-t border-base-200 pt-8">
+    <a href="{% url 'gallery_list' %}" class="btn btn-ghost gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+        </svg>
+        Retour à la liste des galeries
+    </a>
+</div>
+{% endblock %}

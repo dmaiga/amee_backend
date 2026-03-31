@@ -1,0 +1,220 @@
+{% extends "base_public.html" %}
+{% block content %}
+
+<style>
+    /* Carrousel infini sans filtre gris */
+    @keyframes scroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(calc(-250px * {{ partenaires.count|default:5 }})) ; }
+    }
+    .animate-scroll {
+        display: flex;
+        width: max-content;
+        animation: scroll 40s linear infinite;
+    }
+    .animate-scroll:hover { animation-play-state: paused; }
+</style>
+<section class="bg-deep py-8 relative overflow-hidden border-b-4 border-primary">
+    <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+        <svg class="absolute right-0 top-0 h-full w-48 text-white" fill="currentColor" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path d="M0 100 L100 0 L100 100 Z"></path>
+        </svg>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+        <span class="inline-block bg-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-6">
+            Assistance & Orientation
+        </span>
+        
+        <h1 class="text-4xl md:text-6xl font-black text-white mb-6 tracking-tighter uppercase italic">
+            Contact <span class="text-primary">& Support</span>
+        </h1>
+        
+        <p class="text-slate-400 max-w-2xl mx-auto text-lg font-medium leading-relaxed">
+            Une question sur l'adhésion, le Roster ou nos activités ? 
+            L'équipe administrative de l'AMEE vous accompagne dans vos démarches.
+        </p>
+
+        <div class="mt-10 flex justify-center items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+            <a href="/" class="hover:text-white transition-colors">Accueil</a>
+            <i class="fa-solid fa-chevron-right text-[8px] opacity-30"></i>
+            <span class="text-primary">Contact</span>
+        </div>
+    </div>
+</section>
+
+<div class="max-w-7xl mx-auto px-4 py-12 md:py-20"> 
+    <div class="grid lg:grid-cols-3 gap-12">
+        
+        <div class="space-y-6">
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40">
+                <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-8">Canaux Directs</h3>
+                <div class="space-y-6">
+                    <a href="mailto:contact@amee-ml.com" class="flex items-center gap-5 group">
+                        <div class="w-12 h-12 rounded-2xl bg-surface flex items-center justify-center text-deep group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-sm">
+                            <i class="fa-solid fa-envelope text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-black uppercase text-slate-400">Email Officiel</p>
+                            <span class="text-sm font-bold text-deep group-hover:text-primary transition-colors">contact@amee-ml.com</span>
+                        </div>
+                    </a>
+                    <a href="tel:+22300000000" class="flex items-center gap-5 group">
+                        <div class="w-12 h-12 rounded-2xl bg-surface flex items-center justify-center text-deep group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-sm">
+                            <i class="fa-solid fa-phone text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-black uppercase text-slate-400">Standard</p>
+                            <span class="text-sm font-bold text-deep group-hover:text-primary transition-colors">+223 00 00 00 00</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-deep p-8 rounded-[2.5rem] text-white shadow-2xl shadow-deep/20 relative overflow-hidden">
+                <div class="relative z-10">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-6">Siège Social</h3>
+                    <p class="text-sm text-slate-300 mb-8 leading-relaxed font-medium italic">
+                       Hamdallaye ACI 2000, <br>
+                       Rue 390, Porte 388 <br>
+                       Bamako, Mali
+                    </p>
+
+                    <div class="flex gap-4">
+                        <a href="#" class="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-primary hover:scale-110 transition-all">
+                            <i class="fa-brands fa-linkedin-in"></i>
+                        </a>
+                        <a href="#" class="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-primary hover:scale-110 transition-all">
+                            <i class="fa-brands fa-facebook-f"></i>
+                        </a>
+                         <a href="#" class="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-primary hover:scale-110 transition-all">
+                            <i class="fa-brands fa-twitter"></i>
+                        </a>
+
+                       
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-12">
+            
+            <div class="bg-white p-8 md:p-12 rounded-[3.5rem] border border-slate-100 shadow-2xl shadow-slate-200/40">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags == 'success' %}bg-primary/10 text-primary border-primary/20{% else %}bg-red-50 text-red-700 border-red-100{% endif %} mb-8 rounded-2xl font-black text-[10px] uppercase tracking-widest p-5">
+                            <i class="fa-solid fa-circle-check"></i> {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="POST" class="space-y-8">
+                    {% csrf_token %}
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text text-[10px] font-black uppercase text-slate-400 tracking-widest">Identité</span></label>
+                            <input type="text" name="name" placeholder="Votre nom" required class="input input-bordered bg-surface border-none rounded-2xl font-bold h-14 focus:ring-2 focus:ring-primary/20">
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text text-[10px] font-black uppercase text-slate-400 tracking-widest">Email</span></label>
+                            <input type="email" name="email" placeholder="contact@email.com" required class="input input-bordered bg-surface border-none rounded-2xl font-bold h-14 focus:ring-2 focus:ring-primary/20">
+                        </div>
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text text-[10px] font-black uppercase text-slate-400 tracking-widest">Objet</span></label>
+                        <input type="text" name="subject" placeholder="Sujet de votre message" required class="input input-bordered bg-surface border-none rounded-2xl font-bold h-14 focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text text-[10px] font-black uppercase text-slate-400 tracking-widest">Message</span></label>
+                        <textarea name="message" placeholder="Votre message..." required class="textarea textarea-bordered bg-surface border-none rounded-2xl font-bold min-h-[160px] p-6 focus:ring-2 focus:ring-primary/20"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-sm bg-primary border-2 border-primary text-white  btn-block rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] h-16 border-none shadow-xl shadow-primary/20 hover:scale-[1.01] transition-all">
+                        Envoyer  <i class="fa-solid fa-paper-plane ml-2"></i>
+                    </button>
+                </form>
+            </div>
+
+            
+        </div>
+    </div>
+</div>
+
+    <div class="max-w-4xl mx-auto space-y-10">
+        <div class="text-center">
+            <h2 class="text-3xl font-black text-deep uppercase tracking-tight italic mb-2">Questions Fréquentes</h2>
+            <p class="text-secondary text-sm font-medium uppercase tracking-widest opacity-60">Tout savoir sur l'adhésion et le Roster</p>
+        </div>
+
+        <div class="grid gap-4">
+            {% for item in faq_items %}
+            <div class="collapse collapse-plus bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:border-primary/30 transition-all">
+                <input type="radio" name="contact-faq" {% if forloop.first %}checked{% endif %} /> 
+                <div class="collapse-title text-[13px] font-black text-deep uppercase tracking-tight py-6 px-10">
+                    {{ item.q }}
+                </div>
+                <div class="collapse-content px-10"> 
+                    <div class="h-px w-10 bg-primary/20 mb-4"></div>
+                    <p class="text-sm text-secondary leading-relaxed font-medium pb-6 italic">{{ item.a }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+<div class="relative bg-surface py-24 mt-20 border-t border-slate-100 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#1e293b 1px, transparent 1px); background-size: 32px 32px;"></div>
+    
+    <div class="max-w-7xl mx-auto px-4 relative z-10">
+        <div class="text-center mb-16">
+            <h2 class="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-4">Réseau d'excellence</h2>
+            <p class="text-deep font-black text-2xl md:text-3xl uppercase italic tracking-tighter">Ils font l'AMEE</p>
+        </div>
+        
+        <div class="relative flex overflow-hidden p-4">
+            <div class="animate-scroll flex gap-8 items-center">
+                {% for p in partenaires %}
+                    <div class="flex-none w-64 bg-white/60 backdrop-blur-sm border border-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 flex flex-col items-center gap-6 group hover:-translate-y-2 transition-all duration-500">
+                        <div class="h-20 w-full flex items-center justify-center">
+                            {% if p.logo %}
+                                <img src="{{ p.logo.url }}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-500" alt="{{ p.nom }}">
+                            {% else %}
+                                <div class="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center">
+                                    <span class="font-black text-primary text-2xl uppercase tracking-tighter">{{ p.sigle|default:p.nom|slice:":3" }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="text-center space-y-1">
+                            <p class="text-[11px] font-black text-deep uppercase tracking-widest line-clamp-1 italic">
+                                {{ p.nom|default:p.sigle }}
+                            </p>
+                            <div class="h-1 w-8 bg-primary/20 mx-auto rounded-full group-hover:w-12 transition-all"></div>
+                        </div>
+                    </div>
+                {% endfor %}
+
+                {% for p in partenaires %}
+                    <div class="flex-none w-64 bg-white/60 backdrop-blur-sm border border-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 flex flex-col items-center gap-6 group hover:-translate-y-2 transition-all duration-500" aria-hidden="true">
+                        <div class="h-20 w-full flex items-center justify-center">
+                            {% if p.logo %}
+                                <img src="{{ p.logo.url }}" class="max-h-full max-w-full object-contain" alt="">
+                            {% else %}
+                                <div class="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center">
+                                    <span class="font-black text-primary text-2xl uppercase tracking-tighter">{{ p.sigle|default:p.nom|slice:":3" }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="text-center space-y-1">
+                            <p class="text-[11px] font-black text-deep uppercase tracking-widest line-clamp-1 italic">
+                                {{ p.nom|default:p.sigle }}
+                            </p>
+                            <div class="h-1 w-8 bg-primary/20 mx-auto rounded-full"></div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,53 +1,95 @@
 {% extends "backoffice/base.html" %}
 {% block content %}
 
-<div class="container py-3">
+<div class="max-w-5xl mx-auto py-6">
 
-<h4>
-{% if ressource %}Modifier{% else %}Ajouter{% endif %}
-une ressource
-</h4>
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold">
+            {% if ressource %}Modifier{% else %}Ajouter{% endif %}
+            une ressource
+        </h1>
+        <p class="text-base-content/60">Documentation technique et réglementaire</p>
+    </div>
 
-<!-- ✅ FORM MANQUANT -->
-<form method="post" enctype="multipart/form-data">
-{% csrf_token %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
 
-<div class="card bg-base-100 shadow">
-<div class="card-body space-y-4">
+        <div class="grid lg:grid-cols-3 gap-6">
 
-{% for field in form %}
-<div class="form-control">
-    <label class="label">
-        <span class="label-text font-medium">
-            {{ field.label }}
-        </span>
-    </label>
+            <div class="lg:col-span-2 space-y-6">
+                
+                <div role="tablist" class="tabs tabs-lifted">
+                    
+                    <input type="radio" name="resource_tabs" role="tab" class="tab" aria-label="Français" checked />
+                    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6 space-y-4 shadow-sm">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">Titre (FR)</span></label>
+                            {{ form.titre_fr }}
+                            {% if form.titre_fr.errors %}<p class="text-error text-xs mt-1">{{ form.titre_fr.errors }}</p>{% endif %}
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">Description (FR)</span></label>
+                            {{ form.description_fr }}
+                            {% if form.description_fr.errors %}<p class="text-error text-xs mt-1">{{ form.description_fr.errors }}</p>{% endif %}
+                        </div>
+                    </div>
 
-    {{ field }}
+                    <input type="radio" name="resource_tabs" role="tab" class="tab" aria-label="English" />
+                    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6 space-y-4 shadow-sm">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">Title (EN)</span></label>
+                            {{ form.titre_en }}
+                            {% if form.titre_en.errors %}<p class="text-error text-xs mt-1">{{ form.titre_en.errors }}</p>{% endif %}
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">Description (EN)</span></label>
+                            {{ form.description_en }}
+                            {% if form.description_en.errors %}<p class="text-error text-xs mt-1">{{ form.description_en.errors }}</p>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    {% if field.errors %}
-        <p class="text-error text-sm">
-            {{ field.errors }}
-        </p>
-    {% endif %}
-</div>
-{% endfor %}
+            <div class="space-y-6">
+                
+                <div class="card bg-base-100 shadow border border-base-200">
+                    <div class="card-body space-y-4">
+                        <h3 class="font-semibold flex items-center gap-2 border-b pb-2">
+                            📦 Fichier & Catégorie
+                        </h3>
 
-<div class="pt-4 flex gap-2">
-    <button type="submit" class="btn btn-primary">
-        Enregistrer
-    </button>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-medium">Catégorie</span></label>
+                            {{ form.categorie }}
+                        </div>
 
-    <a href="{% url 'bo_ressources_list' %}" class="btn btn-ghost">
-        Annuler
-    </a>
-</div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-medium">Fichier ressource</span></label>
+                            {{ form.fichier }}
+                            {% if form.fichier.errors %}<p class="text-error text-xs mt-1">{{ form.fichier.errors }}</p>{% endif %}
+                        </div>
 
-</div>
-</div>
+                        <div class="divider">Accès</div>
 
-</form> <!-- ✅ IMPORTANT -->
+                        <div class="flex items-center justify-between">
+                            <span class="label-text">Membres uniquement</span>
+                            {{ form.reserve_aux_membres }}
+                        </div>
+                    </div>
+                </div>
 
+                <div class="flex flex-col gap-2">
+                    <button type="submit" class="btn btn-primary w-full">
+                        Enregistrer la ressource
+                    </button>
+                    <a href="{% url 'bo_ressources_list' %}" class="btn btn-ghost w-full">
+                        Annuler
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </form>
 </div>
 
 {% endblock %}

@@ -10,6 +10,7 @@ Paramètres du profil
 </h1>
 
 <form method="post"
+      enctype="multipart/form-data"
       class="card bg-base-100 shadow p-6 space-y-4">
 
 {% csrf_token %}
@@ -18,6 +19,12 @@ Paramètres du profil
 <label class="label">Entreprise</label>
 {{ form.nom_entreprise }}
 </div>
+
+<div>
+<label class="label">Logo</label>
+{{ form.logo }}
+</div>
+
 
 <div>
 <label class="label">Secteur d'activité</label>

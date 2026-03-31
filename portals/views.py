@@ -1020,7 +1020,7 @@ def client_profile_settings(request):
     profile = request.user.client_profile
 
     if request.method == "POST":
-        form = ClientProfileForm(request.POST, instance=profile)
+        form = ClientProfileForm(request.POST,request.FILES,  instance=profile)
 
         if form.is_valid():
             form.save()

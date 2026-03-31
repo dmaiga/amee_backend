@@ -61,10 +61,11 @@ class ResourceForm(forms.ModelForm):
     class Meta:
         model = Resource
         fields = [
-            "titre",
-            "description",
+            "titre_fr", "titre_en",
+            "description_fr", "description_en",
             "fichier",
             "categorie",
+            "reserve_aux_membres",
             
         ]
 
@@ -77,23 +78,32 @@ class ResourceForm(forms.ModelForm):
         }
 
         widgets = {
-            "titre": forms.TextInput(attrs={
-                "class": "input input-bordered w-full",
-                "placeholder": "Titre de la ressource"
+            "titre_fr": forms.TextInput(attrs={
+                "class": "input input-bordered w-full"
             }),
+            "titre_en": forms.TextInput(attrs={
+                "class": "input input-bordered w-full"
+            }),
+           
 
-            "description": forms.Textarea(attrs={
+            "description_fr": forms.Textarea(attrs={
                 "class": "textarea textarea-bordered w-full",
-                "rows": 5,
-                "placeholder": "Description courte..."
+                "rows": 8
             }),
-
+            "description_en": forms.Textarea(attrs={
+                "class": "textarea textarea-bordered w-full",
+                "rows": 8
+            }),
             "categorie": forms.Select(attrs={
                 "class": "select select-bordered w-full"
             }),
 
             "fichier": forms.ClearableFileInput(attrs={
                 "class": "file-input file-input-bordered w-full"
+            }),
+            "reserve_aux_membres": forms.CheckboxInput(attrs={
+                "class": "toggle toggle-success",
+                
             }),
 
  
@@ -115,21 +125,30 @@ class OpportunityForm(forms.ModelForm):
     class Meta:
         model = Opportunity
         fields = [
-            "titre",
-            "description",
+            "titre_fr", "titre_en",
+            "description_fr", "description_en",
             "type",
             "date_limite",
             "lien_externe",
+            "reserve_aux_membres",
             "fichier_joint",
             "publie",
         ]
 
         widgets = {
-            "titre": forms.TextInput(attrs={
+            "titre_fr": forms.TextInput(attrs={
                 "class": "input input-bordered w-full"
             }),
+            "titre_en": forms.TextInput(attrs={
+                "class": "input input-bordered w-full"
+            }),
+           
 
-            "description": forms.Textarea(attrs={
+            "description_fr": forms.Textarea(attrs={
+                "class": "textarea textarea-bordered w-full",
+                "rows": 8
+            }),
+            "description_en": forms.Textarea(attrs={
                 "class": "textarea textarea-bordered w-full",
                 "rows": 8
             }),
@@ -149,6 +168,10 @@ class OpportunityForm(forms.ModelForm):
 
             "lien_externe": forms.Textarea(attrs={
                 "class": "input input-bordered w-full"
+            }),
+            "reserve_aux_membres": forms.CheckboxInput(attrs={
+                "class": "toggle toggle-success",
+                
             }),
 
             "publie": forms.CheckboxInput(attrs={

@@ -12,36 +12,49 @@
 
 
     <!-- ================= KPI ================= -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
 
-        <div class="stat bg-base-100 shadow rounded-box">
-            <div class="stat-title">Articles</div>
-            <div class="stat-value">{{ articles_total }}</div>
+    <div class="stat bg-base-100 shadow rounded-box border-l-4 border-primary">
+        <div class="stat-figure text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l4 4v10a2 2 0 01-2 2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h4m-4 4h8m-8 4h8"></path></svg>
         </div>
-
-        <div class="stat bg-base-100 shadow rounded-box">
-            <div class="stat-title">Brouillons</div>
-            <div class="stat-value text-warning">
-                {{ articles_brouillons }}
-            </div>
-        </div>
-
-        <div class="stat bg-base-100 shadow rounded-box">
-            <div class="stat-title">Ressources</div>
-            <div class="stat-value">
-                {{ resources_total }}
-            </div>
-        </div>
-
-        <div class="stat bg-base-100 shadow rounded-box">
-            <div class="stat-title">Opportunités actives</div>
-            <div class="stat-value text-success">
-                {{ opportunities_actives }}
-            </div>
-        </div>
-
+        <div class="stat-title text-xs uppercase font-bold">Articles</div>
+        <div class="stat-value text-2xl">{{ articles_total }}</div>
     </div>
 
+    <div class="stat bg-base-100 shadow rounded-box border-l-4 border-secondary">
+        <div class="stat-figure text-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        </div>
+        <div class="stat-title text-xs uppercase font-bold">Ressources</div>
+        <div class="stat-value text-2xl">{{ resources_total }}</div>
+    </div>
+
+    <div class="stat bg-base-100 shadow rounded-box border-l-4 border-success">
+        <div class="stat-figure text-success">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+        </div>
+        <div class="stat-title text-xs uppercase font-bold">Opportunités</div>
+        <div class="stat-value text-success text-2xl">{{ opportunities_actives }}</div>
+    </div>
+
+    <div class="stat bg-base-100 shadow rounded-box border-l-4 border-info">
+        <div class="stat-figure text-info">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        </div>
+        <div class="stat-title text-xs uppercase font-bold">Galeries</div>
+        <div class="stat-value text-info text-2xl">{{ galleries_total }}</div>
+    </div>
+
+    <div class="stat bg-base-100 shadow rounded-box border-l-4 border-warning">
+        <div class="stat-figure text-warning">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+        </div>
+        <div class="stat-title text-xs uppercase font-bold">Brouillons</div>
+        <div class="stat-value text-warning text-2xl">{{ articles_brouillons }}</div>
+    </div>
+
+</div>
 
     <!-- ================= ARTICLES ================= -->
     <div class="card bg-base-100 shadow">
@@ -171,6 +184,7 @@
                             <th>Titre</th>
                             <th>Type</th>
                             <th>Date limite</th>
+                            <th class="text-center">Visibilité</th>
                             <th>Statut</th>
                         </tr>
                     </thead>
@@ -180,7 +194,17 @@
                             <td class="font-medium">{{ o.titre }}</td>
                             <td>{{ o.get_type_display }}</td>
                             <td>{{ o.date_limite }}</td>
-
+                             <td class="text-center">
+                            {% if o.reserve_aux_membres %}
+                                <span class="badge rounded-pill bg-warning/10 text-warning border border-warning/20 px-3">
+                                    🔒 Membres
+                                </span>
+                            {% else %}
+                                <span class="badge rounded-pill bg-success/10 text-success border border-success/20 px-3">
+                                    🌍 Public
+                                </span>
+                            {% endif %}
+                        </td>
                             <td>
                                 {% if o.est_expire %}
                                     <span class="badge badge-error">
@@ -197,6 +221,77 @@
                         <tr>
                             <td colspan="4" class="text-center opacity-60">
                                 Aucune opportunité
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+<div class="card bg-base-100 shadow border border-base-200">
+        <div class="card-body">
+
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="card-title text-lg font-bold">Galeries récentes</h3>
+
+                <a href="{% url 'gallery_list' %}"
+                   class="btn btn-sm btn-outline">
+                    Voir tout
+                </a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Titre</th>
+                            <th>Photos</th>
+                            <th>Date Création</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in galleries %}
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="avatar">
+                                        <div class="mask mask-squircle w-8 h-8">
+                                            {% if g.cover_image %}
+                                                <img src="{{ g.cover_image.url }}" alt="Cover" />
+                                            {% else %}
+                                                <div class="bg-base-300 w-full h-full"></div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <span class="font-medium">{{ g.title }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-ghost badge-sm">{{ g.photo_count }} photos</span>
+                            </td>
+                            <td class="text-xs opacity-70">{{ g.created_at|date:"d/m/Y" }}</td>
+
+                            <td>
+                                {% if g.is_featured %}
+                                    <span class="badge badge-warning badge-sm gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
+                                            <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd" />
+                                        </svg>
+                                        À la une
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-ghost badge-sm opacity-50">Standard</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4 opacity-60 italic">
+                                Aucune galerie photos
                             </td>
                         </tr>
                         {% endfor %}

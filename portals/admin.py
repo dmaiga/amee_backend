@@ -1,6 +1,7 @@
 from django.contrib import admin
 from portals.models import ClientProfile
-
+from django.utils.html import format_html
+    
 
 @admin.register(ClientProfile)
 class ClientProfileAdmin(admin.ModelAdmin):
@@ -9,6 +10,7 @@ class ClientProfileAdmin(admin.ModelAdmin):
     # LISTE PRINCIPALE
     # -----------------------------
     list_display = (
+        "logo_preview",
         "nom_entreprise",
         "email_pro",
         "nom_contact",
@@ -57,6 +59,7 @@ class ClientProfileAdmin(admin.ModelAdmin):
             "fields": (
                 "nom_entreprise",
                 "secteur_activite",
+                "logo",
             )
         }),
 
@@ -82,6 +85,15 @@ class ClientProfileAdmin(admin.ModelAdmin):
         return obj.user.is_active
     
     
+    @admin.display(description="Logo")
+    def logo_preview(self, obj):
+        if obj.logo:
+            return format_html(
+                '<img src="{}" style="height:40px;border-radius:6px;" />',
+                obj.logo.url
+            )
+        return "-"
+
     @admin.action(description="Valider les clients sélectionnés")
     def valider_clients(self, request, queryset):
         for client in queryset:

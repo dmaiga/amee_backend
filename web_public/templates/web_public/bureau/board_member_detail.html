@@ -1,0 +1,118 @@
+{% extends "base_public.html" %}
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-16">
+    <div class="bg-white rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden">
+        
+        <div class="bg-secondary p-12 text-center relative">
+            <div class="absolute top-8 left-8">
+                <a href="{% url 'board_list' %}" class="btn btn-circle btn-ghost text-white border-white/20 hover:bg-white/10">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+            </div>
+            
+            <div class="avatar mb-6">
+                <div class="w-40 h-40 rounded-[2.5rem] ring ring-primary ring-offset-white ring-offset-4 overflow-hidden">
+                    {% if member.membership.user.photo %}
+                        <img src="{{ member.membership.user.photo.url }}" class="object-cover w-full h-full" />
+                    {% else %}
+                        <img src="https://api.dicebear.com/7.x/initials/svg?seed={{ member.membership.user.get_full_name }}" class="w-full h-full" />
+                    {% endif %}
+                </div>
+            </div>
+            <h1 class="text-3xl font-black text-white uppercase tracking-tight">{{ member.membership.user.get_full_name }}</h1>
+            <div class="mt-4 inline-flex items-center gap-2 bg-primary text-white px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest">
+                {{ member.role.titre }}
+            </div>
+        </div>
+
+        <div class="p-8 md:p-12 grid md:grid-cols-3 gap-12">
+            
+            <div class="md:col-span-1 space-y-8">
+                <div>
+                    <h3 class="text-[10px] uppercase font-black text-primary tracking-[0.2em] mb-4">Positionnement</h3>
+                    <div class="space-y-4">
+                        {% if profile %}
+                            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                <p class="text-[10px] text-slate-400 uppercase font-black tracking-widest">Titre</p>
+                                <p class="text-slate-800 font-bold leading-tight">{{ profile.titre_professionnel }}</p>
+                            </div>
+                            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                <p class="text-[10px] text-slate-400 uppercase font-black tracking-widest">Expérience EES</p>
+                                <p class="text-slate-800 font-bold">{{ profile.annees_experience_ees }} ans</p>
+                            </div>
+                        {% else %}
+                            <p class="text-slate-400 text-sm italic font-medium">Membre du bureau exécutif AMEE.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if profile.lien_linkedin %}
+                <a href="{{ profile.lien_linkedin }}" target="_blank" class="btn btn-ghost btn-block bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-2xl normal-case font-bold transition-all">
+                    <i class="fa-brands fa-linkedin text-xl"></i> Profil LinkedIn
+                </a>
+                {% endif %}
+            </div>
+
+<div class="md:col-span-2 space-y-12">
+    
+    {% if is_president and member.mandat.mot_president %}
+    <div class="relative p-8 bg-primary/5 rounded-[2rem] border border-primary/10 shadow-sm">
+        <i class="fa-solid fa-quote-left text-4xl text-primary/10 absolute top-6 left-6"></i>
+        <div class="relative z-10">
+            <h3 class="text-[10px] uppercase font-black text-primary tracking-[0.2em] mb-6">Mot de la Présidence</h3>
+            <p class="text-lg italic text-slate-700 font-serif leading-relaxed whitespace-pre-line">
+                "{{ member.mandat.mot_president }}"
+            </p>
+            <div class="h-1 w-12 bg-primary/30 rounded-full mt-6"></div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if profile %}
+        <div class="prose prose-slate max-w-none">
+            <h3 class="text-xl font-black text-deep mb-4 uppercase tracking-tighter italic">À propos</h3>
+            <p class="text-secondary leading-relaxed font-medium">
+                {{ profile.resume_public }}
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-8 pt-6 border-t border-slate-100">
+            {% if profile.domaines_expertise %}
+            <div>
+                <h3 class="text-[10px] uppercase font-black text-primary tracking-[0.2em] mb-3">Domaines d'Expertise</h3>
+                <p class="text-secondary text-sm leading-relaxed font-semibold bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    {{ profile.domaines_expertise }}
+                </p>
+            </div>
+            {% endif %}
+
+            <div class="grid md:grid-cols-2 gap-6">
+                {% if profile.experience_geographique %}
+                <div>
+                    <h3 class="text-[10px] uppercase font-black text-primary tracking-[0.2em] mb-3">Expertise géographique</h3>
+                    <p class="text-secondary text-sm font-semibold italic">{{ profile.experience_geographique }}</p>
+                </div>
+                {% endif %}
+
+                {% if profile.langues %}
+                <div>
+                    <h3 class="text-[10px] uppercase font-black text-primary tracking-[0.2em] mb-3">Langues parlées</h3>
+                    <p class="text-secondary text-sm font-semibold">{{ profile.langues }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    
+    {% elif not is_president %}
+        <div class="flex flex-col items-center justify-center py-10 text-center space-y-4">
+            <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center">
+                <i class="fa-solid fa-user-tie text-slate-200 text-2xl"></i>
+            </div>
+            <p class="text-slate-400 text-sm font-medium">Le profil professionnel détaillé n'est pas encore complété.</p>
+        </div>
+    {% endif %}
+</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

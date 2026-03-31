@@ -1,0 +1,170 @@
+{% extends "base_public.html" %}
+{% block content %}
+
+<section class="bg-deep py-8 relative overflow-hidden border-b-4 border-primary">
+    <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+        <svg class="absolute right-0 top-0 h-full w-48 text-white" fill="currentColor" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path d="M0 100 L100 0 L100 100 Z"></path>
+        </svg>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+        <span class="inline-block bg-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-6">
+            Espace Publication
+        </span>
+        
+        <h1 class="text-4xl md:text-6xl font-black text-white mb-6 tracking-tighter uppercase italic">
+            Actualités <span class="text-primary">& Opportunités</span>
+        </h1>
+        
+        <p class="text-slate-400 max-w-2xl mx-auto text-lg font-medium leading-relaxed italic">
+            Suivez les temps forts de l'association et ne manquez aucune 
+            opportunité de mission pour les experts en environnement.
+        </p>
+
+        <div class="mt-10 flex justify-center items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+            <a href="/" class="hover:text-white transition-colors">Accueil</a>
+            <i class="fa-solid fa-chevron-right text-[8px] opacity-30"></i>
+            <span class="text-primary">Publications</span>
+        </div>
+    </div>
+</section>
+
+<div class="relative bg-surface py-20 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#1e293b 1px, transparent 1px); background-size: 32px 32px;"></div>
+
+    <div class="max-w-7xl mx-auto px-4 relative z-10">
+        
+        <div role="tablist" class="tabs tabs-lifted tabs-lg mb-16">
+            
+            <input type="radio" name="cms_tabs" role="tab" class="tab font-black uppercase text-[11px] tracking-widest [--tab-bg:white] [--tab-border-color:#e2e8f0]" aria-label="Actualités" {% if not request.GET.tab or request.GET.tab == 'news' %}checked{% endif %} />
+            <div role="tabpanel" class="tab-content bg-white border-slate-200 rounded-[3rem] p-8 md:p-12 shadow-2xl shadow-slate-200/50">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-12">
+                    {% for article in articles %}
+                    <div class="group bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-100/60 overflow-hidden hover:-translate-y-2 transition-all duration-500">
+                        {% if article.image %}
+                        <div class="h-56 overflow-hidden relative">
+                            <img src="{{ article.image.url }}" alt="{{ article.titre }}" class="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700" />
+                            <div class="absolute top-4 left-4">
+                                <span class="bg-deep/90 backdrop-blur-md text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-white/10 italic">
+                                    {{ article.get_type_display }}
+                                </span>
+                            </div>
+                            <div class="mt-auto pt-6 border-t border-slate-50 flex justify-between items-center">
+                                <a href="{% url 'pub_article_detail' article.slug_fr %}" class="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2 group/link">
+                                    Détails <i class="fa-solid fa-arrow-right-long group-hover/link:translate-x-2 transition-transform"></i>
+                                </a>
+                                <div class="w-8 h-8 rounded-full bg-surface flex items-center justify-center">
+                                    <i class="fa-solid fa-share-nodes text-[10px] text-slate-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="p-8 flex flex-col h-full">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="h-px w-8 bg-primary"></div>
+                                <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">{{ article.date_publication|date:"d M Y" }}</span>
+                            </div>
+                            
+                            <h2 class="text-xl font-black text-deep leading-tight mb-6 group-hover:text-primary transition-colors italic">
+                                {{ article.titre|truncatechars:65 }}
+                            </h2>
+                            
+                             <p class="text-slate-500 text-sm font-medium leading-relaxed mb-6 italic opacity-80">
+                                {{ article.contenu|truncatechars:65  }}
+                            </p>
+
+                            
+                            <a href="{% url 'pub_article_detail' article.slug %}" class="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2 group/link">
+                                Détails <i class="fa-solid fa-arrow-right-long group-hover/link:translate-x-2 transition-transform"></i>
+                            </a>
+                                
+                            
+
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-span-full py-20 text-center">
+                        <i class="fa-solid fa-newspaper text-5xl text-slate-100 mb-4 block"></i>
+                        <p class="text-sm font-black text-slate-300 uppercase tracking-widest italic">Aucun article disponible</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if articles.has_other_pages %}
+                <div class="flex justify-center">
+                    <div class="join bg-surface p-1 rounded-2xl border border-slate-100">
+                        {% if articles.has_previous %}
+                            <a href="?page={{ articles.previous_page_number }}&tab=news" class="join-item btn btn-ghost btn-sm font-black text-deep">«</a>
+                        {% endif %}
+                        {% for num in articles.paginator.page_range %}
+                            <a href="?page={{ num }}&tab=news" class="join-item btn btn-sm border-none {% if articles.number == num %}btn-primary rounded-xl text-white shadow-lg shadow-primary/20{% else %}btn-ghost text-slate-400{% endif %} font-black">{{ num }}</a>
+                        {% endfor %}
+                        {% if articles.has_next %}
+                            <a href="?page={{ articles.next_page_number }}&tab=news" class="join-item btn btn-ghost btn-sm font-black text-deep">»</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <input type="radio" name="cms_tabs" role="tab" class="tab font-black uppercase text-[11px] tracking-widest [--tab-bg:white] [--tab-border-color:#e2e8f0]" aria-label="Opportunités" {% if request.GET.tab == 'opps' %}checked{% endif %} />
+            <div role="tabpanel" class="tab-content bg-white border-slate-200 rounded-[3rem] p-8 md:p-12 shadow-2xl shadow-slate-200/50">
+                <div class="max-w-5xl mx-auto space-y-6">
+                    {% for opp in opportunities %}
+                    <div class="flex flex-col md:flex-row items-center bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:border-primary/20 transition-all gap-8 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-16 translate-x-16"></div>
+                        
+                        <div class="flex-grow relative z-10">
+                            <div class="flex flex-wrap items-center gap-4 mb-4">
+                                <span class="bg-primary/10 text-primary font-black text-[9px] uppercase tracking-widest px-4 py-2 rounded-xl italic">
+                                    {{ opp.get_type_display }}
+                                </span>
+                                {% if opp.jours_restants <= 7 %}
+                                    <span class="flex items-center gap-2 text-red-500 font-black text-[9px] uppercase tracking-widest">
+                                        <span class="relative flex h-2 w-2">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                            <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                                        </span>
+                                        Urgent
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            <h3 class="text-2xl font-black text-deep uppercase tracking-tight italic mb-3">
+                                {{ opp.titre }}
+                            </h3>
+                            
+                            <p class="text-slate-500 text-sm font-medium leading-relaxed mb-6 italic opacity-80">
+                                {{ opp.description|truncatechars:180 }}
+                            </p>
+
+                            <div class="flex items-center gap-6">
+                                <div class="flex flex-col">
+                                    <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest">Deadline</span>
+                                    <span class="text-sm font-bold text-deep uppercase">{{ opp.date_limite|date:"d F Y" }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex-shrink-0 w-full md:w-auto relative z-10">
+                            <a href="{% url 'pub_opportunity_detail' opp.pk %}" 
+                               class=" btn bg-primary hover:bg-deep border-none text-white rounded-xl px-10 font-black uppercase text-[11px] tracking-[0.15em] transition-all duration-300 shadow-sm">
+                                Consulter l'offre
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="py-20 text-center">
+                        <p class="text-sm font-black text-slate-300 uppercase tracking-widest italic">Aucune opportunité disponible actuellement</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

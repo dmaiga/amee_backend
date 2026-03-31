@@ -11,44 +11,89 @@
     </a>
 </div>
 
-<table class="table table-hover">
-<thead>
-<tr>
-    <th>Titre</th>
-    <th>Type</th>
-    <th>Date limite</th>
-    <th>Statut</th>
-    <th></th>
-</tr>
-</thead>
-
-<tbody>
-{% for o in opportunities %}
-<tr>
-    <td>{{ o.titre }}</td>
-    <td>{{ o.get_type_display }}</td>
-    
-    <td>{{ o.date_limite }}</td>
-
-    <td>
-        {% if o.est_expire %}
-            <span class="badge bg-danger">Expirée</span>
-        {% else %}
-            <span class="badge bg-success">Active</span>
-        {% endif %}
-    </td>
-
-    <td>
-        <a href="{% url 'bo_opportunity_detail' o.id %}"
-           class="btn btn-sm btn-outline-secondary">Voir</a>
-
-        <a href="{% url 'bo_opportunity_edit' o.id %}"
-           class="btn btn-sm btn-outline-primary">Edit</a>
-    </td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
+  
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive text-nowrap">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 small fw-bold px-4">OPPORTUNITÉ</th>
+                        <th class="border-0 small fw-bold">TYPE</th>
+                        <th class="border-0 small fw-bold">DATE LIMITE</th>
+                        <th class="border-0 small fw-bold text-center">VISIBILITÉ</th>
+                        <th class="border-0 small fw-bold">STATUT</th>
+                        <th class="border-0 small fw-bold px-4 text-end">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in opportunities %}
+                    <tr>
+                        <td class="px-4">
+                            <div class="fw-bold text-dark">{{ o.titre }}</div>
+                            <div class="text-muted small">Créé le {{ o.cree_le|date:"d M Y" }}</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-slate-100 text-slate-600 border border-slate-200">
+                                {{ o.get_type_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if o.date_limite %}
+                                <div class="{% if o.est_expire %}text-danger fw-bold{% endif %}">
+                                    {{ o.date_limite|date:"d M Y" }}
+                                </div>
+                                {% if not o.est_expire %}
+                                    <small class="text-success font-monospace">J-{{ o.jours_restants }}</small>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted italic">Sans limite</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if o.reserve_aux_membres %}
+                                <span class="badge rounded-pill bg-warning/10 text-warning border border-warning/20 px-3">
+                                    🔒 Membres
+                                </span>
+                            {% else %}
+                                <span class="badge rounded-pill bg-success/10 text-success border border-success/20 px-3">
+                                    🌍 Public
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if o.est_expire %}
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="p-1 rounded-full bg-danger"></span>
+                                    <span class="small fw-semibold text-danger">Expirée</span>
+                                </div>
+                            {% else %}
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="p-1 rounded-full bg-success"></span>
+                                    <span class="small fw-semibold text-success">Active</span>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 text-end">
+                            <div class="btn-group shadow-sm">
+                                <a href="{% url 'bo_opportunity_detail' o.id %}" class="btn btn-sm btn-white border">Voir</a>
+                                <a href="{% url 'bo_opportunity_edit' o.id %}" class="btn btn-sm btn-white border text-primary">Editer</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="opacity-50 mb-3">
+                                <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0l-8 8-8-8"/></svg>
+                            </div>
+                            <p class="text-muted">Aucune opportunité ne correspond à vos critères.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
 </div>
 

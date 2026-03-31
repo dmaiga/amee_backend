@@ -29,6 +29,7 @@ class Notification(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+# Profil client  les entreprises,asso ong etc pouvoyeur d'emploie qui creer les missions ou utiliseront la plateforme pour d'autres services
 
 class ClientProfile(models.Model):
 
@@ -47,6 +48,8 @@ class ClientProfile(models.Model):
         ],
         default="EN_ATTENTE"
     )
+    logo = models.ImageField(upload_to="clients/logos/", blank=True, null=True)  # 👈 AJOUT
+
     nom_entreprise = models.CharField(max_length=255)
     secteur_activite = models.CharField(max_length=255)
 

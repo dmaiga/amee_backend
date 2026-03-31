@@ -1,0 +1,18 @@
+{% extends "backoffice/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="max-w-md mx-auto text-center py-10">
+    <div class="text-6xl mb-4 text-error">⚠️</div>
+    <h1 class="text-2xl font-bold mb-4">{% trans "Supprimer la galerie ?" %}</h1>
+    <p class="mb-6 opacity-70">
+        {% blocktrans with titre=gallery.titre %}Voulez-vous vraiment supprimer la galerie "{{ titre }}" et toutes ses photos ? Cette action est irréversible.{% endblocktrans %}
+    </p>
+    
+    <form method="post" class="flex gap-4 justify-center">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-error px-8">{% trans "Oui, supprimer" %}</button>
+        <a href="{% url 'gallery_list' %}" class="btn btn-ghost">{% trans "Annuler" %}</a>
+    </form>
+</div>
+{% endblock %}

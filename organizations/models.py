@@ -1,4 +1,5 @@
 # organizations/models.py
+#bureau detude membre de l'amee
 from django.db import models
 
 

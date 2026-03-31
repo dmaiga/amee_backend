@@ -1,0 +1,89 @@
+{% extends "base_public.html" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-12">
+    <nav class="mb-8">
+        <a href="{% url 'publications' %}" class="text-slate-400 hover:text-primary text-sm font-bold flex items-center gap-2 transition-colors">
+            <i class="fa-solid fa-arrow-left"></i> Retour aux opportunités
+        </a>
+    </nav>
+
+    <div class="grid lg:grid-cols-3 gap-8">
+        
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white border-2 border-slate-100 rounded-[2rem] p-8 md:p-10">
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="bg-primary/10 text-primary text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
+                        {{ opp.get_type_display }}
+                    </span>
+                    <span class="text-slate-300">|</span>
+                    <span class="text-slate-400 text-[10px] font-bold uppercase">Publié le {{ opp.cree_le|date:"d/m/Y" }}</span>
+                </div>
+
+                <h1 class="text-3xl font-black text-slate-900 mb-8 leading-tight">{{ opp.titre }}</h1>
+
+                <div class="prose prose-slate max-w-none">
+                    <h3 class="text-slate-900 font-bold">Description de l'opportunité</h3>
+                    {{ opp.description|linebreaks }}
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-1 space-y-6">
+            
+            <div class="bg-slate-900 rounded-[2rem] p-8 text-center text-white shadow-xl relative overflow-hidden">
+                <p class="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-4">Date Limite de dépôt</p>
+                <div class="text-3xl font-black mb-2">{{ opp.date_limite|date:"d F Y" }}</div>
+                
+                {% if opp.jours_restants > 0 %}
+                    <div class="badge badge-primary font-bold py-3 px-4">
+                        {{ opp.jours_restants }} jours restants
+                    </div>
+                {% elif opp.jours_restants == 0 %}
+                    <div class="badge badge-warning font-bold py-3 px-4 text-slate-900">Dernier jour !</div>
+                {% else %}
+                    <div class="badge badge-error font-bold py-3 px-4">Expiré</div>
+                {% endif %}
+            </div>
+
+            <div class="bg-white border-2 border-slate-100 rounded-[2rem] p-8 space-y-6">
+                <h4 class="text-slate-900 font-black text-sm uppercase tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-paperclip text-primary"></i> Pièces jointes
+                </h4>
+
+                {% if opp.fichier_joint %}
+                <a href="{{ opp.fichier_joint.url }}" class="flex items-center gap-4 p-4 bg-slate-50 border border-slate-100 rounded-2xl group hover:border-primary transition-all" download>
+                    <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:bg-primary group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-file-pdf text-xl"></i>
+                    </div>
+                    <div class="text-left overflow-hidden">
+                        <p class="text-xs font-bold text-slate-700 truncate">Docs</p>
+                        <p class="text-[10px] text-slate-400 uppercase font-black">Télécharger (PDF)</p>
+                    </div>
+                </a>
+                {% else %}
+                <p class="text-xs text-slate-400 italic">Aucun fichier joint pour cette offre.</p>
+                {% endif %}
+
+                <div class="pt-4 space-y-3">
+                    {% if opp.lien_externe %}
+                    <a href="{{ opp.lien_externe }}" target="_blank" class="btn btn-primary btn-block rounded-xl font-bold">
+                        Postuler en ligne <i class="fa-solid fa-external-link text-xs ml-2"></i>
+                    </a>
+                    {% endif %}
+                    
+                    <p class="text-[10px] text-slate-400 text-center leading-relaxed">
+                        <i class="fa-solid fa-shield-halved"></i> 
+                        Cette opportunité est vérifiée par le bureau exécutif de l'AMEE.
+                    </p>
+                </div>
+            </div>
+
+            <div class="p-6 text-center border-2 border-dashed border-slate-100 rounded-[2rem]">
+                <p class="text-xs text-slate-500 mb-2 font-medium">Besoin de plus d'infos ?</p>
+                <a href="mailto:contact@amee-mali.org" class="text-primary font-black text-xs uppercase hover:underline">Nous contacter</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,82 +1,120 @@
 {% extends "backoffice/base.html" %}
 {% block content %}
 
-<div class="container py-3">
+<div class="max-w-7xl mx-auto py-6">
 
-<h4>
-{% if opportunity %}Modifier{% else %}Créer{% endif %}
-une opportunité
-</h4>
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold">
+            {% if opportunity %}Modifier{% else %}Créer{% endif %}
+            une opportunité
+        </h1>
+        <p class="text-base-content/60">
+            Gestion des offres d'emploi, stages et appels d'offres
+        </p>
+    </div>
 
-<form method="post" enctype="multipart/form-data">
-{% csrf_token %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
 
-<div class="grid lg:grid-cols-3 gap-6">
+        <div class="grid lg:grid-cols-3 gap-6">
+            
+            <div class="lg:col-span-2 space-y-6">
+                
+                <div role="tablist" class="tabs tabs-lifted">
+                    
+                    <input type="radio" name="lang_tabs" role="tab" class="tab" aria-label="Français" checked />
+                    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6 space-y-4">
+                        <div>
+                            <label class="label"><span class="label-text font-bold">Titre (FR)</span></label>
+                            {{ form.titre_fr }}
+                            {% if form.titre_fr.errors %}<div class="text-error text-sm">{{ form.titre_fr.errors }}</div>{% endif %}
+                        </div>
+                        <div>
+                            <label class="label"><span class="label-text font-bold">Description (FR)</span></label>
+                            {{ form.description_fr }}
+                            {% if form.description_fr.errors %}<div class="text-error text-sm">{{ form.description_fr.errors }}</div>{% endif %}
+                        </div>
+                    </div>
 
-    <!-- CONTENU -->
-    <div class="lg:col-span-2 space-y-6">
+                    <input type="radio" name="lang_tabs" role="tab" class="tab" aria-label="English" />
+                    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6 space-y-4">
+                        <div>
+                            <label class="label"><span class="label-text font-bold">Title (EN)</span></label>
+                            {{ form.titre_en }}
+                            {% if form.titre_en.errors %}<div class="text-error text-sm">{{ form.titre_en.errors }}</div>{% endif %}
+                        </div>
+                        <div>
+                            <label class="label"><span class="label-text font-bold">Description (EN)</span></label>
+                            {{ form.description_en }}
+                            {% if form.description_en.errors %}<div class="text-error text-sm">{{ form.description_en.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
 
-        <div class="card bg-base-100 shadow">
-            <div class="card-body">
-                <label class="label">Titre</label>
-                {{ form.titre }}
+                <div class="card bg-base-100 shadow">
+                    <div class="card-body">
+                        <label class="label">
+                            <span class="label-text font-medium">Document joint (PDF, etc.)</span>
+                        </label>
+                        {{ form.fichier_joint }}
+                    </div>
+                </div>
+            </div>
 
-                <label class="label mt-4">Description</label>
-                {{ form.description }}
+            <div class="space-y-6">
+
+                <div class="card bg-base-100 shadow">
+                    <div class="card-body space-y-4">
+                        <h3 class="font-semibold border-b pb-2">Paramètres</h3>
+
+                        <div>
+                            <label class="label"><span class="label-text">Type d'opportunité</span></label>
+                            {{ form.type }}
+                        </div>
+
+                        <div>
+                            <label class="label"><span class="label-text">Date limite</span></label>
+                            {{ form.date_limite }}
+                        </div>
+
+                        <div class="divider">Visibilité</div>
+
+                        <div class="flex items-center justify-between">
+                            <span class="label-text">Publié sur le site</span>
+                            {{ form.publie }}
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="label-text font-medium">Accès membres uniquement</span>
+                                {{ form.reserve_aux_membres }}
+                            </div>
+                            <p class="text-[10px] leading-tight text-base-content/50 italic">
+                                Si activé, seuls les membres connectés verront les détails.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card bg-base-100 shadow">
+                    <div class="card-body">
+                        <label class="label">
+                            <span class="label-text font-medium text-primary">Lien externe</span>
+                        </label>
+                        {{ form.lien_externe }}
+                    </div>
+                </div>
+
             </div>
         </div>
 
-    </div>
-
-    <!-- SIDEBAR -->
-    <div class="space-y-6">
-
-        <div class="card bg-base-100 shadow">
-            <div class="card-body space-y-4">
-
-                <h3 class="font-semibold">Publication</h3>
-
-                <div>
-                    <label class="label">Type</label>
-                    {{ form.type }}
-                </div>
-
-                <div>
-                    <label class="label">Date limite</label>
-                    {{ form.date_limite }}
-                </div>
-
-                <div class="flex justify-between items-center">
-                    <span>Lien extern</span>
-                    {{ form.lien_externe }}
-                </div>
-
-                <div class="flex justify-between items-center">
-                    <span>Publié</span>
-                    {{ form.publie }}
-                </div>
-
-                <div>
-                    <label class="label">Document joint</label>
-                    {{ form.fichier_joint }}
-                </div>
-
-            </div>
+        <div class="mt-8 flex gap-3">
+            <button type="submit" class="btn btn-primary px-8">
+                Enregistrer l'opportunité
+            </button>
+            <a href="{% url 'bo_opportunities_list' %}" class="btn btn-ghost">Annuler</a>
         </div>
-
-    </div>
-
-</div>
-
-<div class="mt-6">
-    <button class="btn btn-primary">
-        Enregistrer
-    </button>
-</div>
-
-</form>
-
-
+    </form>
 </div>
 
 {% endblock %}

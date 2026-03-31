@@ -1,0 +1,100 @@
+{% extends "backoffice/base.html" %}
+{% block content %}
+
+<div class="max-w-4xl mx-auto py-8">
+    <div class="flex items-center gap-4 mb-6">
+        <a href="{% url 'gallery_list' %}" class="btn btn-circle btn-ghost btn-sm">✕</a>
+        <div>
+            <h1 class="text-xl font-bold">Configuration de la Galerie</h1>
+            <p class="text-sm text-base-content/60">Gérez les albums photos de vos activités</p>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="grid lg:grid-cols-3 gap-6">
+            
+            <div class="lg:col-span-2 space-y-6">
+                <div role="tablist" class="tabs tabs-lifted">
+                    
+                    <input type="radio" name="gallery_tabs" role="tab" class="tab" aria-label="Français" checked />
+                    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6 space-y-4 shadow-sm">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Titre de l'activité (FR)</span>
+                            </label>
+                            {{ form.title_fr }}
+                            {% if form.title_fr.errors %}<p class="text-error text-xs mt-1">{{ form.title_fr.errors }}</p>{% endif %}
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Description (FR)</span>
+                            </label>
+                            {{ form.description_fr }}
+                            {% if form.description_fr.errors %}<p class="text-error text-xs mt-1">{{ form.description_fr.errors }}</p>{% endif %}
+                        </div>
+                    </div>
+
+                    <input type="radio" name="gallery_tabs" role="tab" class="tab" aria-label="English" />
+                    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6 space-y-4 shadow-sm">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Activity Title (EN)</span>
+                            </label>
+                            {{ form.title_en }}
+                            {% if form.title_en.errors %}<p class="text-error text-xs mt-1">{{ form.title_en.errors }}</p>{% endif %}
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Description (EN)</span>
+                            </label>
+                            {{ form.description_en }}
+                            {% if form.description_en.errors %}<p class="text-error text-xs mt-1">{{ form.description_en.errors }}</p>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="card bg-base-100 shadow-xl border border-base-200">
+                    <div class="card-body p-5 space-y-4">
+                        <h3 class="font-bold border-b pb-2">Paramètres</h3>
+
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Image de couverture</span>
+                            </label>
+                            {{ form.cover_image }}
+                        </div>
+
+                      <div class="form-control">
+                          <label class="label">
+                              <span class="label-text font-semibold">Publication</span>
+                          </label>
+                          <label class="label cursor-pointer justify-start gap-4 bg-base-200 rounded-lg p-4">
+                              {{ form.is_featured }}
+                              <div class="flex flex-col">
+                                  <span class="label-text font-medium text-base">Publier sur le site</span>
+                                  <span class="label-text-alt text-base-content/70">
+                                      Activez cette option pour rendre la galerie visible publiquement sur le site internet.
+                                  </span>
+                              </div>
+                          </label>
+                      </div>
+
+                        <div class="divider"></div>
+
+                        <button type="submit" class="btn btn-primary w-full">
+                            Enregistrer la galerie
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

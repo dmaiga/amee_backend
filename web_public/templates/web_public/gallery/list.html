@@ -1,0 +1,74 @@
+{% extends "base_public.html" %}
+{% load static %}
+
+{% block title %}Galerie Multimédia{% endblock %}
+
+{% block content %}
+<section class="bg-deep py-8 relative overflow-hidden border-b-4 border-primary">
+    <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+        <svg class="absolute right-0 top-0 h-full w-48 text-white" fill="currentColor" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path d="M0 100 L100 0 L100 100 Z"></path>
+        </svg>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+        <span class="inline-block bg-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-6">
+            Médiathèque Officielle
+        </span>
+        
+        <h1 class="text-4xl md:text-6xl font-black text-white mb-6 tracking-tighter">
+            Galerie <span class="text-primary">Multimédia</span>
+        </h1>
+        
+        <p class="text-slate-400 max-w-2xl mx-auto text-lg font-medium leading-relaxed">
+            Retrouvez en images les moments forts de l'AMEE : séminaires de haut niveau, 
+            ateliers de formation technique et assemblées générales de l'association.
+        </p>
+
+        <div class="mt-10 flex justify-center items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+            <a href="/" class="hover:text-white transition-colors">Accueil</a>
+            <i class="fa-solid fa-chevron-right text-[8px] opacity-30"></i>
+            <span class="text-primary">Galerie</span>
+        </div>
+    </div>
+</section>
+
+<section class="py-16 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for gallery in galleries %}
+            <div class="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-200">
+                <div class="relative aspect-video overflow-hidden">
+                    {% if gallery.cover_image %}
+                    <img src="{{ gallery.cover_image.url }}" alt="{{ gallery.title }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    {% else %}
+                    <div class="w-full h-full bg-slate-200 flex items-center justify-center text-slate-400 italic">Aucune image</div>
+                    {% endif %}
+                    
+                    <div class="absolute top-4 right-4 bg-black/50 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full border border-white/20 uppercase">
+                        {{ gallery.photos.count }} Photos
+                    </div>
+                </div>
+
+                <div class="p-8">
+                    <h3 class="text-xl font-bold text-slate-900 group-hover:text-primary transition-colors mb-3">
+                        {{ gallery.title }}
+                    </h3>
+                    <p class="text-slate-500 text-sm leading-relaxed mb-6">
+                        {{ gallery.description|truncatewords:20 }}
+                    </p>
+                    <a href="{% url 'public_gallery_detail' gallery.slug_fr %}" 
+                       class="btn btn-sm bg-transparent border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-xl px-6 font-black uppercase text-[10px] tracking-[0.2em] transition-all duration-300">
+                        Ouvrir l'album
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-20">
+                <p class="text-slate-400 italic font-medium">Aucune galerie n'est publiée pour le moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

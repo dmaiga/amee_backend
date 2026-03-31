@@ -229,17 +229,28 @@ Aucune notification
 
 
 <li class="mb-8">
+    <a href="{% url 'client-dashboard' %}" class="flex items-center gap-3">
 
-<a href="{% url 'client-dashboard' %}"
+        {% if request.user.client_profile.logo %}
+            <img src="{{ request.user.client_profile.logo.url }}"
+                 class="w-12 h-12 object-cover rounded-xl border">
+        {% else %}
+            <div class="w-12 h-12 rounded-xl bg-base-200 flex items-center justify-center">
+                👤
+            </div>
+        {% endif %}
 
-class="text-2xl font-black text-succes">
+        <div>
+            <p class="font-bold text-lg leading-none">
+                {{ request.user.client_profile.nom_entreprise|default:"AMEE" }}
+            </p>
+            <p class="text-xs opacity-60">
+                Espace Client
+            </p>
+        </div>
 
-AMEE
-
-</a>
-
+    </a>
 </li>
-
 
 
 <p class="text-xs font-semibold opacity-50 px-4 mb-2 uppercase">

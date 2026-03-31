@@ -1,0 +1,69 @@
+{% extends "base_public.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-12">
+    <nav class="mb-8">
+        <a href="{% url 'publications' %}" class="text-slate-400 hover:text-primary text-sm font-bold flex items-center gap-2 transition-colors">
+            <i class="fa-solid fa-arrow-left"></i> Retour aux publications
+        </a>
+    </nav>
+
+    <article class="space-y-8">
+        <header class="space-y-6 text-center md:text-left">
+            <div class="flex flex-wrap justify-center md:justify-start gap-3">
+                <span class="badge badge-primary font-black text-[10px] uppercase tracking-[0.2em] px-4 py-3">
+                    {{ article.get_type_display }}
+                </span>
+                <span class="badge badge-outline border-slate-200 text-slate-500 text-[10px] font-bold uppercase px-4 py-3">
+                    <i class="fa-solid fa-calendar-day mr-2"></i> {{ article.date_publication|date:"d F Y" }}
+                </span>
+            </div>
+            
+            <h1 class="text-3xl md:text-5xl font-black text-slate-900 leading-tight">
+                {{ article.titre }}
+            </h1>
+
+            <div class="flex items-center justify-center md:justify-start gap-4 text-slate-400 text-xs font-bold uppercase">
+                <span><i class="fa-solid fa-eye mr-1"></i> {{ article.lectures }} lectures</span>
+                <span class="h-1 w-1 bg-slate-300 rounded-full"></span>
+                <span>AMEE Officiel</span>
+            </div>
+        </header>
+
+        {% if article.image %}
+        <figure class="rounded-[2rem] overflow-hidden border-4 border-white shadow-2xl">
+            <img src="{{ article.image.url }}" alt="{{ article.titre }}" class="w-full object-cover max-h-[500px]">
+        </figure>
+        {% endif %}
+
+        <div class="prose prose-lg prose-slate max-w-none 
+                    prose-headings:text-slate-900 prose-headings:font-black 
+                    prose-p:text-slate-600 prose-p:leading-relaxed 
+                    prose-strong:text-primary prose-a:text-primary">
+            {{ article.contenu|linebreaks }}
+        </div>
+
+        {% if article.lien_externe %}
+        <div class="bg-slate-900 rounded-[2rem] p-8 md:p-10 text-white flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
+            <div class="relative z-10">
+                <h3 class="text-xl font-bold mb-2">Ressource complémentaire</h3>
+                <p class="text-slate-400 text-sm">Consultez le document officiel ou le lien d'inscription lié à cette publication.</p>
+            </div>
+            <a href="{{ article.lien_externe }}" target="_blank" class="btn btn-primary btn-wide rounded-xl font-black relative z-10">
+                Accéder au lien <i class="fa-solid fa-external-link ml-2"></i>
+            </a>
+            <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl"></div>
+        </div>
+        {% endif %}
+    </article>
+
+    <div class="mt-16 pt-8 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+        <p class="text-slate-400 text-sm font-bold uppercase italic">Partager cette actualité</p>
+        <div class="flex gap-2">
+            <button class="btn btn-circle btn-sm btn-ghost hover:bg-slate-100"><i class="fa-brands fa-linkedin-in text-slate-600"></i></button>
+            <button class="btn btn-circle btn-sm btn-ghost hover:bg-slate-100"><i class="fa-brands fa-facebook-f text-slate-600"></i></button>
+            <button class="btn btn-circle btn-sm btn-ghost hover:bg-slate-100"><i class="fa-brands fa-x-twitter text-slate-600"></i></button>
+        </div>
+    </div>
+</div>
+{% endblock %}

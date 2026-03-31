@@ -79,6 +79,28 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 
 from django.contrib.auth import get_user_model
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.core.paginator import Paginator
+from django.utils.dateparse import parse_date
+from datetime import datetime
+from django.db.models import Count, Q
+from django.db.models import Count, Q
+
+from django.db.models import Count, Q
+from portals.models import Notification
+from django.urls import reverse
+from accounts.models import User
+from django.utils import timezone
+from django.db.models import Q
+from django.shortcuts import render, redirect, get_object_or_404
+from cms.models import Mandat, BoardRole, BoardMembership
+from cms.forms import MandatForm, BoardRoleForm, BoardMembershipForm
+
+from django.contrib import messages
+from django.core.exceptions import ValidationError
+
+from django.contrib import messages
 
 from tresorerie.forms import EnrolementPaiementForm,PaiementSimpleForm,ActivationDigitaleForm
 
@@ -87,8 +109,6 @@ User = get_user_model()
 #-----------------------------
 #
 #-----------------------------
-from django.shortcuts import redirect
-from django.contrib import messages
 
 def bureau_required(view_func):
     def wrapper(request, *args, **kwargs):
@@ -523,9 +543,6 @@ def tresorerie_depense(request):
     )
 
 
-from django.core.paginator import Paginator
-from django.utils.dateparse import parse_date
-from datetime import datetime
 
 @login_required
 def transactions_list(request):
@@ -999,9 +1016,6 @@ def roster_decision(request, profil_id):
 #
 #-----------------------------
 
-from django.db.models import Count, Q
-
-from django.db.models import Count, Q
 
 @login_required
 def missions_list(request):
@@ -1043,7 +1057,6 @@ def missions_list(request):
         }
     )
 
-from django.db.models import Count, Q
 
 @login_required
 def mission_detail(request, mission_id):
@@ -1267,9 +1280,10 @@ def cms_dashboard(request):
         "articles_total": Article.objects.count(),
         "articles_brouillons": Article.objects.filter(publie=False).count(),
         "resources_total": Resource.objects.count(),
-        "opportunities_actives":
-            Opportunity.objects.filter(publie=True).count(),
-
+        "opportunities_actives":Opportunity.objects.filter(publie=True).count(),
+        'galleries_total': Gallery.objects.count(),
+        
+        'galleries': Gallery.objects.all().order_by('-created_at')[:5],
         "articles": Article.objects.order_by("-date_publication")[:5],
         "resources": Resource.objects.order_by("-cree_le")[:5],
         "opportunities": Opportunity.objects.order_by("-cree_le")[:5],
@@ -1423,9 +1437,6 @@ def ressource_detail(request, ressource_id):
         {"ressource": ressource}
     )
 
-from portals.models import Notification
-from django.urls import reverse
-from accounts.models import User
 
 @login_required
 def ressource_form(request, ressource_id=None):
@@ -1478,18 +1489,30 @@ def ressource_form(request, ressource_id=None):
     )
 # -----------------------------
 
+
 @login_required
 def opportunities_list(request):
 
     statut = request.GET.get("statut")
+    visibilite = request.GET.get("visibilite")
 
     opportunities = Opportunity.objects.all().order_by("-cree_le")
 
+    # filtre statut
     if statut == "active":
-        opportunities = [o for o in opportunities if not o.est_expire]
-
+        opportunities = opportunities.filter(
+            Q(date_limite__gte=timezone.now().date()) | Q(date_limite__isnull=True)
+        )
     elif statut == "expire":
-        opportunities = [o for o in opportunities if o.est_expire]
+        opportunities = opportunities.filter(
+            date_limite__lt=timezone.now().date()
+        )
+
+    # filtre visibilité
+    if visibilite == "public":
+        opportunities = opportunities.filter(reserve_aux_membres=False)
+    elif visibilite == "membre":
+        opportunities = opportunities.filter(reserve_aux_membres=True)
 
     return render(
         request,
@@ -1497,6 +1520,7 @@ def opportunities_list(request):
         {
             "opportunities": opportunities,
             "selected_statut": statut,
+            "selected_visibilite": visibilite,
         }
     )
 
@@ -1707,9 +1731,6 @@ def organisation_form(request, organisation_id=None):
     )
 
 
-from django.shortcuts import render, redirect, get_object_or_404
-from cms.models import Mandat, BoardRole, BoardMembership
-from cms.forms import MandatForm, BoardRoleForm, BoardMembershipForm
 
 
  
@@ -1717,15 +1738,21 @@ def mandat_list(request):
     mandats = Mandat.objects.all().order_by("-date_debut")
     return render(request, "backoffice/cms/governance/mandat_list.html", {"mandats": mandats})
 
-def mandat_create(request):
-    form = MandatForm(request.POST or None)
 
-    if form.is_valid():
-        form.save()
-        return redirect("mandat_list")
+def mandat_form(request, pk=None):
+    instance = get_object_or_404(Mandat, pk=pk) if pk else None
+    
+    form = MandatForm(request.POST or None, instance=instance)
 
-    return render(request, "backoffice/cms/governance/mandat_form.html", {"form": form})
+    if request.method == "POST":
+        if form.is_valid():
+            form.save()
+            return redirect("mandat_list")
 
+    return render(request, "backoffice/cms/governance/mandat_form.html", {
+        "form": form,
+        "mandat": instance 
+    })
 def mandat_detail(request, pk):
     mandat = get_object_or_404(Mandat, pk=pk)
 
@@ -1738,22 +1765,20 @@ def mandat_detail(request, pk):
         "membres": membres
     })
  
-from django.contrib import messages
-from django.core.exceptions import ValidationError
-
 def mandat_toggle(request, pk):
     mandat = get_object_or_404(Mandat, pk=pk)
-
+    
+    # Inversion du statut
     mandat.actif = not mandat.actif
-
+    
     try:
-        mandat.save()
-        messages.success(request, "Statut du mandat mis à jour.")
-    except ValidationError as e:
-        messages.error(request, e.message_dict.get("__all__", ["Erreur"])[0])
+        # On force la sauvegarde du champ spécifique
+        mandat.save(update_fields=['actif']) 
+        messages.success(request, f"Le mandat est désormais {'actif' if mandat.actif else 'clôturé'}.")
+    except Exception as e:
+        messages.error(request, f"Erreur lors de la mise à jour : {str(e)}")
 
     return redirect("mandat_list")
-
 
 def boardmembership_add(request, mandat_id):
     mandat = get_object_or_404(Mandat, pk=mandat_id)
@@ -1834,3 +1859,110 @@ def boardrole_toggle(request, pk):
     role.actif = not role.actif
     role.save()
     return redirect("boardrole_list")
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from cms.models import Gallery, Photo 
+from cms.forms import GalleryForm, PhotoForm
+
+def gallery_list(request):
+    # Alignement sur le champ 'created_at' du modèle
+    galleries = Gallery.objects.all().order_by('-created_at')
+    return render(request, 'backoffice/cms/gallery/gallery_list.html', {'galleries': galleries})
+
+def gallery_create(request):
+    if request.method == 'POST':
+        form = GalleryForm(request.POST, request.FILES)
+        if form.is_valid():
+            gallery = form.save()
+            messages.success(request, "Galerie créée. Ajoutez des photos maintenant.")
+            # Redirection vers le détail (slug ou pk selon ton urls.py)
+            return redirect('gallery_detail', pk=gallery.pk)
+    else:
+        form = GalleryForm()
+    return render(request, 'backoffice/cms/gallery/gallery_form.html', {'form': form})
+
+def gallery_update(request, pk): # Changé slug -> pk
+    gallery = get_object_or_404(Gallery, pk=pk) # Changé slug -> pk
+    if request.method == 'POST':
+        form = GalleryForm(request.POST, request.FILES, instance=gallery)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "La galerie a été mise à jour avec succès.")
+            # CORRECTION : On redirige vers pk, pas slug
+            return redirect('gallery_detail', pk=gallery.pk)
+    else:
+        form = GalleryForm(instance=gallery)
+    
+    return render(request, 'backoffice/cms/gallery/gallery_form.html', {
+        'form': form,
+        'gallery': gallery,
+        'is_update': True
+    })
+
+
+def gallery_detail(request, pk):
+    gallery = get_object_or_404(Gallery, pk=pk)
+    # Alignement sur le related_name='photos'
+    photos = gallery.photos.all()
+    
+    if request.method == 'POST':
+        # On utilise PhotoForm pour l'ajout multiple de photos
+        form = PhotoForm(request.POST, request.FILES)
+        if form.is_valid():
+            new_photos = form.cleaned_data.get('images') # Nom du champ dans PhotoForm
+            if new_photos:
+                for f in new_photos:
+                    # Création des instances de Photo
+                    Photo.objects.create(
+                        gallery=gallery, 
+                        image=f, 
+                        title=f.name, # Utilise le nom du fichier par défaut
+                        uploaded_by=request.user
+                    )
+                messages.success(request, f"{len(new_photos)} photos ajoutées.")
+            return redirect('gallery_detail', pk=gallery.pk)
+    else:
+        form = PhotoForm(initial={'gallery': gallery})
+    
+    return render(request, 'backoffice/cms/gallery/gallery_detail.html', {
+        'gallery': gallery,
+        'photos': photos,
+        'photo_form': form # On passe le formulaire de photo au template
+    })
+
+
+def gallery_photo_delete(request, pk):
+    photo = get_object_or_404(Photo, pk=pk)
+    # On récupère le PK de la galerie au lieu du slug
+    gallery_id = photo.gallery.pk if photo.gallery else None
+    
+    if request.method == 'POST':
+        photo.delete()
+        messages.success(request, "La photo a été supprimée.")
+        
+    if gallery_id:
+        # CORRECTION ICI : pk au lieu de slug
+        return redirect('gallery_detail', pk=gallery_id)
+    return redirect('gallery_list')
+
+def gallery_delete(request, pk):
+    gallery = get_object_or_404(Gallery, pk=pk)
+    if request.method == 'POST':
+        gallery.delete()
+        messages.success(request, "La galerie a été supprimée.")
+        return redirect('gallery_list')
+    return render(request, 'backoffice/cms/gallery/gallery_confirm_delete.html', {'gallery': gallery})
+
+def gallery_image_delete(request, pk):
+    # Alignement sur le modèle Photo
+    photo = get_object_or_404(Photo, pk=pk)
+    gallery_pk = photo.gallery.pk if photo.gallery else None
+    if request.method == 'POST':
+        photo.delete()
+        messages.success(request, "Photo supprimée.")
+    
+    if gallery_pk:
+        return redirect('gallery_detail', pk=gallery_pk)
+    return redirect('gallery_list')

@@ -1,0 +1,123 @@
+{% extends "base_public.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-16">
+    <div class="text-center mb-20">
+        <h1 class="text-4xl md:text-5xl font-black  ">
+            Rejoindre le Roster AMEE
+        </h1>
+        <p class="text-secondary mt-6 font-medium max-w-3xl mx-auto text-lg leading-relaxed tracking-wide">
+            L'accès à notre base de données est <span class="text-primary font-bold">gratuit pour les employeurs</span>, favorisant une collaboration inclusive et transparente pour les experts environnementaux.
+        </p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-10 items-start">
+        
+        <div class="lg:col-span-2 space-y-10">
+            
+            <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+                <h3 class="text-xs font-black text-primary uppercase tracking-[0.2em] mb-10 text-center sm:text-left">Critères d'éligibilité Professionnelle</h3>
+                
+                <div class="grid sm:grid-cols-2 gap-10">
+                    <div class="space-y-4">
+                        <div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary font-black text-xl">01</div>
+                        <p class="text-sm font-black text-deep uppercase tracking-tight">Option 1 : Profil Standard</p>
+                        <p class="text-[13px] text-secondary leading-relaxed">
+                            Diplôme de Licence (ou supérieur) en environnement, accompagné de <span class="text-primary font-bold italic text-sm">2 ans d'expérience EES</span>.
+                        </p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 font-black text-xl">02</div>
+                        <p class="text-sm font-black text-deep uppercase tracking-tight">Option 2 : Profil Expert</p>
+                        <p class="text-[13px] text-secondary leading-relaxed">
+                            <span class="text-primary font-bold italic text-sm">5 ans d'expérience</span> pour les autres diplômes. Soumis à l'approbation du Conseil d'Administration.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-surface p-10 rounded-[3rem] border border-slate-200">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="p-3 bg-deep rounded-2xl">
+                        <i class="fa-solid fa-shield-halved text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-deep uppercase tracking-widest">Contrôle Qualité & Incidents</h3>
+                        <p class="text-[11px] text-secondary uppercase font-bold tracking-tighter">Processus de suivi des prestations</p>
+                    </div>
+                </div>
+
+                <div class="grid sm:grid-cols-3 gap-6">
+                    <div class="p-5 bg-white rounded-2xl border border-slate-100">
+                        <span class="text-[10px] font-black text-primary uppercase">1ᵉʳ Signalement</span>
+                        <p class="text-[12px] text-secondary mt-2 leading-snug">Médiation et discussion constructive pour identifier les axes d'amélioration.</p>
+                    </div>
+                    <div class="p-5 bg-white rounded-2xl border border-slate-100">
+                        <span class="text-[10px] font-black text-accent uppercase">2ᵉ Signalement</span>
+                        <p class="text-[12px] text-secondary mt-2 leading-snug">Avertissement formel et suspension des propositions (1 à 3 mois).</p>
+                    </div>
+                    <div class="p-5 bg-white rounded-2xl border border-slate-100 border-l-4 border-l-red-500">
+                        <span class="text-[10px] font-black text-red-600 uppercase">3ᵉ Signalement</span>
+                        <p class="text-[12px] text-secondary mt-2 leading-snug">Examen par le Conseil pouvant mener à un <span class="font-bold">bannissement définitif</span>.</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex gap-4 p-5 bg-primary/5 rounded-2xl border border-primary/10">
+                    <i class="fa-solid fa-star text-primary text-sm mt-1"></i>
+                    <p class="text-[11px] text-deep leading-relaxed italic">
+                        <strong>Certification "Recommandé" :</strong> Les consultants performants ayant obtenu 5 évaluations positives sont mis en avant dans les suggestions prioritaires aux employeurs.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-deep p-10 rounded-[3rem] text-white shadow-2xl shadow-deep/30 flex flex-col h-full sticky top-8">
+            <h3 class="text-xs font-black text-primary uppercase tracking-[0.2em] mb-8">Frais & Règlement</h3>
+            
+            <div class="space-y-4 mb-10">
+                <div class="flex justify-between items-center opacity-70">
+                    <span class="text-sm">Droit d'adhésion</span>
+                    <span class="font-bold">5 000 FCFA</span>
+                </div>
+                <div class="flex justify-between items-center opacity-70">
+                    <span class="text-sm">Cotisation Annuelle</span>
+                    <span class="font-bold">10 000 FCFA</span>
+                </div>
+                <div class="pt-4 border-t border-white/10 flex justify-between items-center text-primary">
+                    <span class="text-[10px] font-black uppercase tracking-widest">Total à régler</span>
+                    <span class="text-3xl font-black italic">15 000 FCFA</span>
+                </div>
+            </div>
+
+            <div class="bg-white/5 rounded-2xl p-5 border border-white/10 mb-8">
+                <p class="text-[9px] uppercase font-black tracking-widest opacity-80 mb-4 text-white text-center">Trésorerie ({{ mandat_nom|default:"Mandat Actif" }})</p>
+                
+                <p class="text-sm font-bold text-center mb-4">{{ tresorier_nom|default:"En attente" }}</p>
+                
+                <div class="space-y-2">
+                    {% if tresorier_phone %}
+                    <a href="tel:{{ tresorier_phone }}" class="flex items-center justify-center gap-3 bg-primary hover:bg-white hover:text-deep px-4 py-3 rounded-xl transition-all font-black text-xs uppercase tracking-widest">
+                        <i class="fa-solid fa-phone"></i> {{ tresorier_phone }}
+                    </a>
+                    {% endif %}
+                    
+                    {% if tresorier_phone_sec %}
+                    <a href="tel:{{ tresorier_phone_sec }}" class="flex items-center justify-center gap-3 bg-white/10 hover:bg-primary px-4 py-3 rounded-xl transition-all font-black text-xs uppercase tracking-widest">
+                        <i class="fa-solid fa-phone"></i> {{ tresorier_phone_sec }}
+                    </a>
+                    {% endif %}
+                </div>
+                <p class="text-[14px] text-center mt-4  font-medium italic">Cash, Virement ou Mobile Money acceptés</p>
+            </div>
+
+            <a href="{% url 'inscription' %}?type=member" 
+               class="btn btn-lg bg-primary hover:bg-white hover:text-deep border-none text-white rounded-2xl w-full font-black uppercase tracking-[0.2em] text-[11px] transition-all duration-300 shadow-xl shadow-primary/20">
+                Commencer l'inscription
+            </a>
+            <p class="text-center text-[9px] uppercase mt-4 opacity-40 tracking-tighter font-bold">
+                Étude du dossier sous 48h ouvrées
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

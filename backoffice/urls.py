@@ -72,9 +72,19 @@ urlpatterns = [
     path("cms/opportunities/<int:opportunity_id>/edit/", web_views.opportunity_form, name="bo_opportunity_edit"),
 
     # ---  ---
+    path('cms/galleries/', web_views.gallery_list, name='gallery_list'),
+    path('cms/galleries/create/', web_views.gallery_create, name='gallery_create'),
+    path('<int:pk>/modifier/', web_views.gallery_update, name='gallery_update'),
+    path('cms/galleries/<int:pk>/', web_views.gallery_detail, name='gallery_detail'),
+    path('cms/galleries/<int:pk>/delete/', web_views.gallery_delete, name='gallery_delete'),
+    path('photo/<int:pk>/supprimer/', web_views.gallery_photo_delete, name='photo_delete'),
+    path('cms/galleries/image/<int:pk>/delete/', web_views.gallery_image_delete, name='gallery_image_delete'),
+    # ---  ---
 
     path("mandats/", web_views.mandat_list, name="mandat_list"),
-    path("mandats/create/", web_views.mandat_create, name="mandat_create"),
+    path("mandats/nouveau/", web_views.mandat_form, name="mandat_create"),
+    path("mandats/<int:pk>/modifier/", web_views.mandat_form, name="mandat_edit"),
+    
     path("mandats/<int:pk>/", web_views.mandat_detail, name="mandat_detail"),
     path("mandats/<int:mandat_id>/add-member/", web_views.boardmembership_add, name="boardmembership_add"),
     path("affectations/<int:pk>/edit/", web_views.boardmembership_update, name="boardmembership_update"),
