@@ -23,7 +23,7 @@ from django.views.decorators.cache import cache_page
 from rest_framework import status, permissions
 from django.core.mail import send_mail
 
-
+from drf_spectacular.utils import extend_schema
 
 
 # =====================================================
@@ -155,9 +155,13 @@ class BureauAPIView(APIView):
 
 
 
-
 class ContactAPIView(APIView):
     permission_classes = [permissions.AllowAny]
+
+    @extend_schema(
+        request=ContactSerializer,
+        responses={200: {"type": "object", "properties": {"message": {"type": "string"}}}}
+    )
 
     def post(self, request):
         serializer = ContactSerializer(data=request.data)
@@ -168,12 +172,12 @@ class ContactAPIView(APIView):
             send_mail(
                 subject=f"[AMEE Contact] {data['subject']}",
                 message=f"""
-Nom: {data['name']}
-Email: {data['email']}
-
-Message:
-{data['message']}
-""",
+                        Nom: {data['name']}
+                        Email: {data['email']}
+                        
+                        Message:
+                        {data['message']}
+                        """,
                 from_email=None,
                 recipient_list=["contact@amee-ml.com"],
                 fail_silently=False,

@@ -30,15 +30,15 @@ ALLOWED_HOSTS = ["*"]
 from datetime import timedelta
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'cms.utils.CustomPagination',
     'PAGE_SIZE': 10,
 }
-
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
